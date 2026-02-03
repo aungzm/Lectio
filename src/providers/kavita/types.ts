@@ -167,3 +167,93 @@ export interface KavitaSeriesFilter {
   pageNumber?: number;
   pageSize?: number;
 }
+
+// --- Person / Author ---
+
+export interface KavitaBrowsePersonDto {
+  id: number;
+  name: string;
+  coverImageLocked: boolean;
+  primaryColor: string | null;
+  secondaryColor: string | null;
+  coverImage: string | null;
+  aliases: string[] | null;
+  description: string | null;
+  roles: number[] | null;
+  seriesCount: number;
+  chapterCount: number;
+}
+
+export interface KavitaBrowsePersonFilterDto {
+  name?: string | null;
+  statements?: any[];
+  combination?: 0 | 1;
+  limitTo?: number;
+}
+
+// --- Collections ---
+
+export interface KavitaCollectionDto {
+  id: number;
+  title: string;
+  summary: string | null;
+  promoted: boolean;
+  ageRating: number;
+  coverImage: string | null;
+  primaryColor: string | null;
+  secondaryColor: string | null;
+  owner: string | null;
+}
+
+// --- Reading Lists ---
+
+export interface KavitaReadingListDto {
+  id: number;
+  title: string;
+  summary: string | null;
+  promoted: boolean;
+  coverImageLocked: boolean;
+  coverImage: string | null;
+  primaryColor: string | null;
+  secondaryColor: string | null;
+  ageRating: number;
+  itemCount: number;
+}
+
+export interface KavitaReadingListItemDto {
+  id: number;
+  chapterId: number;
+  seriesId: number;
+  volumeId: number;
+  libraryId: number;
+  seriesName: string;
+  seriesFormat: MangaFormat;
+  pagesRead: number;
+  chapterNumber: string;
+  volumeNumber: string;
+  chapterTitle: string | null;
+  coverImage: string | null;
+  pages: number;
+  order: number;
+}
+
+// --- Bookmarks ---
+
+export interface KavitaBookmarkDto {
+  id: number;
+  page: number;
+  volumeId: number;
+  seriesId: number;
+  chapterId: number;
+  imageOffset: number | null;
+  xPath: string | null;
+  chapterTitle: string | null;
+}
+
+export interface KavitaBookmarkUpdateDto {
+  chapterId: number;
+  volumeId: number;
+  seriesId: number;
+  page: number;
+  xPath?: string;
+}

@@ -1,9 +1,10 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { KavitaProvider } from '@/providers';
+import { KomgaProvider } from '@/providers';
 import type { ILibraryProvider, AuthResult } from '@/providers';
 
-export type ProviderType = 'kavita'; // extend as new providers are added
+export type ProviderType = 'kavita' | 'komga';
 
 export interface ServerConfig {
   id: string;
@@ -24,16 +25,16 @@ interface AuthState {
   restoreSession: () => Promise<void>;
 }
 
-function getProvider(type: ProviderType): ILibraryProvider {
+export function createProvider(type: ProviderType): ILibraryProvider {
   switch (type) {
-    case 'kavita':
-      return new KavitaProvider();
+    case 'kavita': return new KavitaProvider();
+    case 'komga':  return new KomgaProvider();
   }
 }
 
 const SESSION_KEY = 'lektio:session';
 
-export const useAuthStore = create<AuthState>((set, get) => ({
+export const useAuthStore = create<AuthState>((set) => ({
   serverConfig: null,
   auth: null,
   isAuthenticated: false,
@@ -43,7 +44,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   login: async (config, username, password) => {
     set({ isLoading: true, error: null });
     try {
-      const provider = getProvider(config.providerType);
+      const provider = createProvider(config.providerType);
       const auth = await provider.login(config.serverUrl, username, password);
       await AsyncStorage.setItem(SESSION_KEY, JSON.stringify({ config, auth }));
       set({ serverConfig: config, auth, isAuthenticated: true, isLoading: false });
@@ -63,7 +64,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const raw = await AsyncStorage.getItem(SESSION_KEY);
       if (!raw) return;
       const { config, auth } = JSON.parse(raw) as { config: ServerConfig; auth: AuthResult };
-      const provider = getProvider(config.providerType);
+      const provider = createProvider(config.providerType);
       const valid = await provider.validateToken(config.serverUrl, auth.token);
       if (valid) {
         set({ serverConfig: config, auth, isAuthenticated: true });

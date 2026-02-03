@@ -63,6 +63,35 @@ export interface AuthResult {
   apiKey: string;
 }
 
+export interface Author {
+  id: string;          // Kavita: numeric person id as string; Komga: "name|role" composite
+  name: string;
+  role: string;        // e.g. 'writer', 'artist'
+  coverUrl: string | null;
+  seriesCount: number;
+}
+
+export interface Collection {
+  id: string;
+  name: string;
+  summary: string | null;
+}
+
+export interface ReadList {
+  id: string;
+  name: string;
+  summary: string | null;
+}
+
+export interface Bookmark {
+  id: string;              // Kavita: server numeric id as string; Komga: local timestamp id
+  seriesId: string;
+  bookId: string;          // chapterId for Kavita; bookId for Komga
+  page: number;
+  xPath: string | null;    // epub CFI/xpath position
+  chapterTitle: string | null;
+}
+
 export interface ILibraryProvider {
   readonly name: string;
 
@@ -81,18 +110,47 @@ export interface ILibraryProvider {
   /** Get full detail for a single series. */
   getSeriesDetail(serverUrl: string, token: string, seriesId: string): Promise<Book>;
 
-  /** Get volumes (and their chapters) for a series. */
+  /** Get volumes (and their chapters) for a series. For Komga: each book becomes one volume with one chapter. */
   getVolumes(serverUrl: string, token: string, seriesId: string): Promise<Volume[]>;
 
-  /** Return a URL to stream/download the epub for a chapter. */
+  /** Return a URL to stream/download the epub for a chapter/book. */
   getEpubUrl(serverUrl: string, token: string, chapterId: string): string;
 
-  /** Get reading progress for a chapter. */
+  /** Get reading progress for a chapter/book. */
   getProgress(serverUrl: string, token: string, chapterId: string): Promise<ReadingProgress | null>;
 
-  /** Save reading progress for a chapter. */
+  /** Save reading progress for a chapter/book. */
   saveProgress(serverUrl: string, token: string, progress: ReadingProgress): Promise<void>;
 
   /** Build a cover image URL for a series. */
   getCoverUrl(serverUrl: string, seriesId: string, token: string): string;
+
+  // --- Optional browse features (not all providers support all of these) ---
+
+  /** List authors/persons. */
+  getAuthors?(serverUrl: string, token: string, page: number, pageSize: number, search?: string): Promise<Author[]>;
+
+  /** List series by a specific author (authorId is provider-specific). */
+  getSeriesByAuthor?(serverUrl: string, token: string, authorId: string, page: number, pageSize: number): Promise<Book[]>;
+
+  /** List server-defined collections. */
+  getCollections?(serverUrl: string, token: string): Promise<Collection[]>;
+
+  /** List series in a collection. */
+  getCollectionSeries?(serverUrl: string, token: string, collectionId: string, page: number, pageSize: number): Promise<Book[]>;
+
+  /** List reading lists. */
+  getReadLists?(serverUrl: string, token: string): Promise<ReadList[]>;
+
+  /** List books in a reading list. Returned items have id=chapterId/bookId so they can be passed directly to getEpubUrl. */
+  getReadListBooks?(serverUrl: string, token: string, readListId: string, page: number, pageSize: number): Promise<Book[]>;
+
+  /** Get all bookmarks for a series. */
+  getBookmarks?(serverUrl: string, token: string, seriesId: string): Promise<Bookmark[]>;
+
+  /** Add a bookmark. Returns the saved bookmark with its server-assigned id. */
+  addBookmark?(serverUrl: string, token: string, bookmark: Omit<Bookmark, 'id'>): Promise<Bookmark>;
+
+  /** Remove a bookmark. */
+  removeBookmark?(serverUrl: string, token: string, bookmark: Bookmark): Promise<void>;
 }

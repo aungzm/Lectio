@@ -1,14 +1,7 @@
 import { create } from 'zustand';
-import { KavitaProvider } from '@/providers';
 import type { Library, Book, Volume, ILibraryProvider } from '@/providers';
 import type { ProviderType, ServerConfig } from './authStore';
-
-function getProvider(type: ProviderType): ILibraryProvider {
-  switch (type) {
-    case 'kavita':
-      return new KavitaProvider();
-  }
-}
+import { createProvider } from './authStore';
 
 interface LibraryState {
   libraries: Library[];
@@ -32,7 +25,7 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   fetchLibraries: async (config, token) => {
     set({ isLoading: true, error: null });
     try {
-      const provider = getProvider(config.providerType);
+      const provider = createProvider(config.providerType);
       const libraries = await provider.getLibraries(config.serverUrl, token);
       set({ libraries, isLoading: false });
     } catch (e: any) {
@@ -43,7 +36,7 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   fetchSeries: async (config, token, libraryId, page = 0) => {
     set({ isLoading: true, error: null });
     try {
-      const provider = getProvider(config.providerType);
+      const provider = createProvider(config.providerType);
       const series = await provider.getSeries(config.serverUrl, token, libraryId, page, 30);
       const { seriesByLibrary } = get();
       set({
@@ -61,7 +54,7 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   fetchVolumes: async (config, token, seriesId) => {
     set({ isLoading: true, error: null });
     try {
-      const provider = getProvider(config.providerType);
+      const provider = createProvider(config.providerType);
       const volumes = await provider.getVolumes(config.serverUrl, token, seriesId);
       set((state) => ({ volumes: { ...state.volumes, [seriesId]: volumes }, isLoading: false }));
     } catch (e: any) {
