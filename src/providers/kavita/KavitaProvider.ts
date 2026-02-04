@@ -181,8 +181,9 @@ export class KavitaProvider implements ILibraryProvider {
     }));
   }
 
-  async getSeries(serverUrl: string, token: string, libraryId: string, page: number, pageSize: number): Promise<Book[]> {
-    const series = await kavitaGetSeries(serverUrl, token, Number(libraryId), page, pageSize);
+  async getSeries(serverUrl: string, token: string, libraryId: string | undefined, page: number, pageSize: number): Promise<Book[]> {
+    const libId = libraryId ? Number(libraryId) : undefined;
+    const series = await kavitaGetSeries(serverUrl, token, libId, page, pageSize);
     return series.map(mapSeries);
   }
 

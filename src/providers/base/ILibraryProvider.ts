@@ -105,7 +105,7 @@ export interface ILibraryProvider {
   getLibraries(serverUrl: string, token: string): Promise<Library[]>;
 
   /** List all series/books in a library (paginated). */
-  getSeries(serverUrl: string, token: string, libraryId: string, page: number, pageSize: number): Promise<Book[]>;
+  getSeries(serverUrl: string, token: string, libraryId: string | undefined, page: number, pageSize: number): Promise<Book[]>;
 
   /** Get full detail for a single series. */
   getSeriesDetail(serverUrl: string, token: string, seriesId: string): Promise<Book>;

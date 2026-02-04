@@ -1,5 +1,5 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { DrawerScreenProps } from '@react-navigation/drawer';
 
 // Root stack — unauthenticated screens
 export type RootStackParamList = {
@@ -7,11 +7,14 @@ export type RootStackParamList = {
   Main: undefined;
 };
 
-// Tab navigator — main authenticated screens
-export type MainTabParamList = {
+// Drawer navigator — main authenticated screens
+export type MainDrawerParamList = {
   Library: undefined;
-  Browse: undefined;
-  Bookmarks: undefined;
+  Series: undefined;
+  Authors: undefined;
+  Collections: undefined;
+  ReadList: undefined;
+  WantToRead: undefined; // Kavita only — hidden for Komga
   Settings: undefined;
 };
 
@@ -23,17 +26,33 @@ export type LibraryStackParamList = {
   Reader: { chapterId: string; title: string; epubUrl: string };
 };
 
-// Browse stack — hub + authors / collections / readlists drill-downs
-export type BrowseStackParamList = {
-  BrowseHub: undefined;
+// All Series stack
+export type AllSeriesStackParamList = {
+  AllSeries: undefined;
+};
+
+// Authors stack
+export type AuthorsStackParamList = {
   Authors: undefined;
   AuthorDetail: { authorId: string; authorName: string };
+};
+
+// Collections stack
+export type CollectionsStackParamList = {
   Collections: undefined;
   CollectionDetail: { collectionId: string; collectionName: string };
+};
+
+// ReadLists stack
+export type ReadListsStackParamList = {
   ReadLists: undefined;
   ReadListDetail: { readListId: string; readListName: string };
-  // Shared reader for items opened from Browse
   Reader: { chapterId: string; title: string; epubUrl: string };
+};
+
+// Want to Read stack (Kavita only)
+export type WantToReadStackParamList = {
+  WantToRead: undefined;
 };
 
 // Bookmarks stack
@@ -48,13 +67,15 @@ export type LibrariesScreenProps = NativeStackScreenProps<LibraryStackParamList,
 export type SeriesListScreenProps = NativeStackScreenProps<LibraryStackParamList, 'SeriesList'>;
 export type SeriesDetailScreenProps = NativeStackScreenProps<LibraryStackParamList, 'SeriesDetail'>;
 export type ReaderScreenProps = NativeStackScreenProps<LibraryStackParamList, 'Reader'>;
-export type SettingsScreenProps = BottomTabScreenProps<MainTabParamList, 'Settings'>;
+export type SettingsScreenProps = DrawerScreenProps<MainDrawerParamList, 'Settings'>;
 
-export type BrowseHubScreenProps = NativeStackScreenProps<BrowseStackParamList, 'BrowseHub'>;
-export type AuthorsScreenProps = NativeStackScreenProps<BrowseStackParamList, 'Authors'>;
-export type AuthorDetailScreenProps = NativeStackScreenProps<BrowseStackParamList, 'AuthorDetail'>;
-export type CollectionsScreenProps = NativeStackScreenProps<BrowseStackParamList, 'Collections'>;
-export type CollectionDetailScreenProps = NativeStackScreenProps<BrowseStackParamList, 'CollectionDetail'>;
-export type ReadListsScreenProps = NativeStackScreenProps<BrowseStackParamList, 'ReadLists'>;
-export type ReadListDetailScreenProps = NativeStackScreenProps<BrowseStackParamList, 'ReadListDetail'>;
+export type AuthorsScreenProps = NativeStackScreenProps<AuthorsStackParamList, 'Authors'>;
+export type AuthorDetailScreenProps = NativeStackScreenProps<AuthorsStackParamList, 'AuthorDetail'>;
+
+export type CollectionsScreenProps = NativeStackScreenProps<CollectionsStackParamList, 'Collections'>;
+export type CollectionDetailScreenProps = NativeStackScreenProps<CollectionsStackParamList, 'CollectionDetail'>;
+
+export type ReadListsScreenProps = NativeStackScreenProps<ReadListsStackParamList, 'ReadLists'>;
+export type ReadListDetailScreenProps = NativeStackScreenProps<ReadListsStackParamList, 'ReadListDetail'>;
+
 export type BookmarksListScreenProps = NativeStackScreenProps<BookmarksStackParamList, 'BookmarksList'>;

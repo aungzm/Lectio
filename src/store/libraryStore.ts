@@ -6,18 +6,21 @@ import { createProvider } from './authStore';
 interface LibraryState {
   libraries: Library[];
   seriesByLibrary: Record<string, Book[]>;
+  allSeries: Book[];
   volumes: Record<string, Volume[]>; // keyed by seriesId
   isLoading: boolean;
   error: string | null;
 
   fetchLibraries: (config: ServerConfig, token: string) => Promise<void>;
   fetchSeries: (config: ServerConfig, token: string, libraryId: string, page?: number) => Promise<void>;
+  fetchAllSeries: (config: ServerConfig, token: string, page?: number) => Promise<void>;
   fetchVolumes: (config: ServerConfig, token: string, seriesId: string) => Promise<void>;
 }
 
 export const useLibraryStore = create<LibraryState>((set, get) => ({
   libraries: [],
   seriesByLibrary: {},
+  allSeries: [],
   volumes: {},
   isLoading: false,
   error: null,
@@ -46,6 +49,20 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
         },
         isLoading: false,
       });
+    } catch (e: any) {
+      set({ isLoading: false, error: e?.message ?? 'Failed to load series' });
+    }
+  },
+
+  fetchAllSeries: async (config, token, page = 0) => {
+    set({ isLoading: true, error: null });
+    try {
+      const provider = createProvider(config.providerType);
+      const series = await provider.getSeries(config.serverUrl, token, undefined, page, 30);
+      set((state) => ({
+        allSeries: page === 0 ? series : [...state.allSeries, ...series],
+        isLoading: false,
+      }));
     } catch (e: any) {
       set({ isLoading: false, error: e?.message ?? 'Failed to load series' });
     }

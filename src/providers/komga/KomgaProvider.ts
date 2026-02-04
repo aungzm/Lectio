@@ -136,11 +136,11 @@ export class KomgaProvider implements ILibraryProvider {
   async getSeries(
     serverUrl: string,
     token: string,
-    libraryId: string,
+    libraryId: string | undefined,
     page: number,
     pageSize: number,
   ): Promise<Book[]> {
-    const result = await komgaGetSeries(serverUrl, token, libraryId, page, pageSize);
+    const result = await komgaGetSeries(serverUrl, token, libraryId || undefined, page, pageSize);
     return result.content.map(mapSeries);
   }
 
