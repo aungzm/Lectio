@@ -6,6 +6,7 @@ import { useAuthStore } from '@/store/authStore';
 import type {
   RootStackParamList,
   MainDrawerParamList,
+  HomeStackParamList,
   LibraryStackParamList,
   AllSeriesStackParamList,
   AuthorsStackParamList,
@@ -14,6 +15,7 @@ import type {
   WantToReadStackParamList,
 } from './types';
 
+import HomeScreen from '@/screens/HomeScreen';
 import LoginScreen from '@/screens/LoginScreen';
 import LibrariesScreen from '@/screens/LibrariesScreen';
 import SeriesListScreen from '@/screens/SeriesListScreen';
@@ -31,12 +33,25 @@ import WantToReadScreen from '@/screens/WantToReadScreen';
 
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 const Drawer = createDrawerNavigator<MainDrawerParamList>();
+const HomeStack = createNativeStackNavigator<HomeStackParamList>();
 const LibraryStack = createNativeStackNavigator<LibraryStackParamList>();
 const AllSeriesStack = createNativeStackNavigator<AllSeriesStackParamList>();
 const AuthorsStack = createNativeStackNavigator<AuthorsStackParamList>();
 const CollectionsStack = createNativeStackNavigator<CollectionsStackParamList>();
 const ReadListsStack = createNativeStackNavigator<ReadListsStackParamList>();
 const WantToReadStack = createNativeStackNavigator<WantToReadStackParamList>();
+
+function HomeNavigator() {
+  return (
+    <HomeStack.Navigator>
+      <HomeStack.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{ title: 'Home', headerLeft: () => <DrawerToggleButton tintColor="black" /> }}
+      />
+    </HomeStack.Navigator>
+  );
+}
 
 function LibraryNavigator() {
   return (
@@ -119,6 +134,7 @@ function MainDrawer() {
 
   return (
     <Drawer.Navigator screenOptions={{ headerShown: false, drawerType: 'slide' }}>
+      <Drawer.Screen name="Home" component={HomeNavigator} options={{ title: 'Home' }} />
       <Drawer.Screen name="Library" component={LibraryNavigator} options={{ title: 'Library' }} />
       <Drawer.Screen name="Series" component={AllSeriesNavigator} options={{ title: 'Series' }} />
       <Drawer.Screen name="Authors" component={AuthorsNavigator} options={{ title: 'Authors' }} />

@@ -34,6 +34,9 @@ import {
   kavitaRemoveBookmark,
   kavitaPersonCoverUrl,
   kavitaCollectionCoverUrl,
+  kavitaGetWantToRead,
+  kavitaGetRecentlyAdded,
+  kavitaGetContinueReading,
 } from './client';
 import type {
   KavitaSeriesDto,
@@ -330,5 +333,20 @@ export class KavitaProvider implements ILibraryProvider {
       seriesId: Number(bookmark.seriesId),
       page: bookmark.page,
     });
+  }
+
+  async getWantToRead(serverUrl: string, token: string, page: number, pageSize: number): Promise<Book[]> {
+    const series = await kavitaGetWantToRead(serverUrl, token, page, pageSize);
+    return series.map(mapSeries);
+  }
+
+  async getRecentlyAdded(serverUrl: string, token: string, pageSize: number): Promise<Book[]> {
+    const series = await kavitaGetRecentlyAdded(serverUrl, token, pageSize);
+    return series.map(mapSeries);
+  }
+
+  async getContinueReading(serverUrl: string, token: string, pageSize: number): Promise<Book[]> {
+    const series = await kavitaGetContinueReading(serverUrl, token, pageSize);
+    return series.map(mapSeries);
   }
 }

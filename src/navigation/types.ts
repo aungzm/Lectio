@@ -9,6 +9,7 @@ export type RootStackParamList = {
 
 // Drawer navigator — main authenticated screens
 export type MainDrawerParamList = {
+  Home: undefined;
   Library: undefined;
   Series: undefined;
   Authors: undefined;
@@ -16,6 +17,10 @@ export type MainDrawerParamList = {
   ReadList: undefined;
   WantToRead: undefined; // Kavita only — hidden for Komga
   Settings: undefined;
+};
+
+export type HomeStackParamList = {
+  Home: undefined;
 };
 
 // Library stack — Libraries → SeriesList → SeriesDetail → Reader

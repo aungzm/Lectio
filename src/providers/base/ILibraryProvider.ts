@@ -153,4 +153,13 @@ export interface ILibraryProvider {
 
   /** Remove a bookmark. */
   removeBookmark?(serverUrl: string, token: string, bookmark: Bookmark): Promise<void>;
+
+  /** Get the user's Want to Read list (Kavita only). */
+  getWantToRead?(serverUrl: string, token: string, page: number, pageSize: number): Promise<Book[]>;
+
+  /** Get recently added series (Kavita only). */
+  getRecentlyAdded?(serverUrl: string, token: string, pageSize: number): Promise<Book[]>;
+
+  /** Get series in progress / continue reading (Kavita only). */
+  getContinueReading?(serverUrl: string, token: string, pageSize: number): Promise<Book[]>;
 }
