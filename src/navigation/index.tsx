@@ -76,6 +76,8 @@ function AllSeriesNavigator() {
   return (
     <AllSeriesStack.Navigator>
       <AllSeriesStack.Screen name="AllSeries" component={AllSeriesScreen} options={{ title: 'Series', headerLeft: () => <DrawerToggleButton tintColor="black" /> }} />
+      <AllSeriesStack.Screen name="SeriesDetail" component={SeriesDetailScreen} options={({ route }) => ({ title: route.params.title })} />
+      <AllSeriesStack.Screen name="Reader" component={ReaderScreen} options={{ headerShown: false }} />
     </AllSeriesStack.Navigator>
   );
 }
@@ -89,6 +91,8 @@ function AuthorsNavigator() {
         component={AuthorDetailScreen}
         options={({ route }) => ({ title: route.params.authorName })}
       />
+      <AuthorsStack.Screen name="SeriesDetail" component={SeriesDetailScreen} options={({ route }) => ({ title: route.params.title })} />
+      <AuthorsStack.Screen name="Reader" component={ReaderScreen} options={{ headerShown: false }} />
     </AuthorsStack.Navigator>
   );
 }
@@ -102,6 +106,8 @@ function CollectionsNavigator() {
         component={CollectionDetailScreen}
         options={({ route }) => ({ title: route.params.collectionName })}
       />
+      <CollectionsStack.Screen name="SeriesDetail" component={SeriesDetailScreen} options={({ route }) => ({ title: route.params.title })} />
+      <CollectionsStack.Screen name="Reader" component={ReaderScreen} options={{ headerShown: false }} />
     </CollectionsStack.Navigator>
   );
 }
