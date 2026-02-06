@@ -23,6 +23,7 @@ import {
   kavitaSaveProgress,
   kavitaEpubUrl,
   kavitaCoverUrl,
+  kavitaVolumeCoverUrl,
   kavitaGetPersons,
   kavitaGetSeriesByPerson,
   kavitaGetCollections,
@@ -228,6 +229,10 @@ export class KavitaProvider implements ILibraryProvider {
 
   getCoverUrl(serverUrl: string, seriesId: string, apiKey: string): string {
     return kavitaCoverUrl(serverUrl, Number(seriesId), apiKey);
+  }
+
+  getVolumeCoverUrl(serverUrl: string, volumeId: string, apiKey: string): string {
+    return kavitaVolumeCoverUrl(serverUrl, Number(volumeId), apiKey);
   }
 
   async getAuthors(
