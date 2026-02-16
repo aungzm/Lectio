@@ -130,6 +130,8 @@ function WantToReadNavigator() {
   return (
     <WantToReadStack.Navigator>
       <WantToReadStack.Screen name="WantToRead" component={WantToReadScreen} options={{ title: 'Want to Read', headerLeft: () => <DrawerToggleButton tintColor="black" /> }} />
+      <WantToReadStack.Screen name="SeriesDetail" component={SeriesDetailScreen} options={({ route }) => ({ title: route.params.title })} />
+      <WantToReadStack.Screen name="Reader" component={ReaderScreen} options={{ headerShown: false }} />
     </WantToReadStack.Navigator>
   );
 }

@@ -64,6 +64,8 @@ export type ReadListsStackParamList = {
 // Want to Read stack (Kavita only)
 export type WantToReadStackParamList = {
   WantToRead: undefined;
+  SeriesDetail: { seriesId: string; title: string };
+  Reader: { chapterId: string; title: string; epubUrl: string };
 };
 
 // Bookmarks stack
@@ -90,5 +92,7 @@ export type AllSeriesScreenProps = NativeStackScreenProps<AllSeriesStackParamLis
 
 export type ReadListsScreenProps = NativeStackScreenProps<ReadListsStackParamList, 'ReadLists'>;
 export type ReadListDetailScreenProps = NativeStackScreenProps<ReadListsStackParamList, 'ReadListDetail'>;
+
+export type WantToReadScreenProps = NativeStackScreenProps<WantToReadStackParamList, 'WantToRead'>;
 
 export type BookmarksListScreenProps = NativeStackScreenProps<BookmarksStackParamList, 'BookmarksList'>;

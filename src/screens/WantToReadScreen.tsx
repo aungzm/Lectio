@@ -1,14 +1,13 @@
 import React, { useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { useAuthStore } from '@/store/authStore';
 import { useHomeStore } from '@/store/homeStore';
 import { createProvider } from '@/store/authStore';
 import { CoverImage } from '@/components/CoverImage';
 import type { Book } from '@/providers';
+import type { WantToReadScreenProps } from '@/navigation/types';
 
-export default function WantToReadScreen() {
-  const drawerNav = useNavigation<any>();
+export default function WantToReadScreen({ navigation }: WantToReadScreenProps) {
   const { serverConfig, auth } = useAuthStore();
   const { wantToRead, isLoading, fetchWantToRead } = useHomeStore();
 
@@ -28,10 +27,7 @@ export default function WantToReadScreen() {
   }
 
   function handlePress(book: Book) {
-    drawerNav.navigate('Library', {
-      screen: 'SeriesDetail',
-      params: { seriesId: book.id, title: book.title },
-    });
+    navigation.navigate('SeriesDetail', { seriesId: book.id, title: book.title });
   }
 
   if (isLoading && wantToRead.length === 0) {
@@ -49,9 +45,9 @@ export default function WantToReadScreen() {
         keyExtractor={(item) => item.id}
         numColumns={3}
         contentContainerClassName="px-3 py-3"
-        columnWrapperClassName="gap-2 mb-3"
+        columnWrapperClassName="mb-3"
         renderItem={({ item }) => (
-          <TouchableOpacity className="flex-1 items-center" onPress={() => handlePress(item)}>
+          <TouchableOpacity className="w-1/3 items-center px-1" onPress={() => handlePress(item)}>
             <View className="w-full aspect-[2/3] bg-gray-200 rounded-lg overflow-hidden mb-1">
               <CoverImage uri={getCoverUri(item)} className="w-full h-full" resizeMode="cover" />
             </View>
