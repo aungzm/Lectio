@@ -275,5 +275,5 @@ export function kavitaPersonCoverUrl(serverUrl: string, personId: number, apiKey
 
 /** Returns a URL for a collection cover image. */
 export function kavitaCollectionCoverUrl(serverUrl: string, collectionId: number, apiKey: string): string {
-  return `${serverUrl.replace(/\/$/, '')}/api/Image/collection-cover?collectionId=${collectionId}&apiKey=${apiKey}`;
+  return `${serverUrl.replace(/\/$/, '')}/api/Image/collection-cover?collectionTagId=${collectionId}&apiKey=${apiKey}`;
 }
