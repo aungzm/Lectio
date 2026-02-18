@@ -3,7 +3,7 @@ import { View, ActivityIndicator } from 'react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useLibraryStore } from '@/store/libraryStore';
 import { createProvider } from '@/store/authStore';
-import { SeriesGrid } from '@/components/SeriesGrid';
+import { BookGrid } from '@/components/BookGrid';
 import type { SeriesListScreenProps } from '@/navigation/types';
 import type { Book } from '@/providers';
 
@@ -39,8 +39,8 @@ export default function SeriesListScreen({ route, navigation }: SeriesListScreen
 
   return (
     <View className="flex-1 bg-white">
-      <SeriesGrid
-        series={series}
+      <BookGrid
+        books={series}
         getCoverUri={getCoverUri}
         onPress={(book) => navigation.navigate('SeriesDetail', { seriesId: book.id, title: book.title })}
         emptyText="No books found."
