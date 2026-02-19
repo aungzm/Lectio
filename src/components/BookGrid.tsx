@@ -1,26 +1,27 @@
 import React from 'react';
 import { View, Text, FlatList, TouchableOpacity } from 'react-native';
 import { CoverImage } from './CoverImage';
-import type { Book } from '@/providers';
 
-interface BookGridProps {
-  books: Book[];
-  getCoverUri: (book: Book) => string | null;
-  onPress: (book: Book) => void;
+interface BookGridProps<T extends { id: string }> {
+  items: T[];
+  getCoverUri: (item: T) => string | null;
+  getTitle: (item: T) => string;
+  onPress: (item: T) => void;
   emptyText?: string;
   ListHeaderComponent?: React.ReactElement;
 }
 
-export function BookGrid({
-  books,
+export function BookGrid<T extends { id: string }>({
+  items,
   getCoverUri,
+  getTitle,
   onPress,
   emptyText = 'No items found.',
   ListHeaderComponent,
-}: BookGridProps) {
+}: BookGridProps<T>) {
   return (
     <FlatList
-      data={books}
+      data={items}
       keyExtractor={(item) => item.id}
       numColumns={3}
       contentContainerClassName="px-3 py-3"
@@ -32,7 +33,7 @@ export function BookGrid({
             <CoverImage uri={getCoverUri(item)} className="w-full h-full" resizeMode="cover" />
           </View>
           <Text className="text-xs text-gray-700 text-center" numberOfLines={2}>
-            {item.title}
+            {getTitle(item)}
           </Text>
         </TouchableOpacity>
       )}

@@ -40,8 +40,9 @@ export default function SeriesListScreen({ route, navigation }: SeriesListScreen
   return (
     <View className="flex-1 bg-white">
       <BookGrid
-        books={series}
+        items={series}
         getCoverUri={getCoverUri}
+        getTitle={(item) => item.title}
         onPress={(book) => navigation.navigate('SeriesDetail', { seriesId: book.id, title: book.title })}
         emptyText="No books found."
       />

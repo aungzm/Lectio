@@ -37,8 +37,9 @@ export default function AllSeriesScreen({ navigation }: AllSeriesScreenProps) {
   return (
     <View className="flex-1 bg-white">
       <BookGrid
-        books={allSeries}
+        items={allSeries}
         getCoverUri={getCoverUri}
+        getTitle={(item) => item.title}
         onPress={(book) => navigation.navigate('SeriesDetail', { seriesId: book.id, title: book.title })}
         emptyText="No series found."
       />
