@@ -1,11 +1,30 @@
 import React, { useEffect, useState } from 'react';
-import { View, TextInput, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, TextInput, Image } from 'react-native';
+import { User } from 'lucide-react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useBrowseStore } from '@/store/browseStore';
 import { createProvider } from '@/store/authStore';
-import { BookGrid } from '@/components/BookGrid';
 import type { AuthorsScreenProps } from '@/navigation/types';
 import type { Author } from '@/providers';
+
+const NUM_COLUMNS = 3;
+
+function AuthorAvatar({ uri }: { uri: string | null }) {
+  const [errored, setErrored] = useState(false);
+
+  if (!uri || errored) {
+    return <User size={36} color="#9ca3af" />;
+  }
+
+  return (
+    <Image
+      source={{ uri }}
+      style={{ width: '100%', height: '100%' }}
+      resizeMode="cover"
+      onError={() => setErrored(true)}
+    />
+  );
+}
 
 export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
   const { serverConfig, auth } = useAuthStore();
@@ -25,41 +44,60 @@ export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
     }
   }
 
-  function getCoverUri(author: Author): string | null {
+  function getAuthorCoverUri(author: Author): string | null {
     if (!serverConfig || !auth) return null;
     const provider = createProvider(serverConfig.providerType) as any;
     return provider.getAuthorCoverUrl?.(serverConfig.serverUrl, author.id, auth.apiKey) ?? null;
   }
 
-  if (isLoading && authors.length === 0) {
-    return (
-      <View className="flex-1 items-center justify-center bg-white">
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
-
   return (
     <View className="flex-1 bg-white">
-      <BookGrid
-        items={authors}
-        getCoverUri={getCoverUri}
-        getTitle={(author) => author.name}
-        onPress={(author) => navigation.navigate('AuthorDetail', { authorId: author.id, authorName: author.name })}
-        emptyText="No authors found."
-        ListHeaderComponent={
-          <View className="pb-3">
-            <TextInput
-              className="bg-gray-100 rounded-lg px-4 py-2.5 text-base text-gray-900"
-              placeholder="Search authors…"
-              value={search}
-              onChangeText={handleSearch}
-              autoCorrect={false}
-              autoCapitalize="none"
-            />
-          </View>
-        }
-      />
+      <View className="px-4 py-3 border-b border-gray-100">
+        <TextInput
+          className="bg-gray-100 rounded-lg px-4 py-2.5 text-base text-gray-900"
+          placeholder="Search authors…"
+          value={search}
+          onChangeText={handleSearch}
+          autoCorrect={false}
+          autoCapitalize="none"
+        />
+      </View>
+
+      {isLoading && authors.length === 0 ? (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" />
+        </View>
+      ) : (
+        <FlatList
+          data={authors}
+          keyExtractor={(item) => item.id}
+          numColumns={NUM_COLUMNS}
+          contentContainerStyle={{ paddingHorizontal: 12, paddingVertical: 16 }}
+          columnWrapperStyle={{ justifyContent: 'flex-start' }}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={{ width: `${100 / NUM_COLUMNS}%` }}
+              className="items-center px-2 mb-5"
+              onPress={() => navigation.navigate('AuthorDetail', { authorId: item.id, authorName: item.name })}
+            >
+              <View className="w-28 h-28 rounded-full bg-gray-100 overflow-hidden items-center justify-center mb-2">
+                <AuthorAvatar uri={getAuthorCoverUri(item)} />
+              </View>
+              <Text className="text-sm text-gray-900 font-medium text-center" numberOfLines={2}>
+                {item.name}
+              </Text>
+              {item.role ? (
+                <Text className="text-xs text-gray-400 capitalize text-center" numberOfLines={1}>
+                  {item.role}
+                </Text>
+              ) : null}
+            </TouchableOpacity>
+          )}
+          ListEmptyComponent={
+            <Text className="text-center text-gray-400 mt-20">No authors found.</Text>
+          }
+        />
+      )}
     </View>
   );
 }
