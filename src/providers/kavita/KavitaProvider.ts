@@ -30,6 +30,7 @@ import {
   kavitaGetCollectionSeries,
   kavitaGetReadingLists,
   kavitaGetReadingListItems,
+  kavitaReadingListCoverUrl,
   kavitaGetSeriesBookmarks,
   kavitaAddBookmark,
   kavitaRemoveBookmark,
@@ -123,10 +124,20 @@ function mapPerson(p: KavitaBrowsePersonDto, serverUrl: string, apiKey: string):
   };
 }
 
+function readingListItemLabel(item: KavitaReadingListItemDto): string {
+  if (item.chapterTitle) return `${item.seriesName} — ${item.chapterTitle}`;
+  // -100000 is Kavita's sentinel for a volume-level file with no discrete chapter number
+  const chapterNum = parseFloat(item.chapterNumber);
+  if (chapterNum < 0) {
+    return item.volumeNumber && item.volumeNumber !== '0'
+      ? `${item.seriesName} — Vol. ${item.volumeNumber}`
+      : item.seriesName;
+  }
+  return `${item.seriesName} — Chapter ${item.chapterNumber}`;
+}
+
 function mapReadingListItem(item: KavitaReadingListItemDto): Book {
-  const label = item.chapterTitle
-    ? `${item.seriesName} — ${item.chapterTitle}`
-    : `${item.seriesName} — Chapter ${item.chapterNumber}`;
+  const label = readingListItemLabel(item);
   return {
     id: String(item.chapterId),
     title: label,
@@ -136,6 +147,8 @@ function mapReadingListItem(item: KavitaReadingListItemDto): Book {
     pagesRead: item.pagesRead,
     format: toBookFormat(item.seriesFormat),
     libraryId: String(item.libraryId),
+    seriesId: String(item.seriesId),
+    volumeId: String(item.volumeId),
     metadata: {
       summary: null,
       authors: [],
@@ -288,6 +301,10 @@ export class KavitaProvider implements ILibraryProvider {
     return kavitaCollectionCoverUrl(serverUrl, Number(collectionId), apiKey);
   }
 
+
+  getReadListCoverUrl(serverUrl: string, readListId: string, apiKey: string): string {
+    return kavitaReadingListCoverUrl(serverUrl, Number(readListId), apiKey);
+  }
 
   async getReadLists(serverUrl: string, token: string): Promise<ReadList[]> {
     const lists = await kavitaGetReadingLists(serverUrl, token);

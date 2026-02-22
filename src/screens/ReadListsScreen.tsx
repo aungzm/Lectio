@@ -1,7 +1,9 @@
 import React, { useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useBrowseStore } from '@/store/browseStore';
+import { createProvider } from '@/store/authStore';
+import { BookGrid } from '@/components/BookGrid';
 import type { ReadListsScreenProps } from '@/navigation/types';
 import type { ReadList } from '@/providers';
 
@@ -15,8 +17,10 @@ export default function ReadListsScreen({ navigation }: ReadListsScreenProps) {
     }
   }, [serverConfig, auth]);
 
-  function handlePress(list: ReadList) {
-    navigation.navigate('ReadListDetail', { readListId: list.id, readListName: list.name });
+  function getCoverUri(list: ReadList): string | null {
+    if (!serverConfig || !auth) return null;
+    const provider = createProvider(serverConfig.providerType) as any;
+    return provider.getReadListCoverUrl?.(serverConfig.serverUrl, list.id, auth.apiKey) ?? null;
   }
 
   if (isLoading && readLists.length === 0) {
@@ -29,29 +33,14 @@ export default function ReadListsScreen({ navigation }: ReadListsScreenProps) {
 
   return (
     <View className="flex-1 bg-white">
-      <FlatList
-        data={readLists}
-        keyExtractor={(item) => item.id}
-        contentContainerClassName="px-4 py-4 gap-3"
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            className="bg-gray-100 rounded-xl px-5 py-4 flex-row items-center justify-between"
-            onPress={() => handlePress(item)}
-          >
-            <View className="flex-1 mr-4">
-              <Text className="text-base font-semibold text-gray-900">{item.name}</Text>
-              {item.summary ? (
-                <Text className="text-sm text-gray-500 mt-0.5" numberOfLines={1}>
-                  {item.summary}
-                </Text>
-              ) : null}
-            </View>
-            <Text className="text-gray-400 text-lg">›</Text>
-          </TouchableOpacity>
-        )}
-        ListEmptyComponent={
-          <Text className="text-center text-gray-400 mt-20">No reading lists found.</Text>
+      <BookGrid
+        items={readLists}
+        getCoverUri={getCoverUri}
+        getTitle={(list) => list.name}
+        onPress={(list) =>
+          navigation.navigate('ReadListDetail', { readListId: list.id, readListName: list.name })
         }
+        emptyText="No reading lists found."
       />
     </View>
   );
