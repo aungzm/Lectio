@@ -106,7 +106,7 @@ function mapVolumes(volumes: KavitaVolumeDto[]): Volume[] {
     name: v.name,
     chapters: v.chapters.map((c: KavitaChapterDto): Chapter => ({
       id: String(c.id),
-      title: c.title || c.range || `Chapter ${c.number}`,
+      title: c.titleName || (Number(c.title) > 0 ? c.title : null) || (Number(c.range) > 0 ? c.range : null) || (Number(c.number) > 0 ? `Chapter ${c.number}` : null) || '',
       number: c.number,
       pagesTotal: c.pages,
       pagesRead: c.pagesRead,
