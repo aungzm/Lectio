@@ -6,6 +6,7 @@ import { createProvider } from './authStore';
 interface LibraryState {
   libraries: Library[];
   seriesByLibrary: Record<string, Book[]>;
+  booksByLibrary: Record<string, Book[]>;
   allSeries: Book[];
   volumes: Record<string, Volume[]>; // keyed by seriesId
   isLoading: boolean;
@@ -13,6 +14,7 @@ interface LibraryState {
 
   fetchLibraries: (config: ServerConfig, token: string) => Promise<void>;
   fetchSeries: (config: ServerConfig, token: string, libraryId: string, page?: number) => Promise<void>;
+  fetchLibraryBooks: (config: ServerConfig, token: string, libraryId: string, page?: number) => Promise<void>;
   fetchAllSeries: (config: ServerConfig, token: string, page?: number) => Promise<void>;
   fetchVolumes: (config: ServerConfig, token: string, seriesId: string) => Promise<void>;
 }
@@ -20,6 +22,7 @@ interface LibraryState {
 export const useLibraryStore = create<LibraryState>((set, get) => ({
   libraries: [],
   seriesByLibrary: {},
+  booksByLibrary: {},
   allSeries: [],
   volumes: {},
   isLoading: false,
@@ -51,6 +54,25 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
       });
     } catch (e: any) {
       set({ isLoading: false, error: e?.message ?? 'Failed to load series' });
+    }
+  },
+
+  fetchLibraryBooks: async (config, token, libraryId, page = 0) => {
+    set({ isLoading: true, error: null });
+    try {
+      const provider = createProvider(config.providerType);
+      if (!provider.getLibraryBooks) throw new Error('Provider does not support getLibraryBooks');
+      const books = await provider.getLibraryBooks(config.serverUrl, token, libraryId, page, 30);
+      const { booksByLibrary } = get();
+      set({
+        booksByLibrary: {
+          ...booksByLibrary,
+          [libraryId]: page === 0 ? books : [...(booksByLibrary[libraryId] ?? []), ...books],
+        },
+        isLoading: false,
+      });
+    } catch (e: any) {
+      set({ isLoading: false, error: e?.message ?? 'Failed to load books' });
     }
   },
 

@@ -19,6 +19,7 @@ import HomeScreen from '@/screens/HomeScreen';
 import LoginScreen from '@/screens/LoginScreen';
 import LibrariesScreen from '@/screens/LibrariesScreen';
 import SeriesListScreen from '@/screens/SeriesListScreen';
+import BookListScreen from '@/screens/BookListScreen';
 import SeriesDetailScreen from '@/screens/SeriesDetailScreen';
 import ReaderScreen from '@/screens/ReaderScreen';
 import SettingsScreen from '@/screens/SettingsScreen';
@@ -60,6 +61,11 @@ function LibraryNavigator() {
       <LibraryStack.Screen
         name="SeriesList"
         component={SeriesListScreen}
+        options={({ route }) => ({ title: route.params.libraryName })}
+      />
+      <LibraryStack.Screen
+        name="BookList"
+        component={BookListScreen}
         options={({ route }) => ({ title: route.params.libraryName })}
       />
       <LibraryStack.Screen
