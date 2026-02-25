@@ -273,7 +273,17 @@ export function kavitaPersonCoverUrl(serverUrl: string, personId: number, apiKey
   return `${serverUrl.replace(/\/$/, '')}/api/Image/person-cover?personId=${personId}&apiKey=${apiKey}`;
 }
 
+/** Returns a URL for a library cover image. */
+export function kavitaLibraryCoverUrl(serverUrl: string, libraryId: number, apiKey: string): string {
+  return `${serverUrl.replace(/\/$/, '')}/api/Image/library-cover?libraryId=${libraryId}&apiKey=${apiKey}`;
+}
+
+/** Returns a URL for a reading list cover image. */
+export function kavitaReadingListCoverUrl(serverUrl: string, readingListId: number, apiKey: string): string {
+  return `${serverUrl.replace(/\/$/, '')}/api/Image/readinglist-cover?readingListId=${readingListId}&apiKey=${apiKey}`;
+}
+
 /** Returns a URL for a collection cover image. */
 export function kavitaCollectionCoverUrl(serverUrl: string, collectionId: number, apiKey: string): string {
-  return `${serverUrl.replace(/\/$/, '')}/api/Image/collection-cover?collectionId=${collectionId}&apiKey=${apiKey}`;
+  return `${serverUrl.replace(/\/$/, '')}/api/Image/collection-cover?collectionTagId=${collectionId}&apiKey=${apiKey}`;
 }

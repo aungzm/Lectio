@@ -14,10 +14,13 @@ function isBookVolume(volume: Volume): boolean {
 }
 
 function bookLabel(name: string | null | undefined, number: number): string {
-  const parsed = name ? Number(name) : NaN;
-  if (!isNaN(parsed) && parsed > 0) return `Book ${parsed}`;
+  // Real non-numeric title takes priority
+  if (name && isNaN(Number(name))) return name;
+  // Numeric name (e.g. "1") or no name — fall back to volume number
+  const n = Number(name);
+  if (!isNaN(n) && n > 0) return `Book ${n}`;
   if (number > 0) return `Book ${number}`;
-  return name || 'Book';
+  return 'Book';
 }
 
 function volumeLabel(name: string | null | undefined, number: number): string {
@@ -94,7 +97,7 @@ export default function SeriesDetailScreen() {
             <View key={rowIndex} className="flex-row gap-2 mb-4">
               {row.map((volume) => {
                 const chapter = volume.chapters[0];
-                const label = bookLabel(volume.name, volume.number);
+                const label = chapter.title || bookLabel(volume.name, volume.number);
                 return (
                   <TouchableOpacity
                     key={volume.id}
