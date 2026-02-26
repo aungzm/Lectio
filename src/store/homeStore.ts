@@ -1,7 +1,5 @@
 import { create } from 'zustand';
-import type { Book } from '@/providers';
-import type { ServerConfig } from './authStore';
-import { createProvider } from './authStore';
+import type { Book, ILibraryProvider } from '@/providers';
 
 interface HomeState {
   recentlyAdded: Book[];
@@ -10,8 +8,8 @@ interface HomeState {
   isLoading: boolean;
   error: string | null;
 
-  fetchHomeData: (config: ServerConfig, token: string) => Promise<void>;
-  fetchWantToRead: (config: ServerConfig, token: string, page?: number) => Promise<void>;
+  fetchHomeData: (provider: ILibraryProvider) => Promise<void>;
+  fetchWantToRead: (provider: ILibraryProvider, page?: number) => Promise<void>;
 }
 
 export const useHomeStore = create<HomeState>((set) => ({
@@ -21,13 +19,12 @@ export const useHomeStore = create<HomeState>((set) => ({
   isLoading: false,
   error: null,
 
-  fetchHomeData: async (config, token) => {
+  fetchHomeData: async (provider) => {
     set({ isLoading: true, error: null });
     try {
-      const provider = createProvider(config.providerType);
       const [recentlyAdded, continueReading] = await Promise.all([
-        provider.getRecentlyAdded?.(config.serverUrl, token, 20) ?? [],
-        provider.getContinueReading?.(config.serverUrl, token, 20) ?? [],
+        provider.getRecentlyAdded?.(20) ?? [],
+        provider.getContinueReading?.(20) ?? [],
       ]);
       set({ recentlyAdded, continueReading, isLoading: false });
     } catch (e: any) {
@@ -35,11 +32,10 @@ export const useHomeStore = create<HomeState>((set) => ({
     }
   },
 
-  fetchWantToRead: async (config, token, page = 0) => {
+  fetchWantToRead: async (provider, page = 0) => {
     set({ isLoading: true, error: null });
     try {
-      const provider = createProvider(config.providerType);
-      const wantToRead = await provider.getWantToRead?.(config.serverUrl, token, page, 50) ?? [];
+      const wantToRead = await provider.getWantToRead?.(page, 50) ?? [];
       set({ wantToRead, isLoading: false });
     } catch (e: any) {
       set({ isLoading: false, error: e?.message ?? 'Failed to load want to read' });

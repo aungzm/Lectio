@@ -2,42 +2,36 @@ import React, { useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useBrowseStore } from '@/store/browseStore';
-import { createProvider } from '@/store/authStore';
 import { BookGrid } from '@/components/BookGrid';
 import type { ReadListDetailScreenProps } from '@/navigation/types';
 import type { Book } from '@/providers';
 
 export default function ReadListDetailScreen({ route, navigation }: ReadListDetailScreenProps) {
   const { readListId } = route.params;
-  const { serverConfig, auth } = useAuthStore();
+  const { provider } = useAuthStore();
   const { booksByReadList, isLoading, fetchReadListBooks } = useBrowseStore();
 
   const books = booksByReadList[readListId] ?? [];
 
   useEffect(() => {
-    if (serverConfig && auth) {
-      fetchReadListBooks(serverConfig, auth.token, readListId);
+    if (provider) {
+      fetchReadListBooks(provider, readListId);
     }
-  }, [readListId, serverConfig, auth]);
+  }, [readListId, provider]);
 
   // Use volume cover for distinct images per entry; fall back to series cover
   function getCoverUri(book: Book): string | null {
-    if (!serverConfig || !auth) return null;
-    const provider = createProvider(serverConfig.providerType);
+    if (!provider) return null;
     if (book.volumeId) {
-      return (provider as any).getVolumeCoverUrl?.(serverConfig.serverUrl, book.volumeId, auth.apiKey)
-        ?? provider.getCoverUrl(serverConfig.serverUrl, book.seriesId ?? book.id, auth.apiKey);
+      return provider.getVolumeCoverUrl?.(book.volumeId)
+        ?? provider.getCoverUrl(book.seriesId ?? book.id);
     }
-    return provider.getCoverUrl(serverConfig.serverUrl, book.seriesId ?? book.id, auth.apiKey);
+    return provider.getCoverUrl(book.seriesId ?? book.id);
   }
 
   function handleRead(book: Book) {
-    if (!serverConfig || !auth) return;
-    const epubUrl = createProvider(serverConfig.providerType).getEpubUrl(
-      serverConfig.serverUrl,
-      auth.token,
-      book.id,
-    );
+    if (!provider) return;
+    const epubUrl = provider.getEpubUrl(book.id);
     navigation.navigate('Reader', { chapterId: book.id, title: book.title, epubUrl });
   }
 

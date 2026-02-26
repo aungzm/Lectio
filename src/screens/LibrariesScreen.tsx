@@ -3,7 +3,6 @@ import { View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator, use
 import { BookOpen } from 'lucide-react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useLibraryStore } from '@/store/libraryStore';
-import { createProvider } from '@/store/authStore';
 import type { LibrariesScreenProps } from '@/navigation/types';
 import type { Library } from '@/providers';
 
@@ -27,22 +26,21 @@ function LibraryCover({ uri }: { uri: string | null }) {
 }
 
 export default function LibrariesScreen({ navigation }: LibrariesScreenProps) {
-  const { serverConfig, auth } = useAuthStore();
+  const { provider } = useAuthStore();
   const { libraries, isLoading, fetchLibraries } = useLibraryStore();
   const { width } = useWindowDimensions();
   const numCols = width >= 600 ? 4 : 3;
   const itemWidth = `${100 / numCols}%` as `${number}%`;
 
   useEffect(() => {
-    if (serverConfig && auth) {
-      fetchLibraries(serverConfig, auth.token);
+    if (provider) {
+      fetchLibraries(provider);
     }
-  }, [serverConfig, auth]);
+  }, [provider]);
 
   function getCoverUri(library: Library): string | null {
-    if (!serverConfig || !auth) return null;
-    const provider = createProvider(serverConfig.providerType) as any;
-    return provider.getLibraryCoverUrl?.(serverConfig.serverUrl, library.id, auth.apiKey) ?? null;
+    if (!provider) return null;
+    return provider.getLibraryCoverUrl?.(library.id) ?? null;
   }
 
   if (isLoading && libraries.length === 0) {

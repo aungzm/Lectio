@@ -1,22 +1,19 @@
 import { create } from 'zustand';
-import type { ReadingProgress } from '@/providers';
-import type { ServerConfig } from './authStore';
-import { createProvider } from './authStore';
+import type { ReadingProgress, ILibraryProvider } from '@/providers';
 
 interface ProgressState {
   progress: Record<string, ReadingProgress>; // keyed by chapterId/bookId
 
-  fetchProgress: (config: ServerConfig, token: string, chapterId: string) => Promise<ReadingProgress | null>;
-  saveProgress: (config: ServerConfig, token: string, progress: ReadingProgress) => Promise<void>;
+  fetchProgress: (provider: ILibraryProvider, chapterId: string) => Promise<ReadingProgress | null>;
+  saveProgress: (provider: ILibraryProvider, progress: ReadingProgress) => Promise<void>;
 }
 
 export const useProgressStore = create<ProgressState>((set, get) => ({
   progress: {},
 
-  fetchProgress: async (config, token, chapterId) => {
+  fetchProgress: async (provider, chapterId) => {
     try {
-      const provider = createProvider(config.providerType);
-      const p = await provider.getProgress(config.serverUrl, token, chapterId);
+      const p = await provider.getProgress(chapterId);
       if (p) {
         set((state) => ({ progress: { ...state.progress, [chapterId]: p } }));
       }
@@ -26,11 +23,10 @@ export const useProgressStore = create<ProgressState>((set, get) => ({
     }
   },
 
-  saveProgress: async (config, token, progress) => {
+  saveProgress: async (provider, progress) => {
     set((state) => ({ progress: { ...state.progress, [progress.chapterId]: progress } }));
     try {
-      const provider = createProvider(config.providerType);
-      await provider.saveProgress(config.serverUrl, token, progress);
+      await provider.saveProgress(progress);
     } catch {
       // offline — retry on next save
     }

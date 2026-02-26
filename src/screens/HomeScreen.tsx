@@ -10,7 +10,6 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { useAuthStore } from '@/store/authStore';
 import { useHomeStore } from '@/store/homeStore';
-import { createProvider } from '@/store/authStore';
 import { CoverImage } from '@/components/CoverImage';
 import type { Book } from '@/providers';
 
@@ -61,22 +60,18 @@ function Section({ title, data, onPress, getCoverUri, emptyText }: {
 
 export default function HomeScreen() {
   const drawerNav = useNavigation<any>();
-  const { serverConfig, auth } = useAuthStore();
+  const { provider } = useAuthStore();
   const { recentlyAdded, continueReading, isLoading, fetchHomeData } = useHomeStore();
 
   useEffect(() => {
-    if (serverConfig && auth) {
-      fetchHomeData(serverConfig, auth.token);
+    if (provider) {
+      fetchHomeData(provider);
     }
-  }, [serverConfig, auth]);
+  }, [provider]);
 
   function getCoverUri(book: Book): string | null {
-    if (!serverConfig || !auth) return null;
-    return createProvider(serverConfig.providerType).getCoverUrl(
-      serverConfig.serverUrl,
-      book.id,
-      auth.apiKey,
-    );
+    if (!provider) return null;
+    return provider.getCoverUrl(book.id);
   }
 
   function handlePress(book: Book) {

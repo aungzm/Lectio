@@ -1,7 +1,5 @@
 import { create } from 'zustand';
-import type { Author, Collection, ReadList, Book } from '@/providers';
-import type { ServerConfig } from './authStore';
-import { createProvider } from './authStore';
+import type { Author, Collection, ReadList, Book, ILibraryProvider } from '@/providers';
 
 interface BrowseState {
   authors: Author[];
@@ -13,12 +11,12 @@ interface BrowseState {
   isLoading: boolean;
   error: string | null;
 
-  fetchAuthors: (config: ServerConfig, token: string, page?: number, search?: string) => Promise<void>;
-  fetchSeriesByAuthor: (config: ServerConfig, token: string, authorId: string) => Promise<void>;
-  fetchCollections: (config: ServerConfig, token: string) => Promise<void>;
-  fetchCollectionSeries: (config: ServerConfig, token: string, collectionId: string) => Promise<void>;
-  fetchReadLists: (config: ServerConfig, token: string) => Promise<void>;
-  fetchReadListBooks: (config: ServerConfig, token: string, readListId: string) => Promise<void>;
+  fetchAuthors: (provider: ILibraryProvider, page?: number, search?: string) => Promise<void>;
+  fetchSeriesByAuthor: (provider: ILibraryProvider, authorId: string) => Promise<void>;
+  fetchCollections: (provider: ILibraryProvider) => Promise<void>;
+  fetchCollectionSeries: (provider: ILibraryProvider, collectionId: string) => Promise<void>;
+  fetchReadLists: (provider: ILibraryProvider) => Promise<void>;
+  fetchReadListBooks: (provider: ILibraryProvider, readListId: string) => Promise<void>;
 }
 
 export const useBrowseStore = create<BrowseState>((set, get) => ({
@@ -31,30 +29,28 @@ export const useBrowseStore = create<BrowseState>((set, get) => ({
   isLoading: false,
   error: null,
 
-  fetchAuthors: async (config, token, page = 0, search) => {
+  fetchAuthors: async (provider, page = 0, search) => {
     set({ isLoading: true, error: null });
     try {
-      const provider = createProvider(config.providerType);
       if (!provider.getAuthors) {
         set({ isLoading: false });
         return;
       }
-      const authors = await provider.getAuthors(config.serverUrl, token, page, 50, search);
+      const authors = await provider.getAuthors(page, 50, search);
       set({ authors, isLoading: false });
     } catch (e: any) {
       set({ isLoading: false, error: e?.message ?? 'Failed to load authors' });
     }
   },
 
-  fetchSeriesByAuthor: async (config, token, authorId) => {
+  fetchSeriesByAuthor: async (provider, authorId) => {
     set({ isLoading: true, error: null });
     try {
-      const provider = createProvider(config.providerType);
       if (!provider.getSeriesByAuthor) {
         set({ isLoading: false });
         return;
       }
-      const series = await provider.getSeriesByAuthor(config.serverUrl, token, authorId, 0, 50);
+      const series = await provider.getSeriesByAuthor(authorId, 0, 50);
       set((state) => ({
         seriesByAuthor: { ...state.seriesByAuthor, [authorId]: series },
         isLoading: false,
@@ -64,30 +60,28 @@ export const useBrowseStore = create<BrowseState>((set, get) => ({
     }
   },
 
-  fetchCollections: async (config, token) => {
+  fetchCollections: async (provider) => {
     set({ isLoading: true, error: null });
     try {
-      const provider = createProvider(config.providerType);
       if (!provider.getCollections) {
         set({ isLoading: false });
         return;
       }
-      const collections = await provider.getCollections(config.serverUrl, token);
+      const collections = await provider.getCollections();
       set({ collections, isLoading: false });
     } catch (e: any) {
       set({ isLoading: false, error: e?.message ?? 'Failed to load collections' });
     }
   },
 
-  fetchCollectionSeries: async (config, token, collectionId) => {
+  fetchCollectionSeries: async (provider, collectionId) => {
     set({ isLoading: true, error: null });
     try {
-      const provider = createProvider(config.providerType);
       if (!provider.getCollectionSeries) {
         set({ isLoading: false });
         return;
       }
-      const series = await provider.getCollectionSeries(config.serverUrl, token, collectionId, 0, 50);
+      const series = await provider.getCollectionSeries(collectionId, 0, 50);
       set((state) => ({
         seriesByCollection: { ...state.seriesByCollection, [collectionId]: series },
         isLoading: false,
@@ -97,30 +91,28 @@ export const useBrowseStore = create<BrowseState>((set, get) => ({
     }
   },
 
-  fetchReadLists: async (config, token) => {
+  fetchReadLists: async (provider) => {
     set({ isLoading: true, error: null });
     try {
-      const provider = createProvider(config.providerType);
       if (!provider.getReadLists) {
         set({ isLoading: false });
         return;
       }
-      const readLists = await provider.getReadLists(config.serverUrl, token);
+      const readLists = await provider.getReadLists();
       set({ readLists, isLoading: false });
     } catch (e: any) {
       set({ isLoading: false, error: e?.message ?? 'Failed to load reading lists' });
     }
   },
 
-  fetchReadListBooks: async (config, token, readListId) => {
+  fetchReadListBooks: async (provider, readListId) => {
     set({ isLoading: true, error: null });
     try {
-      const provider = createProvider(config.providerType);
       if (!provider.getReadListBooks) {
         set({ isLoading: false });
         return;
       }
-      const books = await provider.getReadListBooks(config.serverUrl, token, readListId, 0, 50);
+      const books = await provider.getReadListBooks(readListId, 0, 50);
       set((state) => ({
         booksByReadList: { ...state.booksByReadList, [readListId]: books },
         isLoading: false,

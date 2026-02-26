@@ -2,28 +2,23 @@ import React, { useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useLibraryStore } from '@/store/libraryStore';
-import { createProvider } from '@/store/authStore';
 import { BookGrid } from '@/components/BookGrid';
 import type { AllSeriesScreenProps } from '@/navigation/types';
 import type { Book } from '@/providers';
 
 export default function AllSeriesScreen({ navigation }: AllSeriesScreenProps) {
-  const { serverConfig, auth } = useAuthStore();
+  const { provider } = useAuthStore();
   const { allSeries, isLoading, fetchAllSeries } = useLibraryStore();
 
   useEffect(() => {
-    if (serverConfig && auth) {
-      fetchAllSeries(serverConfig, auth.token, 0);
+    if (provider) {
+      fetchAllSeries(provider, 0);
     }
-  }, [serverConfig, auth]);
+  }, [provider]);
 
   function getCoverUri(book: Book): string | null {
-    if (!serverConfig || !auth) return null;
-    return createProvider(serverConfig.providerType).getCoverUrl(
-      serverConfig.serverUrl,
-      book.id,
-      auth.apiKey,
-    );
+    if (!provider) return null;
+    return provider.getCoverUrl(book.id);
   }
 
   if (isLoading && allSeries.length === 0) {
