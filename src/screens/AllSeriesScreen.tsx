@@ -8,7 +8,7 @@ import type { Book } from '@/providers';
 
 export default function AllSeriesScreen({ navigation }: AllSeriesScreenProps) {
   const { provider } = useAuthStore();
-  const { allSeries, isLoading, fetchAllSeries } = useLibraryStore();
+  const { allSeries, loadingSeries, fetchAllSeries } = useLibraryStore();
 
   useEffect(() => {
     if (provider) {
@@ -21,7 +21,7 @@ export default function AllSeriesScreen({ navigation }: AllSeriesScreenProps) {
     return provider.getCoverUrl(book.id);
   }
 
-  if (isLoading && allSeries.length === 0) {
+  if (loadingSeries && allSeries.length === 0) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
         <ActivityIndicator size="large" />

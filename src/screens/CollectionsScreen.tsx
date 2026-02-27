@@ -8,7 +8,7 @@ import type { Collection } from '@/providers';
 
 export default function CollectionsScreen({ navigation }: CollectionsScreenProps) {
   const { provider } = useAuthStore();
-  const { collections, isLoading, fetchCollections } = useBrowseStore();
+  const { collections, loadingCollections, fetchCollections } = useBrowseStore();
 
   useEffect(() => {
     if (provider) {
@@ -21,7 +21,7 @@ export default function CollectionsScreen({ navigation }: CollectionsScreenProps
     return provider.getCollectionCoverUrl?.(collection.id) ?? null;
   }
 
-  if (isLoading && collections.length === 0) {
+  if (loadingCollections && collections.length === 0) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
         <ActivityIndicator size="large" />

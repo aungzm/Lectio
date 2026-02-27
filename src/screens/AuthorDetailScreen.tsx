@@ -9,7 +9,7 @@ import type { Book } from '@/providers';
 export default function AuthorDetailScreen({ route, navigation }: AuthorDetailScreenProps) {
   const { authorId } = route.params;
   const { provider } = useAuthStore();
-  const { seriesByAuthor, isLoading, fetchSeriesByAuthor } = useBrowseStore();
+  const { seriesByAuthor, loadingSeriesByAuthor, fetchSeriesByAuthor } = useBrowseStore();
 
   const series = seriesByAuthor[authorId] ?? [];
 
@@ -24,7 +24,7 @@ export default function AuthorDetailScreen({ route, navigation }: AuthorDetailSc
     return provider.getCoverUrl(book.id);
   }
 
-  if (isLoading && series.length === 0) {
+  if (loadingSeriesByAuthor && series.length === 0) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
         <ActivityIndicator size="large" />

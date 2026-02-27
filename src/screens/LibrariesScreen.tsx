@@ -27,7 +27,7 @@ function LibraryCover({ uri }: { uri: string | null }) {
 
 export default function LibrariesScreen({ navigation }: LibrariesScreenProps) {
   const { provider } = useAuthStore();
-  const { libraries, isLoading, fetchLibraries } = useLibraryStore();
+  const { libraries, loadingLibraries, fetchLibraries } = useLibraryStore();
   const { width } = useWindowDimensions();
   const numCols = width >= 600 ? 4 : 3;
   const itemWidth = `${100 / numCols}%` as `${number}%`;
@@ -43,7 +43,7 @@ export default function LibrariesScreen({ navigation }: LibrariesScreenProps) {
     return provider.getLibraryCoverUrl?.(library.id) ?? null;
   }
 
-  if (isLoading && libraries.length === 0) {
+  if (loadingLibraries && libraries.length === 0) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
         <ActivityIndicator size="large" />

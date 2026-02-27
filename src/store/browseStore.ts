@@ -8,7 +8,12 @@ interface BrowseState {
   seriesByCollection: Record<string, Book[]>;
   readLists: ReadList[];
   booksByReadList: Record<string, Book[]>;
-  isLoading: boolean;
+  loadingAuthors: boolean;
+  loadingSeriesByAuthor: boolean;
+  loadingCollections: boolean;
+  loadingCollectionSeries: boolean;
+  loadingReadLists: boolean;
+  loadingReadListBooks: boolean;
   error: string | null;
 
   fetchAuthors: (provider: ILibraryProvider, page?: number, search?: string) => Promise<void>;
@@ -26,99 +31,104 @@ export const useBrowseStore = create<BrowseState>((set, get) => ({
   seriesByCollection: {},
   readLists: [],
   booksByReadList: {},
-  isLoading: false,
+  loadingAuthors: false,
+  loadingSeriesByAuthor: false,
+  loadingCollections: false,
+  loadingCollectionSeries: false,
+  loadingReadLists: false,
+  loadingReadListBooks: false,
   error: null,
 
   fetchAuthors: async (provider, page = 0, search) => {
-    set({ isLoading: true, error: null });
+    set({ loadingAuthors: true, error: null });
     try {
       if (!provider.getAuthors) {
-        set({ isLoading: false });
+        set({ loadingAuthors: false });
         return;
       }
       const authors = await provider.getAuthors(page, 50, search);
-      set({ authors, isLoading: false });
+      set({ authors, loadingAuthors: false });
     } catch (e: any) {
-      set({ isLoading: false, error: e?.message ?? 'Failed to load authors' });
+      set({ loadingAuthors: false, error: e?.message ?? 'Failed to load authors' });
     }
   },
 
   fetchSeriesByAuthor: async (provider, authorId) => {
-    set({ isLoading: true, error: null });
+    set({ loadingSeriesByAuthor: true, error: null });
     try {
       if (!provider.getSeriesByAuthor) {
-        set({ isLoading: false });
+        set({ loadingSeriesByAuthor: false });
         return;
       }
       const series = await provider.getSeriesByAuthor(authorId, 0, 50);
       set((state) => ({
         seriesByAuthor: { ...state.seriesByAuthor, [authorId]: series },
-        isLoading: false,
+        loadingSeriesByAuthor: false,
       }));
     } catch (e: any) {
-      set({ isLoading: false, error: e?.message ?? 'Failed to load series by author' });
+      set({ loadingSeriesByAuthor: false, error: e?.message ?? 'Failed to load series by author' });
     }
   },
 
   fetchCollections: async (provider) => {
-    set({ isLoading: true, error: null });
+    set({ loadingCollections: true, error: null });
     try {
       if (!provider.getCollections) {
-        set({ isLoading: false });
+        set({ loadingCollections: false });
         return;
       }
       const collections = await provider.getCollections();
-      set({ collections, isLoading: false });
+      set({ collections, loadingCollections: false });
     } catch (e: any) {
-      set({ isLoading: false, error: e?.message ?? 'Failed to load collections' });
+      set({ loadingCollections: false, error: e?.message ?? 'Failed to load collections' });
     }
   },
 
   fetchCollectionSeries: async (provider, collectionId) => {
-    set({ isLoading: true, error: null });
+    set({ loadingCollectionSeries: true, error: null });
     try {
       if (!provider.getCollectionSeries) {
-        set({ isLoading: false });
+        set({ loadingCollectionSeries: false });
         return;
       }
       const series = await provider.getCollectionSeries(collectionId, 0, 50);
       set((state) => ({
         seriesByCollection: { ...state.seriesByCollection, [collectionId]: series },
-        isLoading: false,
+        loadingCollectionSeries: false,
       }));
     } catch (e: any) {
-      set({ isLoading: false, error: e?.message ?? 'Failed to load collection series' });
+      set({ loadingCollectionSeries: false, error: e?.message ?? 'Failed to load collection series' });
     }
   },
 
   fetchReadLists: async (provider) => {
-    set({ isLoading: true, error: null });
+    set({ loadingReadLists: true, error: null });
     try {
       if (!provider.getReadLists) {
-        set({ isLoading: false });
+        set({ loadingReadLists: false });
         return;
       }
       const readLists = await provider.getReadLists();
-      set({ readLists, isLoading: false });
+      set({ readLists, loadingReadLists: false });
     } catch (e: any) {
-      set({ isLoading: false, error: e?.message ?? 'Failed to load reading lists' });
+      set({ loadingReadLists: false, error: e?.message ?? 'Failed to load reading lists' });
     }
   },
 
   fetchReadListBooks: async (provider, readListId) => {
-    set({ isLoading: true, error: null });
+    set({ loadingReadListBooks: true, error: null });
     try {
       if (!provider.getReadListBooks) {
-        set({ isLoading: false });
+        set({ loadingReadListBooks: false });
         return;
       }
       const books = await provider.getReadListBooks(readListId, 0, 50);
       set((state) => ({
         booksByReadList: { ...state.booksByReadList, [readListId]: books },
-        isLoading: false,
+        loadingReadListBooks: false,
       }));
     } catch (e: any) {
-      set({ isLoading: false, error: e?.message ?? 'Failed to load reading list books' });
+      set({ loadingReadListBooks: false, error: e?.message ?? 'Failed to load reading list books' });
     }
   },
 }));

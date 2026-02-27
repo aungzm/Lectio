@@ -40,7 +40,7 @@ export default function SeriesDetailScreen() {
   const route = useRoute<any>();
   const { seriesId } = route.params as { seriesId: string; title: string };
   const { provider } = useAuthStore();
-  const { volumes, isLoading, fetchVolumes } = useLibraryStore();
+  const { volumes, loadingVolumes, fetchVolumes } = useLibraryStore();
 
   const bookVolumes = volumes[seriesId] ?? [];
 
@@ -67,7 +67,7 @@ export default function SeriesDetailScreen() {
     navigation.navigate('Reader', { chapterId, title, epubUrl });
   }
 
-  if (isLoading && bookVolumes.length === 0) {
+  if (loadingVolumes && bookVolumes.length === 0) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
         <ActivityIndicator size="large" />

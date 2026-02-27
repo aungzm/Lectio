@@ -8,7 +8,7 @@ import type { ReadList } from '@/providers';
 
 export default function ReadListsScreen({ navigation }: ReadListsScreenProps) {
   const { provider } = useAuthStore();
-  const { readLists, isLoading, fetchReadLists } = useBrowseStore();
+  const { readLists, loadingReadLists, fetchReadLists } = useBrowseStore();
 
   useEffect(() => {
     if (provider) {
@@ -21,7 +21,7 @@ export default function ReadListsScreen({ navigation }: ReadListsScreenProps) {
     return provider.getReadListCoverUrl?.(list.id) ?? null;
   }
 
-  if (isLoading && readLists.length === 0) {
+  if (loadingReadLists && readLists.length === 0) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
         <ActivityIndicator size="large" />
