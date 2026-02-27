@@ -137,10 +137,10 @@ export class KavitaClient {
   }
 
   async getCollectionSeries(collectionId: number, pageNumber = 0, pageSize = 30): Promise<KavitaSeriesDto[]> {
-    const { data } = await this.http.get<{ content: KavitaSeriesDto[] }>('/api/Series/series-by-collection', {
+    const { data } = await this.http.get<KavitaSeriesDto[]>('/api/Series/series-by-collection', {
       params: { collectionId, PageNumber: pageNumber, PageSize: pageSize },
     });
-    return data?.content ?? (data as any) ?? [];
+    return data ?? [];
   }
 
   // ── Reading Lists ──────────────────────────────────────────────────────────
@@ -160,7 +160,9 @@ export class KavitaClient {
   // ── Want to Read ───────────────────────────────────────────────────────────
 
   async getWantToRead(pageNumber = 0, pageSize = 30): Promise<KavitaSeriesDto[]> {
-    const { data } = await this.http.post<KavitaSeriesDto[]>('/api/want-to-read', { pageNumber, pageSize });
+    const { data } = await this.http.get<KavitaSeriesDto[]>('/api/want-to-read', {
+      params: { PageNumber: pageNumber, PageSize: pageSize },
+    });
     return data ?? [];
   }
 
