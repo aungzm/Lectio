@@ -14,11 +14,7 @@ import type {
   KomgaClientSettingsPatch,
   KomgaClientSettingsResponse,
 } from './types';
-
-/** Normalize a server URL once — strip trailing slash. */
-function normalizeUrl(serverUrl: string): string {
-  return serverUrl.replace(/\/$/, '');
-}
+import { normalizeUrl } from '../base/url';
 
 // ── Static helpers (pre-auth) ────────────────────────────────────────────────
 

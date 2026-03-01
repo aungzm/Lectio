@@ -16,11 +16,7 @@ import type {
   KavitaBookmarkDto,
   KavitaBookmarkUpdateDto,
 } from './types';
-
-/** Normalize a server URL once — strip trailing slash. */
-function normalizeUrl(serverUrl: string): string {
-  return serverUrl.replace(/\/$/, '');
-}
+import { normalizeUrl } from '../base/url';
 
 // ── Static helpers (no auth needed) ──────────────────────────────────────────
 
@@ -179,15 +175,10 @@ export class KavitaClient {
   }
 
   async getContinueReading(pageSize = 20): Promise<KavitaSeriesDto[]> {
-    const { data } = await this.http.post<KavitaSeriesDto[]>('/api/Series/all-v2', {
-      statements: [],
-      combination: 1,
-      limitTo: 0,
-      sortOptions: { sortField: 5, isAscending: false },
-      pageNumber: 0,
-      pageSize,
+    const { data } = await this.http.post<KavitaSeriesDto[]>('/api/Series/on-deck', null, {
+      params: { PageNumber: 0, PageSize: pageSize, libraryId: 0 },
     });
-    return (data ?? []).filter((s) => s.pagesRead > 0);
+    return data ?? [];
   }
 
   // ── Bookmarks ──────────────────────────────────────────────────────────────
