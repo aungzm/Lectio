@@ -2,34 +2,29 @@ import React, { useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useLibraryStore } from '@/store/libraryStore';
-import { createProvider } from '@/store/authStore';
 import { BookGrid } from '@/components/BookGrid';
 import type { SeriesListScreenProps } from '@/navigation/types';
 import type { Book } from '@/providers';
 
 export default function SeriesListScreen({ route, navigation }: SeriesListScreenProps) {
   const { libraryId } = route.params;
-  const { serverConfig, auth } = useAuthStore();
-  const { seriesByLibrary, isLoading, fetchSeries } = useLibraryStore();
+  const { provider } = useAuthStore();
+  const { seriesByLibrary, loadingSeries, fetchSeries } = useLibraryStore();
 
   const series = seriesByLibrary[libraryId] ?? [];
 
   useEffect(() => {
-    if (serverConfig && auth) {
-      fetchSeries(serverConfig, auth.token, libraryId, 0);
+    if (provider) {
+      fetchSeries(provider, libraryId, 0);
     }
-  }, [libraryId, serverConfig, auth]);
+  }, [libraryId, provider]);
 
   function getCoverUri(book: Book): string | null {
-    if (!serverConfig || !auth) return null;
-    return createProvider(serverConfig.providerType).getCoverUrl(
-      serverConfig.serverUrl,
-      book.id,
-      auth.apiKey,
-    );
+    if (!provider) return null;
+    return provider.getCoverUrl(book.id);
   }
 
-  if (isLoading && series.length === 0) {
+  if (loadingSeries && series.length === 0) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
         <ActivityIndicator size="large" />

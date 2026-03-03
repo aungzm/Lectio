@@ -1,16 +1,14 @@
 import { create } from 'zustand';
-import type { Bookmark } from '@/providers';
-import type { ServerConfig } from './authStore';
-import { createProvider } from './authStore';
+import type { Bookmark, ILibraryProvider } from '@/providers';
 
 interface BookmarkState {
   bookmarksBySeriesId: Record<string, Bookmark[]>;
   isLoading: boolean;
   error: string | null;
 
-  fetchBookmarks: (config: ServerConfig, token: string, seriesId: string) => Promise<void>;
-  addBookmark: (config: ServerConfig, token: string, bookmark: Omit<Bookmark, 'id'>) => Promise<void>;
-  removeBookmark: (config: ServerConfig, token: string, bookmark: Bookmark) => Promise<void>;
+  fetchBookmarks: (provider: ILibraryProvider, seriesId: string) => Promise<void>;
+  addBookmark: (provider: ILibraryProvider, bookmark: Omit<Bookmark, 'id'>) => Promise<void>;
+  removeBookmark: (provider: ILibraryProvider, bookmark: Bookmark) => Promise<void>;
 }
 
 export const useBookmarkStore = create<BookmarkState>((set, get) => ({
@@ -18,15 +16,14 @@ export const useBookmarkStore = create<BookmarkState>((set, get) => ({
   isLoading: false,
   error: null,
 
-  fetchBookmarks: async (config, token, seriesId) => {
+  fetchBookmarks: async (provider, seriesId) => {
     set({ isLoading: true, error: null });
     try {
-      const provider = createProvider(config.providerType);
       if (!provider.getBookmarks) {
         set({ isLoading: false });
         return;
       }
-      const bookmarks = await provider.getBookmarks(config.serverUrl, token, seriesId);
+      const bookmarks = await provider.getBookmarks(seriesId);
       set((state) => ({
         bookmarksBySeriesId: { ...state.bookmarksBySeriesId, [seriesId]: bookmarks },
         isLoading: false,
@@ -36,7 +33,7 @@ export const useBookmarkStore = create<BookmarkState>((set, get) => ({
     }
   },
 
-  addBookmark: async (config, token, bookmark) => {
+  addBookmark: async (provider, bookmark) => {
     // Optimistic update with a temp id
     const tempId = `temp-${Date.now()}`;
     const optimistic: Bookmark = { id: tempId, ...bookmark };
@@ -50,9 +47,8 @@ export const useBookmarkStore = create<BookmarkState>((set, get) => ({
       },
     }));
     try {
-      const provider = createProvider(config.providerType);
       if (!provider.addBookmark) return;
-      const saved = await provider.addBookmark(config.serverUrl, token, bookmark);
+      const saved = await provider.addBookmark(bookmark);
       // Replace temp entry with real server id
       set((state) => ({
         bookmarksBySeriesId: {
@@ -76,7 +72,7 @@ export const useBookmarkStore = create<BookmarkState>((set, get) => ({
     }
   },
 
-  removeBookmark: async (config, token, bookmark) => {
+  removeBookmark: async (provider, bookmark) => {
     // Optimistic removal
     set((state) => ({
       bookmarksBySeriesId: {
@@ -87,12 +83,11 @@ export const useBookmarkStore = create<BookmarkState>((set, get) => ({
       },
     }));
     try {
-      const provider = createProvider(config.providerType);
       if (!provider.removeBookmark) return;
-      await provider.removeBookmark(config.serverUrl, token, bookmark);
+      await provider.removeBookmark(bookmark);
     } catch (e: any) {
       // Re-fetch on failure to restore correct state
-      await get().fetchBookmarks(config, token, bookmark.seriesId);
+      await get().fetchBookmarks(provider, bookmark.seriesId);
       set({ error: e?.message ?? 'Failed to remove bookmark' });
     }
   },

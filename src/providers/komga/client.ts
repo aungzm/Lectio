@@ -14,24 +14,11 @@ import type {
   KomgaClientSettingsPatch,
   KomgaClientSettingsResponse,
 } from './types';
+import { normalizeUrl } from '../base/url';
+
+// ── Static helpers (pre-auth) ────────────────────────────────────────────────
 
 /**
- * Builds an Axios client for Komga.
- * Uses X-Auth-Token (session) for normal API calls.
- */
-function buildClient(serverUrl: string, token: string): AxiosInstance {
-  return axios.create({
-    baseURL: serverUrl.replace(/\/$/, ''),
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Auth-Token': token,
-    },
-  });
-}
-
-
-/**
- * Option B login:
  * Sends Basic Auth + X-Auth-Token header to trigger session creation.
  * Returns the session token from the response header alongside user info.
  * Also returns the base64 Basic Auth string for use in image requests.
@@ -42,14 +29,13 @@ export async function komgaLogin(
   password: string,
 ): Promise<{ user: KomgaUserDto; sessionToken: string; basicAuth: string }> {
   const basicAuth = btoa(`${username}:${password}`);
-  const response = await axios.get<KomgaUserDto>(`${serverUrl.replace(/\/$/, '')}/api/v2/users/me`, {
+  const response = await axios.get<KomgaUserDto>(`${normalizeUrl(serverUrl)}/api/v2/users/me`, {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Basic ${basicAuth}`,
-      'X-Auth-Token': '',  // empty value triggers session token creation in response
+      'X-Auth-Token': '',
     },
   });
-  // Komga returns the session token in the X-Auth-Token response header
   const sessionToken =
     (response.headers['x-auth-token'] as string | undefined) ??
     (response.headers['X-Auth-Token'] as string | undefined) ??
@@ -57,263 +43,193 @@ export async function komgaLogin(
   return { user: response.data, sessionToken, basicAuth };
 }
 
-export async function komgaGetCurrentUser(serverUrl: string, token: string): Promise<KomgaUserDto> {
-  const client = buildClient(serverUrl, token);
-  const { data } = await client.get<KomgaUserDto>('/api/v2/users/me');
-  return data;
-}
-
-
-export async function komgaGetLibraries(serverUrl: string, token: string): Promise<KomgaLibraryDto[]> {
-  const client = buildClient(serverUrl, token);
-  const { data } = await client.get<KomgaLibraryDto[]>('/api/v1/libraries');
-  return data;
-}
-
-
-export async function komgaGetSeries(
-  serverUrl: string,
-  token: string,
-  libraryId?: string,
-  page = 0,
-  size = 30,
-): Promise<KomgaPageResultDto<KomgaSeriesDto>> {
-  const client = buildClient(serverUrl, token);
-  const params: Record<string, any> = { page, size, sort: 'metadata.titleSort,asc' };
-  if (libraryId) params['library_id'] = libraryId;
-  const { data } = await client.get<KomgaPageResultDto<KomgaSeriesDto>>('/api/v1/series', { params });
-  return data;
-}
-
-export async function komgaGetSeriesDetail(
-  serverUrl: string,
-  token: string,
-  seriesId: string,
-): Promise<KomgaSeriesDto> {
-  const client = buildClient(serverUrl, token);
-  const { data } = await client.get<KomgaSeriesDto>(`/api/v1/series/${seriesId}`);
-  return data;
-}
-
-export async function komgaGetSeriesBooks(
-  serverUrl: string,
-  token: string,
-  seriesId: string,
-  page = 0,
-  size = 50,
-): Promise<KomgaPageResultDto<KomgaBookDto>> {
-  const client = buildClient(serverUrl, token);
-  const { data } = await client.get<KomgaPageResultDto<KomgaBookDto>>(
-    `/api/v1/series/${seriesId}/books`,
-    { params: { page, size, sort: 'metadata.numberSort,asc' } },
-  );
-  return data;
-}
-
-export async function komgaGetBooks(
-  serverUrl: string,
-  token: string,
-  libraryId?: string,
-  page = 0,
-  size = 30,
-): Promise<KomgaPageResultDto<KomgaBookDto>> {
-  const client = buildClient(serverUrl, token);
-  const params: Record<string, any> = { page, size, sort: 'metadata.titleSort,asc' };
-  if (libraryId) params['library_id'] = libraryId;
-  const { data } = await client.get<KomgaPageResultDto<KomgaBookDto>>('/api/v1/books', { params });
-  return data;
-}
-
-export async function komgaGetSeriesByAuthor(
-  serverUrl: string,
-  token: string,
-  authorName: string,
-  authorRole: string,
-  page = 0,
-  size = 30,
-): Promise<KomgaPageResultDto<KomgaSeriesDto>> {
-  const client = buildClient(serverUrl, token);
-  // Komga author filter format: "name,role"
-  const { data } = await client.get<KomgaPageResultDto<KomgaSeriesDto>>('/api/v1/series', {
-    params: {
-      'author': [`${authorName},${authorRole}`],
-      page,
-      size,
-      sort: 'metadata.titleSort,asc',
-    },
-  });
-  return data;
-}
-
-export async function komgaGetAuthors(
-  serverUrl: string,
-  token: string,
-  page = 0,
-  size = 30,
-  search?: string,
-): Promise<KomgaPageResultDto<KomgaAuthorDto>> {
-  const client = buildClient(serverUrl, token);
-  const params: Record<string, any> = { page, size, role: 'writer' };
-  if (search) params['search'] = search;
-  const { data } = await client.get<KomgaPageResultDto<KomgaAuthorDto>>('/api/v2/authors', { params });
-  return data;
-}
-
-
-export async function komgaGetCollections(
-  serverUrl: string,
-  token: string,
-  page = 0,
-  size = 100,
-): Promise<KomgaPageResultDto<KomgaCollectionDto>> {
-  const client = buildClient(serverUrl, token);
-  const { data } = await client.get<KomgaPageResultDto<KomgaCollectionDto>>('/api/v1/collections', {
-    params: { page, size },
-  });
-  return data;
-}
-
-export async function komgaGetCollectionSeries(
-  serverUrl: string,
-  token: string,
-  collectionId: string,
-  page = 0,
-  size = 30,
-): Promise<KomgaPageResultDto<KomgaSeriesDto>> {
-  const client = buildClient(serverUrl, token);
-  const { data } = await client.get<KomgaPageResultDto<KomgaSeriesDto>>(
-    `/api/v1/collections/${collectionId}/series`,
-    { params: { page, size } },
-  );
-  return data;
-}
-
-export async function komgaGetReadLists(
-  serverUrl: string,
-  token: string,
-  page = 0,
-  size = 100,
-): Promise<KomgaPageResultDto<KomgaReadListDto>> {
-  const client = buildClient(serverUrl, token);
-  const { data } = await client.get<KomgaPageResultDto<KomgaReadListDto>>('/api/v1/readlists', {
-    params: { page, size },
-  });
-  return data;
-}
-
-export async function komgaGetReadListBooks(
-  serverUrl: string,
-  token: string,
-  readListId: string,
-  page = 0,
-  size = 50,
-): Promise<KomgaPageResultDto<KomgaBookDto>> {
-  const client = buildClient(serverUrl, token);
-  const { data } = await client.get<KomgaPageResultDto<KomgaBookDto>>(
-    `/api/v1/readlists/${readListId}/books`,
-    { params: { page, size } },
-  );
-  return data;
-}
-
-
-export async function komgaGetBookProgress(
-  serverUrl: string,
-  token: string,
-  bookId: string,
-): Promise<KomgaReadProgressDto | null> {
-  const client = buildClient(serverUrl, token);
+/** Validate a token by hitting the user endpoint. */
+export async function komgaValidateToken(serverUrl: string, token: string): Promise<boolean> {
   try {
-    const { data } = await client.get<KomgaReadProgressDto>(`/api/v1/books/${bookId}/read-progress`);
+    await axios.get(`${normalizeUrl(serverUrl)}/api/v2/users/me`, {
+      headers: { 'Content-Type': 'application/json', 'X-Auth-Token': token },
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// ── KomgaClient ──────────────────────────────────────────────────────────────
+
+export class KomgaClient {
+  private readonly http: AxiosInstance;
+  private readonly baseUrl: string;
+
+  constructor(serverUrl: string, token: string) {
+    this.baseUrl = normalizeUrl(serverUrl);
+    this.http = axios.create({
+      baseURL: this.baseUrl,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Auth-Token': token,
+      },
+    });
+  }
+
+  // ── Libraries ──────────────────────────────────────────────────────────────
+
+  async getLibraries(): Promise<KomgaLibraryDto[]> {
+    const { data } = await this.http.get<KomgaLibraryDto[]>('/api/v1/libraries');
     return data;
-  } catch {
-    return null;
   }
-}
 
-export async function komgaSaveBookProgress(
-  serverUrl: string,
-  token: string,
-  bookId: string,
-  update: KomgaReadProgressUpdateDto,
-): Promise<void> {
-  const client = buildClient(serverUrl, token);
-  await client.patch(`/api/v1/books/${bookId}/read-progress`, update);
-}
+  // ── Series ─────────────────────────────────────────────────────────────────
 
-const BOOKMARK_KEY_PREFIX = 'lektio.bookmarks.';
-
-async function getClientSettings(
-  serverUrl: string,
-  token: string,
-): Promise<KomgaClientSettingsResponse> {
-  const client = buildClient(serverUrl, token);
-  try {
-    const { data } = await client.get<KomgaClientSettingsResponse>('/api/v1/client-settings/user');
-    return data ?? {};
-  } catch {
-    return {};
+  async getSeries(libraryId?: string, page = 0, size = 30): Promise<KomgaPageResultDto<KomgaSeriesDto>> {
+    const params: Record<string, any> = { page, size, sort: 'metadata.titleSort,asc' };
+    if (libraryId) params['library_id'] = libraryId;
+    const { data } = await this.http.get<KomgaPageResultDto<KomgaSeriesDto>>('/api/v1/series', { params });
+    return data;
   }
-}
 
-async function patchClientSettings(
-  serverUrl: string,
-  token: string,
-  patch: KomgaClientSettingsPatch,
-): Promise<void> {
-  const client = buildClient(serverUrl, token);
-  await client.patch('/api/v1/client-settings/user', patch);
-}
-
-export async function komgaGetBookmarks(
-  serverUrl: string,
-  token: string,
-  seriesId: string,
-): Promise<KomgaStoredBookmark[]> {
-  const settings = await getClientSettings(serverUrl, token);
-  const key = `${BOOKMARK_KEY_PREFIX}${seriesId}`;
-  const raw = settings[key]?.value;
-  if (!raw) return [];
-  try {
-    return JSON.parse(raw) as KomgaStoredBookmark[];
-  } catch {
-    return [];
+  async getSeriesDetail(seriesId: string): Promise<KomgaSeriesDto> {
+    const { data } = await this.http.get<KomgaSeriesDto>(`/api/v1/series/${seriesId}`);
+    return data;
   }
-}
 
-export async function komgaAddBookmark(
-  serverUrl: string,
-  token: string,
-  bookmark: KomgaStoredBookmark,
-): Promise<void> {
-  const existing = await komgaGetBookmarks(serverUrl, token, bookmark.seriesId);
-  const updated = [...existing, bookmark];
-  const key = `${BOOKMARK_KEY_PREFIX}${bookmark.seriesId}`;
-  await patchClientSettings(serverUrl, token, { [key]: { value: JSON.stringify(updated) } });
-}
+  async getSeriesBooks(seriesId: string, page = 0, size = 50): Promise<KomgaPageResultDto<KomgaBookDto>> {
+    const { data } = await this.http.get<KomgaPageResultDto<KomgaBookDto>>(
+      `/api/v1/series/${seriesId}/books`,
+      { params: { page, size, sort: 'metadata.numberSort,asc' } },
+    );
+    return data;
+  }
 
-export async function komgaRemoveBookmark(
-  serverUrl: string,
-  token: string,
-  bookmark: KomgaStoredBookmark,
-): Promise<void> {
-  const existing = await komgaGetBookmarks(serverUrl, token, bookmark.seriesId);
-  const updated = existing.filter((b) => b.id !== bookmark.id);
-  const key = `${BOOKMARK_KEY_PREFIX}${bookmark.seriesId}`;
-  await patchClientSettings(serverUrl, token, { [key]: { value: JSON.stringify(updated) } });
-}
+  async getBooks(libraryId?: string, page = 0, size = 30): Promise<KomgaPageResultDto<KomgaBookDto>> {
+    const params: Record<string, any> = { page, size, sort: 'metadata.titleSort,asc' };
+    if (libraryId) params['library_id'] = libraryId;
+    const { data } = await this.http.get<KomgaPageResultDto<KomgaBookDto>>('/api/v1/books', { params });
+    return data;
+  }
 
-/** Series thumbnail — requires auth header (handled by CoverImage component). */
-export function komgaSeriesCoverUrl(serverUrl: string, seriesId: string): string {
-  return `${serverUrl.replace(/\/$/, '')}/api/v1/series/${seriesId}/thumbnail`;
-}
+  async getSeriesByAuthor(authorName: string, authorRole: string, page = 0, size = 30): Promise<KomgaPageResultDto<KomgaSeriesDto>> {
+    const { data } = await this.http.get<KomgaPageResultDto<KomgaSeriesDto>>('/api/v1/series', {
+      params: {
+        'author': [`${authorName},${authorRole}`],
+        page,
+        size,
+        sort: 'metadata.titleSort,asc',
+      },
+    });
+    return data;
+  }
 
-/** Book thumbnail — requires auth header. */
-export function komgaBookCoverUrl(serverUrl: string, bookId: string): string {
-  return `${serverUrl.replace(/\/$/, '')}/api/v1/books/${bookId}/thumbnail`;
-}
+  // ── Authors ────────────────────────────────────────────────────────────────
 
-/** Book epub file URL — requires auth header (handled by reader). */
-export function komgaBookFileUrl(serverUrl: string, bookId: string): string {
-  return `${serverUrl.replace(/\/$/, '')}/api/v1/books/${bookId}/file`;
+  async getAuthors(page = 0, size = 30, search?: string): Promise<KomgaPageResultDto<KomgaAuthorDto>> {
+    const params: Record<string, any> = { page, size, role: 'writer' };
+    if (search) params['search'] = search;
+    const { data } = await this.http.get<KomgaPageResultDto<KomgaAuthorDto>>('/api/v2/authors', { params });
+    return data;
+  }
+
+  // ── Collections ────────────────────────────────────────────────────────────
+
+  async getCollections(page = 0, size = 100): Promise<KomgaPageResultDto<KomgaCollectionDto>> {
+    const { data } = await this.http.get<KomgaPageResultDto<KomgaCollectionDto>>('/api/v1/collections', {
+      params: { page, size },
+    });
+    return data;
+  }
+
+  async getCollectionSeries(collectionId: string, page = 0, size = 30): Promise<KomgaPageResultDto<KomgaSeriesDto>> {
+    const { data } = await this.http.get<KomgaPageResultDto<KomgaSeriesDto>>(
+      `/api/v1/collections/${collectionId}/series`,
+      { params: { page, size } },
+    );
+    return data;
+  }
+
+  // ── Read Lists ─────────────────────────────────────────────────────────────
+
+  async getReadLists(page = 0, size = 100): Promise<KomgaPageResultDto<KomgaReadListDto>> {
+    const { data } = await this.http.get<KomgaPageResultDto<KomgaReadListDto>>('/api/v1/readlists', {
+      params: { page, size },
+    });
+    return data;
+  }
+
+  async getReadListBooks(readListId: string, page = 0, size = 50): Promise<KomgaPageResultDto<KomgaBookDto>> {
+    const { data } = await this.http.get<KomgaPageResultDto<KomgaBookDto>>(
+      `/api/v1/readlists/${readListId}/books`,
+      { params: { page, size } },
+    );
+    return data;
+  }
+
+  // ── Progress ───────────────────────────────────────────────────────────────
+
+  async getBookProgress(bookId: string): Promise<KomgaReadProgressDto | null> {
+    try {
+      const { data } = await this.http.get<KomgaReadProgressDto>(`/api/v1/books/${bookId}/read-progress`);
+      return data;
+    } catch {
+      return null;
+    }
+  }
+
+  async saveBookProgress(bookId: string, update: KomgaReadProgressUpdateDto): Promise<void> {
+    await this.http.patch(`/api/v1/books/${bookId}/read-progress`, update);
+  }
+
+  // ── Bookmarks (via client-settings) ────────────────────────────────────────
+
+  private async getClientSettings(): Promise<KomgaClientSettingsResponse> {
+    try {
+      const { data } = await this.http.get<KomgaClientSettingsResponse>('/api/v1/client-settings/user');
+      return data ?? {};
+    } catch {
+      return {};
+    }
+  }
+
+  private async patchClientSettings(patch: KomgaClientSettingsPatch): Promise<void> {
+    await this.http.patch('/api/v1/client-settings/user', patch);
+  }
+
+  async getBookmarks(seriesId: string): Promise<KomgaStoredBookmark[]> {
+    const settings = await this.getClientSettings();
+    const key = `lektio.bookmarks.${seriesId}`;
+    const raw = settings[key]?.value;
+    if (!raw) return [];
+    try {
+      return JSON.parse(raw) as KomgaStoredBookmark[];
+    } catch {
+      return [];
+    }
+  }
+
+  async addBookmark(bookmark: KomgaStoredBookmark): Promise<void> {
+    const existing = await this.getBookmarks(bookmark.seriesId);
+    const updated = [...existing, bookmark];
+    const key = `lektio.bookmarks.${bookmark.seriesId}`;
+    await this.patchClientSettings({ [key]: { value: JSON.stringify(updated) } });
+  }
+
+  async removeBookmark(bookmark: KomgaStoredBookmark): Promise<void> {
+    const existing = await this.getBookmarks(bookmark.seriesId);
+    const updated = existing.filter((b) => b.id !== bookmark.id);
+    const key = `lektio.bookmarks.${bookmark.seriesId}`;
+    await this.patchClientSettings({ [key]: { value: JSON.stringify(updated) } });
+  }
+
+  // ── URL helpers ────────────────────────────────────────────────────────────
+
+  seriesCoverUrl(seriesId: string): string {
+    return `${this.baseUrl}/api/v1/series/${seriesId}/thumbnail`;
+  }
+
+  bookCoverUrl(bookId: string): string {
+    return `${this.baseUrl}/api/v1/books/${bookId}/thumbnail`;
+  }
+
+  bookFileUrl(bookId: string): string {
+    return `${this.baseUrl}/api/v1/books/${bookId}/file`;
+  }
 }
