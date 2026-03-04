@@ -26,8 +26,11 @@ export default function BookListScreen({ route, navigation }: BookListScreenProp
 
   function handlePress(book: Book) {
     if (!provider) return;
-    const epubUrl = provider.getEpubUrl(book.id);
-    navigation.navigate('Reader', { chapterId: book.id, title: book.title, epubUrl });
+    navigation.navigate('BookDetail', {
+      chapterId: book.id,
+      seriesId: book.seriesId ?? book.id,
+      title: book.title,
+    });
   }
 
   if (loadingSeries && books.length === 0) {

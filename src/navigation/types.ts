@@ -19,16 +19,25 @@ export type MainDrawerParamList = {
   Settings: undefined;
 };
 
-export type HomeStackParamList = {
-  HomeScreen: undefined;
+export type BookDetailParams = {
+  chapterId: string;
+  seriesId: string;
+  title: string;
 };
 
-// Library stack — Libraries → SeriesList / BookList → SeriesDetail → Reader
+export type HomeStackParamList = {
+  HomeScreen: undefined;
+  BookDetail: BookDetailParams;
+  Reader: { chapterId: string; title: string; epubUrl: string };
+};
+
+// Library stack — Libraries → SeriesList / BookList → SeriesDetail → BookDetail → Reader
 export type LibraryStackParamList = {
   Libraries: undefined;
   SeriesList: { libraryId: string; libraryName: string };
   BookList: { libraryId: string; libraryName: string }; // Komga: individual books
   SeriesDetail: { seriesId: string; title: string };
+  BookDetail: BookDetailParams;
   Reader: { chapterId: string; title: string; epubUrl: string };
 };
 
@@ -36,6 +45,7 @@ export type LibraryStackParamList = {
 export type AllSeriesStackParamList = {
   AllSeries: undefined;
   SeriesDetail: { seriesId: string; title: string };
+  BookDetail: BookDetailParams;
   Reader: { chapterId: string; title: string; epubUrl: string };
 };
 
@@ -44,6 +54,7 @@ export type AuthorsStackParamList = {
   AuthorsList: undefined;
   AuthorDetail: { authorId: string; authorName: string };
   SeriesDetail: { seriesId: string; title: string };
+  BookDetail: BookDetailParams;
   Reader: { chapterId: string; title: string; epubUrl: string };
 };
 
@@ -52,6 +63,7 @@ export type CollectionsStackParamList = {
   CollectionsList: undefined;
   CollectionDetail: { collectionId: string; collectionName: string };
   SeriesDetail: { seriesId: string; title: string };
+  BookDetail: BookDetailParams;
   Reader: { chapterId: string; title: string; epubUrl: string };
 };
 
@@ -59,6 +71,7 @@ export type CollectionsStackParamList = {
 export type ReadListsStackParamList = {
   ReadLists: undefined;
   ReadListDetail: { readListId: string; readListName: string };
+  BookDetail: BookDetailParams;
   Reader: { chapterId: string; title: string; epubUrl: string };
 };
 
@@ -66,12 +79,14 @@ export type ReadListsStackParamList = {
 export type WantToReadStackParamList = {
   WantToReadList: undefined;
   SeriesDetail: { seriesId: string; title: string };
+  BookDetail: BookDetailParams;
   Reader: { chapterId: string; title: string; epubUrl: string };
 };
 
 // Bookmarks stack
 export type BookmarksStackParamList = {
   BookmarksList: undefined;
+  BookDetail: BookDetailParams;
   Reader: { chapterId: string; title: string; epubUrl: string };
 };
 
@@ -81,6 +96,7 @@ export type LibrariesScreenProps = NativeStackScreenProps<LibraryStackParamList,
 export type SeriesListScreenProps = NativeStackScreenProps<LibraryStackParamList, 'SeriesList'>;
 export type BookListScreenProps = NativeStackScreenProps<LibraryStackParamList, 'BookList'>;
 export type SeriesDetailScreenProps = NativeStackScreenProps<LibraryStackParamList, 'SeriesDetail'>;
+export type BookDetailScreenProps = NativeStackScreenProps<LibraryStackParamList, 'BookDetail'>;
 export type ReaderScreenProps = NativeStackScreenProps<LibraryStackParamList, 'Reader'>;
 export type SettingsScreenProps = DrawerScreenProps<MainDrawerParamList, 'Settings'>;
 
