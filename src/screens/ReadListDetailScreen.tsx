@@ -31,8 +31,11 @@ export default function ReadListDetailScreen({ route, navigation }: ReadListDeta
 
   function handleRead(book: Book) {
     if (!provider) return;
-    const epubUrl = provider.getEpubUrl(book.id);
-    navigation.navigate('Reader', { chapterId: book.id, title: book.title, epubUrl });
+    navigation.navigate('BookDetail', {
+      chapterId: book.id,
+      seriesId: book.seriesId ?? book.id,
+      title: book.title,
+    });
   }
 
   if (loadingReadListBooks && books.length === 0) {

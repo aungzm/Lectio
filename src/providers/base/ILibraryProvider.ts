@@ -25,6 +25,30 @@ export interface BookMetadata {
   year: number | null;
 }
 
+export interface PersonInfo {
+  id: string;
+  name: string;
+}
+
+export interface DetailedMetadata {
+  summary: string | null;
+  writers: PersonInfo[];
+  pencillers: PersonInfo[];
+  inkers: PersonInfo[];
+  colorists: PersonInfo[];
+  letterers: PersonInfo[];
+  coverArtists: PersonInfo[];
+  editors: PersonInfo[];
+  publishers: PersonInfo[];
+  translators: PersonInfo[];
+  characters: PersonInfo[];
+  genres: string[];
+  tags: string[];
+  language: string | null;
+  releaseYear: number | null;
+  ageRating: number;
+}
+
 export enum BookFormat {
   Epub = 'epub',
   Pdf = 'pdf',
@@ -174,6 +198,15 @@ export interface ILibraryProvider {
 
   /** Get the user's Want to Read list (Kavita only). */
   getWantToRead?(page: number, pageSize: number): Promise<Book[]>;
+
+  /** Get detailed metadata for a series (all people, genres, etc.). */
+  getDetailedMetadata?(seriesId: string): Promise<DetailedMetadata>;
+
+  /** Build a cover image URL for a chapter (optional). */
+  getChapterCoverUrl?(chapterId: string): string;
+
+  /** Build a download URL for a chapter (optional). */
+  getDownloadUrl?(chapterId: string): string;
 
   /** Get recently added series (Kavita only). */
   getRecentlyAdded?(pageSize: number): Promise<Book[]>;

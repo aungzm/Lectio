@@ -63,8 +63,7 @@ export default function SeriesDetailScreen() {
 
   function handleReadChapter(chapterId: string, title: string) {
     if (!provider) return;
-    const epubUrl = provider.getEpubUrl(chapterId);
-    navigation.navigate('Reader', { chapterId, title, epubUrl });
+    navigation.navigate('BookDetail', { chapterId, seriesId, title });
   }
 
   if (loadingVolumes && bookVolumes.length === 0) {

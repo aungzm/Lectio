@@ -9,6 +9,8 @@ import type {
   Collection,
   ReadList,
   Bookmark,
+  DetailedMetadata,
+  PersonInfo,
 } from '../base/ILibraryProvider';
 import { BookFormat, BookMetadata } from '../base/ILibraryProvider';
 import { KavitaClient } from './client';
@@ -18,6 +20,7 @@ import type {
   KavitaChapterDto,
   KavitaReadingListItemDto,
   KavitaBookmarkDto,
+  KavitaPersonDto,
 } from './types';
 import { MangaFormat } from './types';
 
@@ -302,5 +305,38 @@ export class KavitaProvider implements ILibraryProvider {
   async getContinueReading(pageSize: number): Promise<Book[]> {
     const series = await this.client.getContinueReading(pageSize);
     return series.map(mapSeries);
+  }
+
+  async getDetailedMetadata(seriesId: string): Promise<DetailedMetadata> {
+    const meta = await this.client.getSeriesMetadata(Number(seriesId));
+    const mapPersons = (persons: KavitaPersonDto[] | null): PersonInfo[] =>
+      (persons ?? []).map((p) => ({ id: String(p.id), name: p.name }));
+
+    return {
+      summary: meta.summary,
+      writers: mapPersons(meta.writers),
+      pencillers: mapPersons(meta.pencillers),
+      inkers: mapPersons(meta.inkers),
+      colorists: mapPersons(meta.colorists),
+      letterers: mapPersons(meta.letterers),
+      coverArtists: mapPersons(meta.coverArtists),
+      editors: mapPersons(meta.editors),
+      publishers: mapPersons(meta.publishers),
+      translators: mapPersons(meta.translators),
+      characters: mapPersons(meta.characters),
+      genres: (meta.genres ?? []).map((g) => g.title),
+      tags: (meta.tags ?? []).map((t) => t.title),
+      language: meta.language,
+      releaseYear: meta.releaseYear || null,
+      ageRating: meta.ageRating,
+    };
+  }
+
+  getChapterCoverUrl(chapterId: string): string {
+    return this.client.chapterCoverUrl(Number(chapterId));
+  }
+
+  getDownloadUrl(chapterId: string): string {
+    return this.client.downloadChapterUrl(Number(chapterId));
   }
 }
