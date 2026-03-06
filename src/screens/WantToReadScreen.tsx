@@ -1,14 +1,16 @@
 import React, { useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View } from 'react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useHomeStore } from '@/store/homeStore';
 import { BookGrid } from '@/components/BookGrid';
-import type { Book } from '@/providers';
+import { LoadingScreen } from '@/components/LoadingScreen';
+import { useCoverUri } from '@/hooks/useCoverUri';
 import type { WantToReadScreenProps } from '@/navigation/types';
 
 export default function WantToReadScreen({ navigation }: WantToReadScreenProps) {
   const { provider } = useAuthStore();
   const { wantToRead, loadingWantToRead, fetchWantToRead } = useHomeStore();
+  const getCoverUri = useCoverUri();
 
   useEffect(() => {
     if (provider) {
@@ -16,24 +18,15 @@ export default function WantToReadScreen({ navigation }: WantToReadScreenProps) 
     }
   }, [provider]);
 
-  function getCoverUri(book: Book): string | null {
-    if (!provider) return null;
-    return provider.getCoverUrl(book.id);
-  }
-
   if (loadingWantToRead && wantToRead.length === 0) {
-    return (
-      <View className="flex-1 items-center justify-center bg-white">
-        <ActivityIndicator size="large" />
-      </View>
-    );
+    return <LoadingScreen />;
   }
 
   return (
     <View className="flex-1 bg-white">
       <BookGrid
         items={wantToRead}
-        getCoverUri={getCoverUri}
+        getCoverUri={(item) => getCoverUri(item.id)}
         getTitle={(item) => item.title}
         onPress={(book) => navigation.navigate('SeriesDetail', { seriesId: book.id, title: book.title })}
         emptyText="Your Want to Read list is empty."
