@@ -1,11 +1,13 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { BookOpen } from 'lucide-react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useLibraryStore } from '@/store/libraryStore';
 import { ImageWithFallback } from '@/components/ImageWithFallback';
 import { LoadingScreen } from '@/components/LoadingScreen';
+import { EmptyState } from '@/components/EmptyState';
 import { useResponsiveGrid } from '@/hooks/useResponsiveGrid';
+import { useProviderFetch } from '@/hooks/useProviderFetch';
 import type { LibrariesScreenProps } from '@/navigation/types';
 import type { Library } from '@/providers';
 
@@ -14,11 +16,7 @@ export default function LibrariesScreen({ navigation }: LibrariesScreenProps) {
   const { libraries, loadingLibraries, fetchLibraries } = useLibraryStore();
   const { itemWidth } = useResponsiveGrid();
 
-  useEffect(() => {
-    if (provider) {
-      fetchLibraries(provider);
-    }
-  }, [provider]);
+  useProviderFetch((p) => fetchLibraries(p));
 
   function getCoverUri(library: Library): string | null {
     if (!provider) return null;
@@ -33,7 +31,7 @@ export default function LibrariesScreen({ navigation }: LibrariesScreenProps) {
     <View className="flex-1 bg-white">
       <ScrollView contentContainerStyle={{ padding: 12 }}>
         {libraries.length === 0 ? (
-          <Text className="text-center text-gray-400 mt-20">No libraries found.</Text>
+          <EmptyState message="No libraries found." />
         ) : (
           <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
             {libraries.map((library) => (

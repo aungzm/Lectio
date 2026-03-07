@@ -1,22 +1,17 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View } from 'react-native';
-import { useAuthStore } from '@/store/authStore';
 import { useHomeStore } from '@/store/homeStore';
 import { BookGrid } from '@/components/BookGrid';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { useCoverUri } from '@/hooks/useCoverUri';
+import { useProviderFetch } from '@/hooks/useProviderFetch';
 import type { WantToReadScreenProps } from '@/navigation/types';
 
 export default function WantToReadScreen({ navigation }: WantToReadScreenProps) {
-  const { provider } = useAuthStore();
   const { wantToRead, loadingWantToRead, fetchWantToRead } = useHomeStore();
   const getCoverUri = useCoverUri();
 
-  useEffect(() => {
-    if (provider) {
-      fetchWantToRead(provider, 0);
-    }
-  }, [provider]);
+  useProviderFetch((p) => fetchWantToRead(p, 0));
 
   if (loadingWantToRead && wantToRead.length === 0) {
     return <LoadingScreen />;

@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuthStore } from '@/store/authStore';
 import { useLibraryStore } from '@/store/libraryStore';
 import { CoverImage } from '@/components/CoverImage';
 import { LoadingScreen } from '@/components/LoadingScreen';
+import { useProviderFetch } from '@/hooks/useProviderFetch';
 import type { Volume } from '@/providers';
 
 // Kavita uses -100000 (stored as the string "-100000") for the sentinel chapter
@@ -45,11 +46,7 @@ export default function SeriesDetailScreen() {
 
   const bookVolumes = volumes[seriesId] ?? [];
 
-  useEffect(() => {
-    if (provider) {
-      fetchVolumes(provider, seriesId);
-    }
-  }, [seriesId, provider]);
+  useProviderFetch((p) => fetchVolumes(p, seriesId), [seriesId]);
 
   function getSeriesCoverUri(): string | null {
     if (!provider) return null;

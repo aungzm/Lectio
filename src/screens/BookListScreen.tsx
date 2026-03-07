@@ -1,35 +1,22 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View } from 'react-native';
-import { useAuthStore } from '@/store/authStore';
 import { useLibraryStore } from '@/store/libraryStore';
 import { BookGrid } from '@/components/BookGrid';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { useCoverUri } from '@/hooks/useCoverUri';
+import { useProviderFetch } from '@/hooks/useProviderFetch';
+import { useBookDetailNavigation } from '@/hooks/useBookDetailNavigation';
 import type { BookListScreenProps } from '@/navigation/types';
-import type { Book } from '@/providers';
 
-export default function BookListScreen({ route, navigation }: BookListScreenProps) {
+export default function BookListScreen({ route }: BookListScreenProps) {
   const { libraryId } = route.params;
-  const { provider } = useAuthStore();
   const { booksByLibrary, loadingSeries, fetchLibraryBooks } = useLibraryStore();
   const getCoverUri = useCoverUri('getBookCoverUrl');
+  const handlePress = useBookDetailNavigation();
 
   const books = booksByLibrary[libraryId] ?? [];
 
-  useEffect(() => {
-    if (provider) {
-      fetchLibraryBooks(provider, libraryId, 0);
-    }
-  }, [libraryId, provider]);
-
-  function handlePress(book: Book) {
-    if (!provider) return;
-    navigation.navigate('BookDetail', {
-      chapterId: book.id,
-      seriesId: book.seriesId ?? book.id,
-      title: book.title,
-    });
-  }
+  useProviderFetch((p) => fetchLibraryBooks(p, libraryId, 0), [libraryId]);
 
   if (loadingSeries && books.length === 0) {
     return <LoadingScreen />;

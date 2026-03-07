@@ -1,22 +1,17 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View } from 'react-native';
-import { useAuthStore } from '@/store/authStore';
 import { useBrowseStore } from '@/store/browseStore';
 import { BookGrid } from '@/components/BookGrid';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { useCoverUri } from '@/hooks/useCoverUri';
+import { useProviderFetch } from '@/hooks/useProviderFetch';
 import type { CollectionsScreenProps } from '@/navigation/types';
 
 export default function CollectionsScreen({ navigation }: CollectionsScreenProps) {
-  const { provider } = useAuthStore();
   const { collections, loadingCollections, fetchCollections } = useBrowseStore();
   const getCoverUri = useCoverUri('getCollectionCoverUrl');
 
-  useEffect(() => {
-    if (provider) {
-      fetchCollections(provider);
-    }
-  }, [provider]);
+  useProviderFetch((p) => fetchCollections(p));
 
   if (loadingCollections && collections.length === 0) {
     return <LoadingScreen />;
