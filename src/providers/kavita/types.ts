@@ -281,6 +281,21 @@ export interface KavitaSeriesMetadataFullDto {
   seriesId: number;
 }
 
+// --- Grouped Series (recently updated) ---
+
+export interface KavitaGroupedSeriesDto {
+  seriesName: string;
+  seriesId: number;
+  libraryId: number;
+  libraryType: LibraryType;
+  created: string;
+  chapterId: number;
+  volumeId: number;
+  id: number;
+  format: MangaFormat;
+  count: number;
+}
+
 // --- Bookmarks ---
 
 export interface KavitaBookmarkDto {
