@@ -61,7 +61,7 @@ function Section({ title, data, onPress, getCoverUri, emptyText, loadingId, onVi
         <Text className="text-lg font-bold text-secondary">{title}</Text>
         {onViewMore && (
           <Pressable onPress={onViewMore} className="flex-row items-center gap-0.5 active:opacity-60">
-            <Text className="text-sm font-medium text-tertiary">View more</Text>
+            <Text className="text-sm font-medium text-tertiary">View All</Text>
             <ChevronRight size={16} color="#6b7280" strokeWidth={2} />
           </Pressable>
         )}
