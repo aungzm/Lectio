@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   View,
   Text,
   ScrollView,
   Alert,
   Linking,
+  useWindowDimensions,
 } from 'react-native';
+import RenderHtml from 'react-native-render-html';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuthStore } from '@/store/authStore';
 import { CoverImage } from '@/components/CoverImage';
@@ -36,12 +38,23 @@ const AGE_RATING_LABELS: Record<number, string> = {
 function PeopleRow({ label, people }: { label: string; people: PersonInfo[] }) {
   if (people.length === 0) return null;
   return (
-    <View className="mb-3">
-      <Text className="text-xs font-semibold text-gray-500 uppercase mb-1">{label}</Text>
-      <Text className="text-sm text-gray-800">{people.map((p) => p.name).join(', ')}</Text>
+    <View className="mb-4">
+      <Text className="text-xs font-semibold text-tertiary uppercase tracking-wide mb-1">{label}</Text>
+      <Text className="text-sm text-secondary">{people.map((p) => p.name).join(', ')}</Text>
     </View>
   );
 }
+
+const SYNOPSIS_BASE_STYLES = {
+  body: {
+    color: '#374151',
+    fontSize: 14,
+    lineHeight: 22,
+  },
+  a: {
+    color: '#0ea5e9',
+  },
+};
 
 export default function BookDetailScreen() {
   const navigation = useNavigation<any>();
@@ -52,6 +65,7 @@ export default function BookDetailScreen() {
     title: string;
   };
   const { provider } = useAuthStore();
+  const { width } = useWindowDimensions();
 
   const [metadata, setMetadata] = useState<DetailedMetadata | null>(null);
   const [loading, setLoading] = useState(true);
@@ -93,55 +107,72 @@ export default function BookDetailScreen() {
     );
   }
 
+  const synopsisHtml = useMemo(() => {
+    if (!metadata?.summary) return null;
+    const text = metadata.summary.trim();
+    if (!text) return null;
+    // If it already contains HTML tags, use as-is; otherwise wrap in <p>
+    if (/<[a-z][\s\S]*>/i.test(text)) return { html: text };
+    return { html: `<p>${text}</p>` };
+  }, [metadata?.summary]);
+
   if (loading) {
     return <LoadingScreen />;
   }
 
   const ageLabel = metadata ? AGE_RATING_LABELS[metadata.ageRating] ?? null : null;
+  const contentWidth = width - 32; // px-4 on each side
 
   return (
-    <ScrollView className="flex-1 bg-white" contentContainerClassName="pb-10">
-      {/* Hero section */}
-      <View className="flex-row px-4 py-5 bg-gray-50 border-b border-gray-200">
-        <View className="w-32 h-48 bg-gray-200 rounded-xl overflow-hidden shadow mr-4">
+    <ScrollView className="flex-1 bg-background" contentContainerClassName="pb-12">
+      {/* Hero */}
+      <View className="items-center pt-2 pb-6 px-4">
+        <View className="w-40 h-56 bg-border rounded-2xl overflow-hidden shadow-lg">
           <CoverImage uri={getCoverUri()} className="w-full h-full" resizeMode="cover" />
         </View>
-        <View className="flex-1 justify-center">
-          <Text className="text-lg font-bold text-gray-900 mb-1" numberOfLines={3}>
-            {title}
+        <Text className="text-xl font-bold text-secondary mt-4 text-center px-4" numberOfLines={3}>
+          {title}
+        </Text>
+        {metadata?.writers && metadata.writers.length > 0 && (
+          <Text className="text-sm text-tertiary mt-1">
+            {metadata.writers.map((w) => w.name).join(', ')}
           </Text>
-          {metadata?.writers && metadata.writers.length > 0 && (
-            <Text className="text-sm text-gray-600 mb-1">
-              {metadata.writers.map((w) => w.name).join(', ')}
-            </Text>
-          )}
+        )}
+        <View className="flex-row items-center gap-3 mt-2">
           {metadata?.releaseYear && (
-            <Text className="text-xs text-gray-400">{metadata.releaseYear}</Text>
+            <Text className="text-xs text-muted">{metadata.releaseYear}</Text>
           )}
           {metadata?.language && (
-            <Text className="text-xs text-gray-400 mt-0.5">
-              Language: {metadata.language.toUpperCase()}
-            </Text>
+            <Text className="text-xs text-muted">{metadata.language.toUpperCase()}</Text>
+          )}
+          {ageLabel && ageLabel !== 'Unknown' && (
+            <View className="bg-border rounded px-1.5 py-0.5">
+              <Text className="text-xs text-tertiary font-medium">{ageLabel}</Text>
+            </View>
           )}
         </View>
       </View>
 
-      {/* Action buttons */}
-      <View className="flex-row px-4 py-4 gap-3">
+      {/* Actions */}
+      <View className="flex-row px-4 gap-3 mb-6">
         <ActionButton label="Read Now" onPress={handleReadNow} />
         <ActionButton label="Download" onPress={handleDownload} variant="secondary" />
       </View>
 
       {error && (
-        <Text className="text-red-500 text-sm px-4 mb-2">{error}</Text>
+        <Text className="text-danger text-sm px-4 mb-4">{error}</Text>
       )}
 
       {metadata && (
         <View className="px-4">
           {/* Synopsis */}
-          {metadata.summary && metadata.summary.length > 0 && (
+          {synopsisHtml && (
             <MetadataSection label="Synopsis">
-              <Text className="text-sm text-gray-800 leading-5">{metadata.summary}</Text>
+              <RenderHtml
+                contentWidth={contentWidth}
+                source={synopsisHtml}
+                tagsStyles={SYNOPSIS_BASE_STYLES}
+              />
             </MetadataSection>
           )}
 
@@ -174,14 +205,6 @@ export default function BookDetailScreen() {
           <PeopleRow label="Publisher(s)" people={metadata.publishers} />
           <PeopleRow label="Translator(s)" people={metadata.translators} />
           <PeopleRow label="Character(s)" people={metadata.characters} />
-
-          {/* Age rating */}
-          {ageLabel && ageLabel !== 'Unknown' && (
-            <View className="mb-3">
-              <Text className="text-xs font-semibold text-gray-500 uppercase mb-1">Age Rating</Text>
-              <Text className="text-sm text-gray-800">{ageLabel}</Text>
-            </View>
-          )}
         </View>
       )}
     </ScrollView>
