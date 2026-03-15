@@ -36,13 +36,14 @@ const AGE_RATING_LABELS: Record<number, string> = {
   14: 'Not Applicable',
 };
 
-function PeopleRow({ label, people }: { label: string; people: PersonInfo[] }) {
+function PeopleChips({ label, people }: { label: string; people: PersonInfo[] }) {
   if (people.length === 0) return null;
   return (
-    <View className="mb-4">
-      <Text className="text-xs font-semibold text-tertiary uppercase tracking-wide mb-1">{label}</Text>
-      <Text className="text-sm text-secondary">{people.map((p) => p.name).join(', ')}</Text>
-    </View>
+    <MetadataSection label={label}>
+      <View className="flex-row flex-wrap">
+        {people.map((p) => <Chip key={p.name} label={p.name} />)}
+      </View>
+    </MetadataSection>
   );
 }
 
@@ -234,28 +235,16 @@ export default function SeriesDetailScreen() {
           )}
 
           {/* People */}
-          {metadata.writers.length > 0 && (
-            <MetadataSection label="Author(s)">
-              <View className="flex-row flex-wrap">
-                {metadata.writers.map((w) => <Chip key={w.name} label={w.name} />)}
-              </View>
-            </MetadataSection>
-          )}
-          <PeopleRow label="Penciller(s)" people={metadata.pencillers} />
-          <PeopleRow label="Inker(s)" people={metadata.inkers} />
-          <PeopleRow label="Colorist(s)" people={metadata.colorists} />
-          <PeopleRow label="Letterer(s)" people={metadata.letterers} />
-          <PeopleRow label="Cover Artist(s)" people={metadata.coverArtists} />
-          <PeopleRow label="Editor(s)" people={metadata.editors} />
-          {metadata.publishers.length > 0 && (
-            <MetadataSection label="Publisher(s)">
-              <View className="flex-row flex-wrap">
-                {metadata.publishers.map((p) => <Chip key={p.name} label={p.name} />)}
-              </View>
-            </MetadataSection>
-          )}
-          <PeopleRow label="Translator(s)" people={metadata.translators} />
-          <PeopleRow label="Character(s)" people={metadata.characters} />
+          <PeopleChips label="Author(s)" people={metadata.writers} />
+          <PeopleChips label="Penciller(s)" people={metadata.pencillers} />
+          <PeopleChips label="Inker(s)" people={metadata.inkers} />
+          <PeopleChips label="Colorist(s)" people={metadata.colorists} />
+          <PeopleChips label="Letterer(s)" people={metadata.letterers} />
+          <PeopleChips label="Cover Artist(s)" people={metadata.coverArtists} />
+          <PeopleChips label="Editor(s)" people={metadata.editors} />
+          <PeopleChips label="Publisher(s)" people={metadata.publishers} />
+          <PeopleChips label="Translator(s)" people={metadata.translators} />
+          <PeopleChips label="Character(s)" people={metadata.characters} />
         </View>
       )}
 
