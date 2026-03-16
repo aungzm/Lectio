@@ -1,6 +1,8 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Text } from 'react-native';
 import { CoverImage } from './CoverImage';
+import { EmptyState } from './EmptyState';
+import { useResponsiveGrid } from '@/hooks/useResponsiveGrid';
 
 interface BookGridProps<T extends { id: string }> {
   items: T[];
@@ -19,15 +21,13 @@ export function BookGrid<T extends { id: string }>({
   emptyText = 'No items found.',
   ListHeaderComponent,
 }: BookGridProps<T>) {
-  const { width } = useWindowDimensions();
-  const numCols = width >= 600 ? 4 : 3;
-  const itemWidth = `${100 / numCols}%` as `${number}%`;
+  const { itemWidth } = useResponsiveGrid();
 
   return (
     <ScrollView contentContainerStyle={{ padding: 12 }}>
       {ListHeaderComponent}
       {items.length === 0 ? (
-        <Text className="text-center text-gray-400 mt-20">{emptyText}</Text>
+        <EmptyState message={emptyText} />
       ) : (
         <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
           {items.map((item) => (

@@ -4,6 +4,7 @@ import type { Book, ILibraryProvider } from '@/providers';
 interface HomeState {
   recentlyAdded: Book[];
   continueReading: Book[];
+  recentlyUpdatedSeries: Book[];
   wantToRead: Book[];
   loadingHome: boolean;
   loadingWantToRead: boolean;
@@ -16,6 +17,7 @@ interface HomeState {
 export const useHomeStore = create<HomeState>((set, get) => ({
   recentlyAdded: [],
   continueReading: [],
+  recentlyUpdatedSeries: [],
   wantToRead: [],
   loadingHome: false,
   loadingWantToRead: false,
@@ -24,11 +26,12 @@ export const useHomeStore = create<HomeState>((set, get) => ({
   fetchHomeData: async (provider) => {
     set({ loadingHome: true, error: null });
     try {
-      const [recentlyAdded, continueReading] = await Promise.all([
+      const [recentlyAdded, continueReading, recentlyUpdatedSeries] = await Promise.all([
         provider.getRecentlyAdded?.(20) ?? [],
         provider.getContinueReading?.(20) ?? [],
+        provider.getRecentlyUpdatedSeries?.(20) ?? [],
       ]);
-      set({ recentlyAdded, continueReading, loadingHome: false });
+      set({ recentlyAdded, continueReading, recentlyUpdatedSeries, loadingHome: false });
     } catch (e: any) {
       set({ loadingHome: false, error: e?.message ?? 'Failed to load home data' });
     }

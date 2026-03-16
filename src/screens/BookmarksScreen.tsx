@@ -1,8 +1,10 @@
 import React, { useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useBookmarkStore } from '@/store/bookmarkStore';
 import { useLibraryStore } from '@/store/libraryStore';
+import { LoadingScreen } from '@/components/LoadingScreen';
+import { EmptyState } from '@/components/EmptyState';
 import type { BookmarksListScreenProps } from '@/navigation/types';
 import type { Bookmark } from '@/providers';
 
@@ -48,11 +50,7 @@ export default function BookmarksScreen({ navigation }: BookmarksListScreenProps
   }
 
   if (isLoading && allBookmarks.length === 0) {
-    return (
-      <View className="flex-1 items-center justify-center bg-white">
-        <ActivityIndicator size="large" />
-      </View>
-    );
+    return <LoadingScreen />;
   }
 
   return (
@@ -74,12 +72,10 @@ export default function BookmarksScreen({ navigation }: BookmarksListScreenProps
           </TouchableOpacity>
         )}
         ListEmptyComponent={
-          <View className="items-center mt-20 px-8">
-            <Text className="text-gray-400 text-center">No bookmarks yet.</Text>
-            <Text className="text-gray-300 text-sm text-center mt-2">
-              Long-press a page in the reader to add a bookmark.
-            </Text>
-          </View>
+          <EmptyState
+            message="No bookmarks yet."
+            subtitle="Long-press a page in the reader to add a bookmark."
+          />
         }
       />
     </View>
