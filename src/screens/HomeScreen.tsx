@@ -21,6 +21,7 @@ import { useAuthStore } from '@/store/authStore';
 import type { Book } from '@/providers';
 import type { HomeStackParamList } from '@/navigation/types';
 
+
 type HomeNav = NativeStackNavigationProp<HomeStackParamList, 'HomeScreen'>;
 
 function SeriesCard({ book, onPress, getCoverUri, loading }: {
@@ -94,7 +95,6 @@ export default function HomeScreen() {
   const { recentlyAdded, continueReading, recentlyUpdatedSeries, loadingHome, fetchHomeData } = useHomeStore();
   const getCoverUri = useCoverUri();
   const provider = useAuthStore((s) => s.provider);
-  const isKavita = useAuthStore((s) => s.serverConfig?.providerType === 'kavita');
   const [loadingContinueId, setLoadingContinueId] = React.useState<string | null>(null);
 
   useProviderFetch((p) => fetchHomeData(p));
@@ -148,16 +148,6 @@ export default function HomeScreen() {
         onViewMore={() => navigateDrawer('Library')}
       />
 
-      {!isKavita && (
-        <Section
-          title="Recently Added Books"
-          data={[]}
-          onPress={handleSeriesPress}
-          getCoverUri={getCoverUri}
-          emptyText="No recently added books."
-          onViewMore={() => navigateDrawer('Library')}
-        />
-      )}
       <Section
         title="Recently Added Series"
         data={recentlyAdded}

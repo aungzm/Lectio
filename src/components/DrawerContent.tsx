@@ -10,7 +10,6 @@ import {
   Users,
   FolderOpen,
   List,
-  Heart,
   Settings,
   LogOut,
 } from 'lucide-react-native';
@@ -22,7 +21,6 @@ const DRAWER_ITEMS = [
   { name: 'Authors', label: 'Authors', icon: Users },
   { name: 'Collections', label: 'Collections', icon: FolderOpen },
   { name: 'ReadList', label: 'Reading Lists', icon: List },
-  { name: 'WantToRead', label: 'Want to Read', icon: Heart, kavitaOnly: true },
 ] as const;
 
 export default function DrawerContent({ state, navigation }: DrawerContentComponentProps) {
@@ -30,7 +28,6 @@ export default function DrawerContent({ state, navigation }: DrawerContentCompon
   const serverConfig = useAuthStore((s) => s.serverConfig);
   const auth = useAuthStore((s) => s.auth);
   const logout = useAuthStore((s) => s.logout);
-  const isKavita = serverConfig?.providerType === 'kavita';
 
   const activeRoute = state.routeNames[state.index];
 
@@ -47,8 +44,6 @@ export default function DrawerContent({ state, navigation }: DrawerContentCompon
       {/* Nav items */}
       <View className="flex-1 px-3">
         {DRAWER_ITEMS.map((item) => {
-          if (item.kavitaOnly && !isKavita) return null;
-
           const isActive = activeRoute === item.name;
           const Icon = item.icon;
 

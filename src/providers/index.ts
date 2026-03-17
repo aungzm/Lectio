@@ -1,5 +1,3 @@
-export { KavitaProvider } from './kavita';
-export { kavitaLogin, kavitaValidateToken } from './kavita/client';
 export { KomgaProvider } from './komga';
 export { komgaLogin, komgaValidateToken } from './komga/client';
 export type {
