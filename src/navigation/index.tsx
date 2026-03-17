@@ -16,7 +16,6 @@ import type {
   AuthorsStackParamList,
   CollectionsStackParamList,
   ReadListsStackParamList,
-  WantToReadStackParamList,
 } from './types';
 
 import HomeScreen from '@/screens/HomeScreen';
@@ -32,7 +31,6 @@ import CollectionsScreen from '@/screens/CollectionsScreen';
 import CollectionDetailScreen from '@/screens/CollectionDetailScreen';
 import ReadListsScreen from '@/screens/ReadListsScreen';
 import ReadListDetailScreen from '@/screens/ReadListDetailScreen';
-import WantToReadScreen from '@/screens/WantToReadScreen';
 
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 const Drawer = createDrawerNavigator<MainDrawerParamList>();
@@ -42,7 +40,6 @@ const AllSeriesStack = createNativeStackNavigator<AllSeriesStackParamList>();
 const AuthorsStack = createNativeStackNavigator<AuthorsStackParamList>();
 const CollectionsStack = createNativeStackNavigator<CollectionsStackParamList>();
 const ReadListsStack = createNativeStackNavigator<ReadListsStackParamList>();
-const WantToReadStack = createNativeStackNavigator<WantToReadStackParamList>();
 
 const cleanHeader: NativeStackNavigationOptions = {
   title: '',
@@ -119,19 +116,7 @@ function ReadListsNavigator() {
   );
 }
 
-function WantToReadNavigator() {
-  return (
-    <WantToReadStack.Navigator screenOptions={subScreen}>
-      <WantToReadStack.Screen name="WantToReadList" component={WantToReadScreen} options={drawerRootScreen} />
-      {commonScreens(WantToReadStack)}
-    </WantToReadStack.Navigator>
-  );
-}
-
 function MainDrawer() {
-  const providerType = useAuthStore((s) => s.serverConfig?.providerType);
-  const isKavita = providerType === 'kavita';
-
   return (
     <Drawer.Navigator
       drawerContent={(props) => <DrawerContent {...props} />}
@@ -143,9 +128,6 @@ function MainDrawer() {
       <Drawer.Screen name="Authors" component={AuthorsNavigator} />
       <Drawer.Screen name="Collections" component={CollectionsNavigator} />
       <Drawer.Screen name="ReadList" component={ReadListsNavigator} />
-      {isKavita && (
-        <Drawer.Screen name="WantToRead" component={WantToReadNavigator} />
-      )}
       <Drawer.Screen name="Settings" component={SettingsScreen} options={{ headerShown: true, title: '', headerShadowVisible: false, headerStyle: { backgroundColor: '#f9fafb' }, headerLeft: () => <NavIconButton type="drawer" /> }} />
     </Drawer.Navigator>
   );
