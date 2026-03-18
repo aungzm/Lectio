@@ -119,6 +119,49 @@ export interface Bookmark {
   chapterTitle: string | null;
 }
 
+// ── Search / Filter types ────────────────────────────────────────────────────
+
+export type FilterType =
+  | 'readStatus'    // UNREAD, IN_PROGRESS, READ
+  | 'genre'
+  | 'tag'
+  | 'publisher'
+  | 'language'
+  | 'ageRating'
+  | 'seriesStatus'  // ONGOING, ENDED, HIATUS, ABANDONED
+  | 'libraryId'
+  | 'complete'      // true / false
+  | 'oneShot';      // true / false
+
+export interface FilterCriterion {
+  type: FilterType;
+  value: string;
+}
+
+export interface SearchFilters {
+  fullTextSearch?: string;
+  criteria: FilterCriterion[];
+  sort?: string;
+}
+
+export interface PagedResult<T> {
+  items: T[];
+  totalItems: number;
+  totalPages: number;
+  currentPage: number;
+}
+
+export interface FilterOptions {
+  genres: string[];
+  tags: string[];
+  publishers: string[];
+  languages: string[];
+  ageRatings: string[];
+  libraries: { id: string; name: string }[];
+}
+
+// ── Provider interface ───────────────────────────────────────────────────────
+
 export interface ILibraryProvider {
   readonly name: string;
 
