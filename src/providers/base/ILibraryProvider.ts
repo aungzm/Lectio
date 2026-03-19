@@ -257,6 +257,9 @@ export interface ILibraryProvider {
   /** Get recently updated series (optional). */
   getRecentlyUpdatedSeries?(pageSize: number): Promise<Book[]>;
 
+  /** Get recently added books (optional). */
+  getRecentlyAddedBooks?(pageSize: number): Promise<Book[]>;
+
   /** Get the chapter to continue reading for a series (optional). */
   getContinuePoint?(seriesId: string): Promise<{ chapterId: string; title: string } | null>;
 

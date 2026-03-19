@@ -268,6 +268,36 @@ export class KomgaClient {
     return data;
   }
 
+  // ── Home screen ───────────────────────────────────────────────────────────
+
+  async getNewSeries(page = 0, size = 20): Promise<KomgaPageResultDto<KomgaSeriesDto>> {
+    const { data } = await this.http.get<KomgaPageResultDto<KomgaSeriesDto>>('/api/v1/series/new', {
+      params: { page, size },
+    });
+    return data;
+  }
+
+  async getLatestSeries(page = 0, size = 20): Promise<KomgaPageResultDto<KomgaSeriesDto>> {
+    const { data } = await this.http.get<KomgaPageResultDto<KomgaSeriesDto>>('/api/v1/series/latest', {
+      params: { page, size },
+    });
+    return data;
+  }
+
+  async getLatestBooks(page = 0, size = 20): Promise<KomgaPageResultDto<KomgaBookDto>> {
+    const { data } = await this.http.get<KomgaPageResultDto<KomgaBookDto>>('/api/v1/books/latest', {
+      params: { page, size },
+    });
+    return data;
+  }
+
+  async getInProgressSeries(page = 0, size = 20): Promise<KomgaPageResultDto<KomgaSeriesDto>> {
+    const { data } = await this.http.get<KomgaPageResultDto<KomgaSeriesDto>>('/api/v1/series', {
+      params: { page, size, read_status: 'IN_PROGRESS' },
+    });
+    return data;
+  }
+
   // ── URL helpers ────────────────────────────────────────────────────────────
 
   seriesCoverUrl(seriesId: string): string {
