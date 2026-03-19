@@ -12,7 +12,8 @@ import type {
   MainDrawerParamList,
   HomeStackParamList,
   LibraryStackParamList,
-  AllSeriesStackParamList,
+  SeriesStackParamList,
+  BooksStackParamList,
   AuthorsStackParamList,
   CollectionsStackParamList,
   ReadListsStackParamList,
@@ -21,10 +22,10 @@ import type {
 import HomeScreen from '@/screens/HomeScreen';
 import LoginScreen from '@/screens/LoginScreen';
 import LibrariesScreen from '@/screens/LibrariesScreen';
-import SeriesListScreen from '@/screens/SeriesListScreen';
+import SeriesScreen from '@/screens/SeriesScreen';
 import BookListScreen from '@/screens/BookListScreen';
+import BooksScreen from '@/screens/BooksScreen';
 import SettingsScreen from '@/screens/SettingsScreen';
-import AllSeriesScreen from '@/screens/AllSeriesScreen';
 import AuthorsScreen from '@/screens/AuthorsScreen';
 import AuthorDetailScreen from '@/screens/AuthorDetailScreen';
 import CollectionsScreen from '@/screens/CollectionsScreen';
@@ -36,7 +37,8 @@ const RootStack = createNativeStackNavigator<RootStackParamList>();
 const Drawer = createDrawerNavigator<MainDrawerParamList>();
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
 const LibraryStack = createNativeStackNavigator<LibraryStackParamList>();
-const AllSeriesStack = createNativeStackNavigator<AllSeriesStackParamList>();
+const SeriesStack = createNativeStackNavigator<SeriesStackParamList>();
+const BooksStack = createNativeStackNavigator<BooksStackParamList>();
 const AuthorsStack = createNativeStackNavigator<AuthorsStackParamList>();
 const CollectionsStack = createNativeStackNavigator<CollectionsStackParamList>();
 const ReadListsStack = createNativeStackNavigator<ReadListsStackParamList>();
@@ -70,19 +72,28 @@ function LibraryNavigator() {
   return (
     <LibraryStack.Navigator screenOptions={subScreen}>
       <LibraryStack.Screen name="Libraries" component={LibrariesScreen} options={drawerRootScreen} />
-      <LibraryStack.Screen name="SeriesList" component={SeriesListScreen} />
+      <LibraryStack.Screen name="SeriesScreen" component={SeriesScreen} />
       <LibraryStack.Screen name="BookList" component={BookListScreen} />
       {commonScreens(LibraryStack)}
     </LibraryStack.Navigator>
   );
 }
 
-function AllSeriesNavigator() {
+function SeriesNavigator() {
   return (
-    <AllSeriesStack.Navigator screenOptions={subScreen}>
-      <AllSeriesStack.Screen name="AllSeries" component={AllSeriesScreen} options={drawerRootScreen} />
-      {commonScreens(AllSeriesStack)}
-    </AllSeriesStack.Navigator>
+    <SeriesStack.Navigator screenOptions={subScreen}>
+      <SeriesStack.Screen name="SeriesScreen" component={SeriesScreen} options={drawerRootScreen} />
+      {commonScreens(SeriesStack)}
+    </SeriesStack.Navigator>
+  );
+}
+
+function BooksNavigator() {
+  return (
+    <BooksStack.Navigator screenOptions={subScreen}>
+      <BooksStack.Screen name="BooksScreen" component={BooksScreen} options={drawerRootScreen} />
+      {commonScreens(BooksStack)}
+    </BooksStack.Navigator>
   );
 }
 
@@ -124,7 +135,8 @@ function MainDrawer() {
     >
       <Drawer.Screen name="Home" component={HomeNavigator} />
       <Drawer.Screen name="Library" component={LibraryNavigator} />
-      <Drawer.Screen name="Series" component={AllSeriesNavigator} />
+      <Drawer.Screen name="Series" component={SeriesNavigator} />
+      <Drawer.Screen name="Books" component={BooksNavigator} />
       <Drawer.Screen name="Authors" component={AuthorsNavigator} />
       <Drawer.Screen name="Collections" component={CollectionsNavigator} />
       <Drawer.Screen name="ReadList" component={ReadListsNavigator} />

@@ -142,6 +142,46 @@ export interface KomgaStoredBookmark {
   chapterTitle: string | null;
 }
 
+// ── Search condition types (POST /api/v1/series/list, /api/v1/books/list) ────
+
+export type KomgaConditionOperator =
+  | { operator: 'is'; value: string }
+  | { operator: 'isNot'; value: string }
+  | { operator: 'isTrue' }
+  | { operator: 'isFalse' };
+
+export type KomgaSeriesCondition =
+  | { allOf: KomgaSeriesCondition[] }
+  | { anyOf: KomgaSeriesCondition[] }
+  | { genre: KomgaConditionOperator }
+  | { tag: KomgaConditionOperator }
+  | { publisher: KomgaConditionOperator }
+  | { language: KomgaConditionOperator }
+  | { readStatus: KomgaConditionOperator }
+  | { seriesStatus: KomgaConditionOperator }
+  | { libraryId: KomgaConditionOperator }
+  | { complete: KomgaConditionOperator }
+  | { oneshot: KomgaConditionOperator }
+  | { ageRating: KomgaConditionOperator };
+
+export type KomgaBookCondition =
+  | { allOf: KomgaBookCondition[] }
+  | { anyOf: KomgaBookCondition[] }
+  | { tag: KomgaConditionOperator }
+  | { readStatus: KomgaConditionOperator }
+  | { libraryId: KomgaConditionOperator }
+  | { oneshot: KomgaConditionOperator };
+
+export interface KomgaSeriesSearch {
+  condition?: KomgaSeriesCondition;
+  fullTextSearch?: string;
+}
+
+export interface KomgaBookSearch {
+  condition?: KomgaBookCondition;
+  fullTextSearch?: string;
+}
+
 /** Shape of PATCH /api/v1/client-settings/user body */
 export type KomgaClientSettingsPatch = Record<string, { value: string }>;
 

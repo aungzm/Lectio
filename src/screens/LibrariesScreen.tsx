@@ -40,8 +40,7 @@ export default function LibrariesScreen({ navigation }: LibrariesScreenProps) {
                 style={{ width: itemWidth }}
                 className="items-center px-1 mb-3"
                 onPress={() => {
-                  const screen = provider?.name === 'Komga' ? 'BookList' : 'SeriesList';
-                  navigation.navigate(screen, {
+                  navigation.navigate('SeriesScreen', {
                     libraryId: library.id,
                     libraryName: library.name,
                   });

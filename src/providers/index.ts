@@ -15,5 +15,10 @@ export type {
   Collection,
   ReadList,
   Bookmark,
+  FilterType,
+  FilterCriterion,
+  SearchFilters,
+  PagedResult,
+  FilterOptions,
 } from './base/ILibraryProvider';
 export { BookFormat } from './base/ILibraryProvider';

@@ -259,4 +259,15 @@ export interface ILibraryProvider {
 
   /** Get the chapter to continue reading for a series (optional). */
   getContinuePoint?(seriesId: string): Promise<{ chapterId: string; title: string } | null>;
+
+  // --- Search / filter (optional — providers that support structured search) ---
+
+  /** Search series with structured filters + full-text search. */
+  searchSeries?(filters: SearchFilters, page: number, pageSize: number): Promise<PagedResult<Book>>;
+
+  /** Search books with structured filters + full-text search. */
+  searchBooks?(filters: SearchFilters, page: number, pageSize: number): Promise<PagedResult<Book>>;
+
+  /** Get available filter option values (genres, tags, etc.) for populating filter UI. */
+  getFilterOptions?(): Promise<FilterOptions>;
 }

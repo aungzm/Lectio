@@ -13,6 +13,8 @@ import type {
   KomgaStoredBookmark,
   KomgaClientSettingsPatch,
   KomgaClientSettingsResponse,
+  KomgaSeriesSearch,
+  KomgaBookSearch,
 } from './types';
 import { normalizeUrl } from '../base/url';
 
@@ -217,6 +219,53 @@ export class KomgaClient {
     const updated = existing.filter((b) => b.id !== bookmark.id);
     const key = `lektio.bookmarks.${bookmark.seriesId}`;
     await this.patchClientSettings({ [key]: { value: JSON.stringify(updated) } });
+  }
+
+  // ── Search (POST) ─────────────────────────────────────────────────────────
+
+  async searchSeries(body: KomgaSeriesSearch, page = 0, size = 30, sort = 'metadata.titleSort,asc'): Promise<KomgaPageResultDto<KomgaSeriesDto>> {
+    const { data } = await this.http.post<KomgaPageResultDto<KomgaSeriesDto>>(
+      '/api/v1/series/list',
+      body,
+      { params: { page, size, sort } },
+    );
+    return data;
+  }
+
+  async searchBooks(body: KomgaBookSearch, page = 0, size = 30, sort = 'metadata.titleSort,asc'): Promise<KomgaPageResultDto<KomgaBookDto>> {
+    const { data } = await this.http.post<KomgaPageResultDto<KomgaBookDto>>(
+      '/api/v1/books/list',
+      body,
+      { params: { page, size, sort } },
+    );
+    return data;
+  }
+
+  // ── Referential (for filter dropdowns) ────────────────────────────────────
+
+  async getGenres(): Promise<string[]> {
+    const { data } = await this.http.get<string[]>('/api/v1/genres');
+    return data;
+  }
+
+  async getTags(): Promise<string[]> {
+    const { data } = await this.http.get<string[]>('/api/v1/tags');
+    return data;
+  }
+
+  async getPublishers(): Promise<string[]> {
+    const { data } = await this.http.get<string[]>('/api/v1/publishers');
+    return data;
+  }
+
+  async getLanguages(): Promise<string[]> {
+    const { data } = await this.http.get<string[]>('/api/v1/languages');
+    return data;
+  }
+
+  async getAgeRatings(): Promise<string[]> {
+    const { data } = await this.http.get<string[]>('/api/v1/age-ratings');
+    return data;
   }
 
   // ── URL helpers ────────────────────────────────────────────────────────────
