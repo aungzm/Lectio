@@ -92,8 +92,9 @@ function Section({ title, data, onPress, getCoverUri, emptyText, loadingId, onVi
 
 export default function HomeScreen() {
   const nav = useNavigation<HomeNav>();
-  const { recentlyAdded, continueReading, recentlyUpdatedSeries, loadingHome, fetchHomeData } = useHomeStore();
+  const { recentlyAdded, recentlyAddedBooks, continueReading, recentlyUpdatedSeries, loadingHome, fetchHomeData } = useHomeStore();
   const getCoverUri = useCoverUri();
+  const getBookCoverUri = useCoverUri('getBookCoverUrl');
   const provider = useAuthStore((s) => s.provider);
   const [loadingContinueId, setLoadingContinueId] = React.useState<string | null>(null);
 
@@ -105,6 +106,14 @@ export default function HomeScreen() {
 
   const handleSeriesPress = useCallback((book: Book) => {
     nav.navigate('SeriesDetail', { seriesId: book.id, title: book.title });
+  }, [nav]);
+
+  const handleBookPress = useCallback((book: Book) => {
+    nav.navigate('BookDetail', {
+      chapterId: book.id,
+      seriesId: book.seriesId ?? book.id,
+      title: book.title,
+    });
   }, [nav]);
 
   const handleContinueReadingPress = useCallback(async (book: Book) => {
@@ -155,6 +164,14 @@ export default function HomeScreen() {
         getCoverUri={getCoverUri}
         emptyText="No recently added series."
         onViewMore={() => navigateDrawer('Series')}
+      />
+      <Section
+        title="Recently Added Books"
+        data={recentlyAddedBooks}
+        onPress={handleBookPress}
+        getCoverUri={getBookCoverUri}
+        emptyText="No recently added books."
+        onViewMore={() => navigateDrawer('Books')}
       />
       <Section
         title="Recently Updated Series"
