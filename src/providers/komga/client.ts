@@ -62,14 +62,16 @@ export async function komgaValidateToken(serverUrl: string, token: string): Prom
 export class KomgaClient {
   private readonly http: AxiosInstance;
   private readonly baseUrl: string;
+  readonly basicAuth: string;
 
-  constructor(serverUrl: string, token: string) {
+  constructor(serverUrl: string, basicAuth: string) {
     this.baseUrl = normalizeUrl(serverUrl);
+    this.basicAuth = basicAuth;
     this.http = axios.create({
       baseURL: this.baseUrl,
       headers: {
         'Content-Type': 'application/json',
-        'X-Auth-Token': token,
+        'Authorization': `Basic ${basicAuth}`,
       },
     });
   }

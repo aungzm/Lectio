@@ -97,8 +97,8 @@ export class KomgaProvider implements ILibraryProvider {
   readonly name = 'Komga';
   private readonly client: KomgaClient;
 
-  constructor(serverUrl: string, token: string) {
-    this.client = new KomgaClient(serverUrl, token);
+  constructor(serverUrl: string, basicAuth: string) {
+    this.client = new KomgaClient(serverUrl, basicAuth);
   }
 
   async getLibraries(): Promise<Library[]> {
