@@ -5,6 +5,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Pressable,
+  useWindowDimensions,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuthStore } from '@/store/authStore';
@@ -13,7 +14,6 @@ import { CoverImage } from '@/components/CoverImage';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { MetadataSection } from '@/components/MetadataSection';
 import { Chip } from '@/components/Chip';
-import { BookGrid } from '@/components/BookGrid';
 import { useProviderFetch } from '@/hooks/useProviderFetch';
 import type { Volume, DetailedMetadata, PersonInfo } from '@/providers';
 
@@ -66,12 +66,21 @@ function formatSeriesStatus(status: string | null | undefined): string | null {
     .join(' ');
 }
 
+function chunkArray<T>(arr: T[], size: number): T[][] {
+  const result: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) {
+    result.push(arr.slice(i, i + size));
+  }
+  return result;
+}
+
 export default function SeriesDetailScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { seriesId, title } = route.params as { seriesId: string; title: string };
   const { provider } = useAuthStore();
   const { volumes, loadingVolumes, fetchVolumes } = useLibraryStore();
+  const { width } = useWindowDimensions();
 
   const [metadata, setMetadata] = useState<DetailedMetadata | null>(null);
   const [metaLoading, setMetaLoading] = useState(true);
@@ -135,6 +144,8 @@ export default function SeriesDetailScreen() {
   const multiChapterVolumes = bookVolumes.filter((v) => !isBookVolume(v));
   const ageLabel = metadata ? AGE_RATING_LABELS[metadata.ageRating] ?? null : null;
   const statusLabel = formatSeriesStatus(metadata?.seriesStatus);
+  const numCols = width >= 600 ? 4 : 3;
+  const bookRows = chunkArray(singleBooks, numCols);
   const headerChips = [
     ...(metadata?.writers ?? []).map((writer) => ({ key: `writer-${writer.id}`, label: writer.name })),
     ...(metadata?.genres ?? []).map((genre) => ({ key: `genre-${genre}`, label: genre })),
@@ -211,15 +222,42 @@ export default function SeriesDetailScreen() {
       {singleBooks.length > 0 && (
         <View>
           <MetadataSection label="Books">
-            <BookGrid
-              items={singleBooks}
-              getCoverUri={(volume) => getBookCoverUri(volume.id)}
-              getTitle={(volume) => volume.chapters[0]?.title || volume.name}
-              onPress={(volume) => {
-                const chapter = volume.chapters[0];
-                handleReadChapter(chapter.id, chapter.title || volume.name);
-              }}
-            />
+            <View className="px-3">
+              {bookRows.map((row, rowIndex) => (
+                <View key={`row-${rowIndex}`} className="flex-row mb-4">
+                  {row.map((volume) => {
+                    const chapter = volume.chapters[0];
+                    return (
+                      <TouchableOpacity
+                        key={volume.id}
+                        className="items-center px-1"
+                        style={{ width: `${100 / numCols}%` }}
+                        onPress={() => handleReadChapter(chapter.id, chapter.title || volume.name)}
+                      >
+                        <View className="w-full aspect-[2/3] bg-border rounded-lg overflow-hidden mb-1">
+                          <CoverImage
+                            uri={getBookCoverUri(volume.id)}
+                            className="w-full h-full"
+                            resizeMode="cover"
+                          />
+                        </View>
+                        <Text className="text-xs text-secondary text-center" numberOfLines={2}>
+                          {chapter.title || volume.name}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                  {row.length < numCols &&
+                    Array.from({ length: numCols - row.length }).map((_, index) => (
+                      <View
+                        key={`spacer-${rowIndex}-${index}`}
+                        className="px-1"
+                        style={{ width: `${100 / numCols}%` }}
+                      />
+                    ))}
+                </View>
+              ))}
+            </View>
           </MetadataSection>
         </View>
       )}
