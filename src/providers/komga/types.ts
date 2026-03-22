@@ -19,6 +19,7 @@ export interface KomgaAuthorDto {
 }
 
 export interface KomgaSeriesMetadataDto {
+  status: string;
   title: string;
   titleSort: string;
   summary: string;
@@ -33,6 +34,7 @@ export interface KomgaSeriesMetadataDto {
 
 export interface KomgaBookMetadataAggregationDto {
   authors: KomgaAuthorDto[];
+  releaseDate: string | null;
   summary: string;
   summaryNumber: string;
 }

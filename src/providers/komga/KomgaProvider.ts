@@ -13,6 +13,8 @@ import type {
   FilterCriterion,
   PagedResult,
   FilterOptions,
+  DetailedMetadata,
+  PersonInfo,
 } from '../base/ILibraryProvider';
 import { BookFormat, BookMetadata } from '../base/ILibraryProvider';
 import { KomgaClient } from './client';
@@ -91,6 +93,13 @@ function mapAuthor(a: KomgaAuthorDto): Author {
   };
 }
 
+function mapPeopleByRole(authors: KomgaAuthorDto[] | undefined, roles: string[]): PersonInfo[] {
+  if (!authors?.length) return [];
+  return authors
+    .filter((author) => roles.includes(author.role))
+    .map((author) => ({ id: `${author.name}|${author.role}`, name: author.name }));
+}
+
 // ── Provider ──────────────────────────────────────────────────────────────────
 
 export class KomgaProvider implements ILibraryProvider {
@@ -124,6 +133,34 @@ export class KomgaProvider implements ILibraryProvider {
   async getSeriesDetail(seriesId: string): Promise<Book> {
     const s = await this.client.getSeriesDetail(seriesId);
     return mapSeries(s);
+  }
+
+  async getDetailedMetadata(seriesId: string): Promise<DetailedMetadata> {
+    const series = await this.client.getSeriesDetail(seriesId);
+    const authors = series.booksMetadata?.authors ?? [];
+    const releaseDate = series.booksMetadata?.releaseDate ?? null;
+    const releaseYear = releaseDate ? Number.parseInt(releaseDate.slice(0, 4), 10) : null;
+    const publisher = series.metadata?.publisher?.trim();
+
+    return {
+      summary: series.metadata?.summary?.trim() || series.booksMetadata?.summary?.trim() || null,
+      writers: mapPeopleByRole(authors, ['writer']),
+      pencillers: mapPeopleByRole(authors, ['penciller', 'penciler']),
+      inkers: mapPeopleByRole(authors, ['inker']),
+      colorists: mapPeopleByRole(authors, ['colorist']),
+      letterers: mapPeopleByRole(authors, ['letterer']),
+      coverArtists: mapPeopleByRole(authors, ['cover', 'coverArtist', 'cover_artist']),
+      editors: mapPeopleByRole(authors, ['editor']),
+      publishers: publisher ? [{ id: publisher, name: publisher }] : [],
+      translators: mapPeopleByRole(authors, ['translator']),
+      characters: [],
+      genres: series.metadata?.genres ?? [],
+      tags: series.metadata?.tags ?? [],
+      language: series.metadata?.language ?? null,
+      releaseYear: Number.isFinite(releaseYear) ? releaseYear : null,
+      ageRating: series.metadata?.ageRating ?? 0,
+      seriesStatus: series.metadata?.status ?? null,
+    };
   }
 
   async getVolumes(seriesId: string): Promise<Volume[]> {
