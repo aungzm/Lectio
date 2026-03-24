@@ -175,6 +175,9 @@ export interface ILibraryProvider {
   /** Get full detail for a single series. */
   getSeriesDetail(seriesId: string): Promise<Book>;
 
+  /** Get full detail for a single book/chapter. */
+  getBookDetail?(bookId: string): Promise<Book>;
+
   /** Get volumes (and their chapters) for a series. For Komga: each book becomes one volume with one chapter. */
   getVolumes(seriesId: string): Promise<Volume[]>;
 

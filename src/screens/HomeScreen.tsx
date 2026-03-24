@@ -82,21 +82,23 @@ function ShelfCard({
 }) {
   return (
     <TouchableOpacity className="mr-3 w-36" onPress={onPress} disabled={loading}>
-      <View className="overflow-hidden rounded-[24px] border border-border bg-background">
-        <View className="h-48 bg-border">
-          <CoverImage uri={getCoverUri(book.id)} className="h-full w-full" resizeMode="cover" />
+      <View className="overflow-hidden rounded-2xl border border-border bg-background">
+        <View className="h-48 bg-background p-2">
+          <View className="h-full w-full overflow-hidden rounded-xl bg-border">
+            <CoverImage uri={getCoverUri(book.id)} className="h-full w-full" resizeMode="contain" />
+          </View>
           {loading ? (
             <View className="absolute inset-0 items-center justify-center bg-secondary/20">
               <ActivityIndicator color="#ffffff" />
             </View>
           ) : null}
         </View>
-        <View className="px-3 py-3">
-          <Text className="text-sm font-semibold text-secondary" numberOfLines={2}>
+        <View className="min-h-[88px] justify-between px-3 py-3">
+          <Text className="text-sm font-semibold leading-6 text-secondary" numberOfLines={2}>
             {book.title}
           </Text>
           {compactMeta ? (
-            <Text className="mt-1 text-xs text-tertiary" numberOfLines={1}>
+            <Text className="mt-2 text-xs text-tertiary" numberOfLines={1}>
               {compactMeta}
             </Text>
           ) : null}
@@ -121,10 +123,12 @@ function FeaturedContinueCard({
   const progress = book.pagesTotal > 0 ? Math.min(book.pagesRead / book.pagesTotal, 1) : 0;
 
   return (
-    <TouchableOpacity onPress={onPress} disabled={loading} className="mx-4 overflow-hidden rounded-[28px] border border-border bg-background">
+    <TouchableOpacity onPress={onPress} disabled={loading} className="mx-4 overflow-hidden rounded-2xl border border-border bg-background">
       <View className="flex-row p-4">
-        <View className="mr-4 h-40 w-28 overflow-hidden rounded-[20px] bg-border">
-          <CoverImage uri={getCoverUri(book.id)} className="h-full w-full" resizeMode="cover" />
+        <View className="mr-4 h-40 w-28 rounded-xl bg-background p-2">
+          <View className="h-full w-full overflow-hidden rounded-lg bg-border">
+            <CoverImage uri={getCoverUri(book.id)} className="h-full w-full" resizeMode="contain" />
+          </View>
           {loading ? (
             <View className="absolute inset-0 items-center justify-center bg-secondary/20">
               <ActivityIndicator color="#ffffff" />
