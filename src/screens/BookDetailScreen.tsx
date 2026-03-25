@@ -149,7 +149,9 @@ export default function BookDetailScreen() {
 
   function getCoverUri(): string | null {
     if (!provider) return null;
-    return provider.getChapterCoverUrl?.(chapterId) ?? provider.getCoverUrl(seriesId);
+    return provider.getChapterCoverUrl?.(chapterId)
+      ?? provider.getBookCoverUrl?.(chapterId)
+      ?? provider.getCoverUrl(seriesId);
   }
 
   function handleReadNow() {
