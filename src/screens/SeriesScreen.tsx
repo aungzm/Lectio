@@ -3,8 +3,8 @@ import { View } from 'react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useFilterStore } from '@/store/filterStore';
 import { BookGrid } from '@/components/BookGrid';
-import { SearchBar } from '@/components/SearchBar';
 import { FilterBar } from '@/components/FilterBar';
+import { BrowseTopBar } from '@/components/BrowseTopBar';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { useCoverUri } from '@/hooks/useCoverUri';
 import type { SearchFilters, FilterType } from '@/providers';
@@ -23,12 +23,17 @@ const SERIES_FILTER_TYPES: FilterType[] = [
 
 export default function SeriesScreen({ route, navigation }: SeriesScreenProps) {
   const libraryId = route.params?.libraryId;
-  const provider = useAuthStore((s) => s.provider);
-  const { seriesResults, loadingSeriesSearch, searchSeries, filterOptions, loadingFilterOptions, fetchFilterOptions } =
-    useFilterStore();
+  const provider = useAuthStore((state) => state.provider);
+  const {
+    seriesResults,
+    loadingSeriesSearch,
+    searchSeries,
+    filterOptions,
+    loadingFilterOptions,
+    fetchFilterOptions,
+  } = useFilterStore();
   const getCoverUri = useCoverUri();
 
-  // Build initial criteria with locked libraryId if present
   const lockedCriteria = libraryId ? [{ type: 'libraryId' as const, value: libraryId }] : [];
   const lockedTypes: FilterType[] = libraryId ? ['libraryId'] : [];
 
@@ -37,25 +42,20 @@ export default function SeriesScreen({ route, navigation }: SeriesScreenProps) {
   });
   const [searchText, setSearchText] = useState('');
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pageRef = useRef(0);
 
-  // Trigger search when filters change
   const doSearch = useCallback(
-    (f: SearchFilters, page = 0) => {
+    (nextFilters: SearchFilters, page = 0) => {
       if (!provider) return;
-      pageRef.current = page;
-      searchSeries(provider, f, page);
+      searchSeries(provider, nextFilters, page);
     },
     [provider, searchSeries],
   );
 
-  // Initial load
   useEffect(() => {
     doSearch(filters, 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [provider]);
 
-  // Debounced text search
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
@@ -70,16 +70,15 @@ export default function SeriesScreen({ route, navigation }: SeriesScreenProps) {
   }, [searchText]);
 
   const handleFiltersChange = useCallback(
-    (newFilters: SearchFilters) => {
-      setFilters(newFilters);
-      doSearch(newFilters, 0);
+    (nextFilters: SearchFilters) => {
+      setFilters(nextFilters);
+      doSearch(nextFilters, 0);
     },
     [doSearch],
   );
 
   const handleEndReached = useCallback(() => {
-    if (loadingSeriesSearch) return;
-    if (!seriesResults) return;
+    if (loadingSeriesSearch || !seriesResults) return;
     if (seriesResults.currentPage + 1 >= seriesResults.totalPages) return;
     doSearch(filters, seriesResults.currentPage + 1);
   }, [loadingSeriesSearch, seriesResults, filters, doSearch]);
@@ -90,41 +89,43 @@ export default function SeriesScreen({ route, navigation }: SeriesScreenProps) {
 
   const items = seriesResults?.items ?? [];
   const isInitialLoad = loadingSeriesSearch && items.length === 0;
+  const activeFilterCount = filters.criteria.filter((criterion) => !lockedTypes.includes(criterion.type)).length;
 
   if (isInitialLoad) {
     return <LoadingScreen />;
   }
 
-  const header = (
-    <View>
-      <SearchBar
-        value={searchText}
-        onChangeText={setSearchText}
-        placeholder="Search series…"
-      />
-      <FilterBar
-        filters={filters}
-        onFiltersChange={handleFiltersChange}
-        filterOptions={filterOptions}
-        availableTypes={SERIES_FILTER_TYPES}
-        lockedTypes={lockedTypes}
-        onLoadOptions={handleLoadOptions}
-        loading={loadingFilterOptions}
-      />
-    </View>
-  );
-
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-background">
       <BookGrid
         items={items}
         getCoverUri={(item) => getCoverUri(item.id)}
         getTitle={(item) => item.title}
-        onPress={(book) =>
-          navigation.navigate('SeriesDetail', { seriesId: book.id, title: book.title })
-        }
+        onPress={(book) => navigation.navigate('SeriesDetail', { seriesId: book.id, title: book.title })}
         emptyText="No series found."
-        ListHeaderComponent={header}
+        ListHeaderComponent={
+          <BrowseTopBar
+            title="Series"
+            subtitle="Browse full runs, discover fresh arrivals, and only open search or filters when you want them."
+            searchValue={searchText}
+            onSearchChange={setSearchText}
+            searchPlaceholder="Search series..."
+            resultCount={items.length}
+            resultLabel={items.length === 1 ? 'result' : 'results'}
+            activeFilterCount={activeFilterCount}
+            filterContent={
+              <FilterBar
+                filters={filters}
+                onFiltersChange={handleFiltersChange}
+                filterOptions={filterOptions}
+                availableTypes={SERIES_FILTER_TYPES}
+                lockedTypes={lockedTypes}
+                onLoadOptions={handleLoadOptions}
+                loading={loadingFilterOptions}
+              />
+            }
+          />
+        }
         onEndReached={handleEndReached}
         loadingMore={loadingSeriesSearch && items.length > 0}
       />

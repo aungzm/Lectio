@@ -145,14 +145,14 @@ export function FilterBar({
               key={type}
               onPress={() => toggleExpand(type)}
               className={`flex-row items-center rounded-full px-3 py-1.5 mr-2 border ${
-                isExpanded ? 'bg-gray-200 border-gray-300' : 'bg-gray-50 border-gray-200'
+                isExpanded ? 'bg-secondary border-secondary' : 'bg-surface border-border'
               }`}
             >
-              <Text className="text-xs font-medium text-gray-700">
+              <Text className={`text-xs font-medium ${isExpanded ? 'text-primary' : 'text-secondary'}`}>
                 {FILTER_LABELS[type]}
                 {count > 0 && ` (${count})`}
               </Text>
-              <Icon size={14} color="#6b7280" className="ml-1" />
+              <Icon size={14} color={isExpanded ? '#ffffff' : '#6b7280'} className="ml-1" />
             </Pressable>
           );
         })}
@@ -160,7 +160,7 @@ export function FilterBar({
         {hasActiveFilters && (
           <Pressable
             onPress={clearAll}
-            className="flex-row items-center rounded-full px-3 py-1.5 border border-red-200 bg-red-50"
+            className="flex-row items-center rounded-full px-3 py-1.5 border border-danger bg-surface"
           >
             <X size={12} color="#ef4444" />
             <Text className="text-xs font-medium text-red-500 ml-1">Clear</Text>

@@ -34,12 +34,18 @@ export function BookGrid<T extends { id: string }>({
         className="items-center px-1 mb-3"
         onPress={() => onPress(item)}
       >
-        <View className="w-full aspect-[2/3] bg-gray-200 rounded-lg overflow-hidden mb-1">
-          <CoverImage uri={getCoverUri(item)} className="w-full h-full" resizeMode="cover" />
+        <View className="w-full overflow-hidden rounded-2xl border border-border bg-surface">
+          <View className="aspect-[2/3] bg-background p-2">
+            <View className="h-full w-full overflow-hidden rounded-xl bg-border">
+              <CoverImage uri={getCoverUri(item)} className="w-full h-full" resizeMode="contain" />
+            </View>
+          </View>
+          <View className="min-h-[74px] justify-between px-3 py-3">
+            <Text className="text-center text-sm font-semibold leading-5 text-secondary" numberOfLines={2}>
+              {getTitle(item)}
+            </Text>
+          </View>
         </View>
-        <Text className="text-xs text-gray-700 text-center" numberOfLines={2}>
-          {getTitle(item)}
-        </Text>
       </TouchableOpacity>
     ),
     [itemWidth, getCoverUri, getTitle, onPress],
@@ -63,6 +69,7 @@ export function BookGrid<T extends { id: string }>({
 
   return (
     <FlatList
+      key={`book-grid-${numCols}`}
       data={items}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
