@@ -219,6 +219,9 @@ export interface ILibraryProvider {
   /** List series by a specific author (authorId is provider-specific). */
   getSeriesByAuthor?(authorId: string, page: number, pageSize: number): Promise<Book[]>;
 
+  /** List individual books by a specific author (authorId is provider-specific). */
+  getBooksByAuthor?(authorId: string, page: number, pageSize: number): Promise<Book[]>;
+
   /** List server-defined collections. */
   getCollections?(): Promise<Collection[]>;
 
