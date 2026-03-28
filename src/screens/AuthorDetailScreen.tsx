@@ -139,8 +139,8 @@ export default function AuthorDetailScreen({ route, navigation }: AuthorDetailSc
     return `${count} ${count === 1 ? 'book' : 'books'}`;
   }
 
-  function formatBookSubtitle(item: Book): string {
-    return item.pagesTotal > 0 ? `${item.pagesTotal} pages` : 'Book';
+  function formatBookSubtitle(_item: Book): string {
+    return '';
   }
 
   if ((loadingSeriesByAuthor || loadingBooksByAuthor) && series.length === 0 && books.length === 0) {
