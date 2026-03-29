@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { View, FlatList, TouchableOpacity, Text, ActivityIndicator } from 'react-native';
 import { CoverImage } from './CoverImage';
 import { EmptyState } from './EmptyState';
@@ -13,6 +13,9 @@ interface BookGridProps<T extends { id: string }> {
   ListHeaderComponent?: React.ReactElement;
   onEndReached?: () => void;
   loadingMore?: boolean;
+  scrollEnabled?: boolean;
+  contentPadding?: number;
+  titleAlign?: 'center' | 'left';
 }
 
 export function BookGrid<T extends { id: string }>({
@@ -24,14 +27,26 @@ export function BookGrid<T extends { id: string }>({
   ListHeaderComponent,
   onEndReached,
   loadingMore,
+  scrollEnabled = true,
+  contentPadding = 12,
+  titleAlign = 'center',
 }: BookGridProps<T>) {
   const { numCols, itemWidth } = useResponsiveGrid();
+  const rows = useMemo(() => {
+    if (scrollEnabled) return [];
+
+    const nextRows: T[][] = [];
+    for (let index = 0; index < items.length; index += numCols) {
+      nextRows.push(items.slice(index, index + numCols));
+    }
+    return nextRows;
+  }, [items, numCols, scrollEnabled]);
 
   const renderItem = useCallback(
     ({ item }: { item: T }) => (
       <TouchableOpacity
         style={{ width: itemWidth }}
-        className="items-center px-1 mb-3"
+        className="mb-3 items-center px-1"
         onPress={() => onPress(item)}
       >
         <View className="w-full overflow-hidden rounded-2xl border border-border bg-surface">
@@ -40,15 +55,18 @@ export function BookGrid<T extends { id: string }>({
               <CoverImage uri={getCoverUri(item)} className="w-full h-full" resizeMode="contain" />
             </View>
           </View>
-          <View className="min-h-[74px] justify-between px-3 py-3">
-            <Text className="text-center text-sm font-semibold leading-5 text-secondary" numberOfLines={2}>
+          <View className="min-h-[52px] px-3 pb-2 pt-1.5">
+            <Text
+              className={`text-sm font-semibold leading-5 text-secondary ${titleAlign === 'center' ? 'text-center' : ''}`}
+              numberOfLines={2}
+            >
               {getTitle(item)}
             </Text>
           </View>
         </View>
       </TouchableOpacity>
     ),
-    [itemWidth, getCoverUri, getTitle, onPress],
+    [getCoverUri, getTitle, itemWidth, onPress, titleAlign],
   );
 
   const keyExtractor = useCallback((item: T) => item.id, []);
@@ -61,8 +79,36 @@ export function BookGrid<T extends { id: string }>({
 
   if (items.length === 0 && !ListHeaderComponent) {
     return (
-      <View style={{ padding: 12 }}>
+      <View style={{ padding: contentPadding }}>
         <EmptyState message={emptyText} />
+      </View>
+    );
+  }
+
+  if (!scrollEnabled) {
+    return (
+      <View style={{ padding: contentPadding }}>
+        {ListHeaderComponent}
+        {items.length === 0 ? (
+          <EmptyState message={emptyText} />
+        ) : (
+          rows.map((row, rowIndex) => (
+            <View key={`book-grid-row-${rowIndex}`} className="mb-3 flex-row">
+              {row.map((item) => (
+                <React.Fragment key={item.id}>{renderItem({ item })}</React.Fragment>
+              ))}
+              {row.length < numCols
+                ? Array.from({ length: numCols - row.length }).map((_, index) => (
+                    <View
+                      key={`book-grid-spacer-${rowIndex}-${index}`}
+                      style={{ width: itemWidth }}
+                    />
+                  ))
+                : null}
+            </View>
+          ))
+        )}
+        {footer}
       </View>
     );
   }
@@ -74,7 +120,7 @@ export function BookGrid<T extends { id: string }>({
       renderItem={renderItem}
       keyExtractor={keyExtractor}
       numColumns={numCols}
-      contentContainerStyle={{ padding: 12 }}
+      contentContainerStyle={{ padding: contentPadding }}
       ListHeaderComponent={ListHeaderComponent}
       ListEmptyComponent={<EmptyState message={emptyText} />}
       ListFooterComponent={footer}

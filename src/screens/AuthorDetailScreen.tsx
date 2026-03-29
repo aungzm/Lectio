@@ -1,97 +1,20 @@
 import React from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import type { DimensionValue } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { BookOpen, Library, User } from 'lucide-react-native';
-import { CoverImage } from '@/components/CoverImage';
+import { BookGrid } from '@/components/BookGrid';
 import { ImageWithFallback } from '@/components/ImageWithFallback';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { SectionCard } from '@/components/SectionCard';
-import { useResponsiveGrid } from '@/hooks/useResponsiveGrid';
 import { useAuthStore } from '@/store/authStore';
 import { useBrowseStore } from '@/store/browseStore';
 import { useProviderFetch } from '@/hooks/useProviderFetch';
 import type { AuthorDetailScreenProps } from '@/navigation/types';
 import type { Book } from '@/providers';
 
-function chunkArray<T>(items: T[], size: number): T[][] {
-  const rows: T[][] = [];
-  for (let index = 0; index < items.length; index += size) {
-    rows.push(items.slice(index, index + size));
-  }
-  return rows;
-}
-
 function EmptySectionMessage({ message }: { message: string }) {
   return (
     <View className="rounded-2xl border border-dashed border-border bg-background px-4 py-6">
       <Text className="text-center text-sm text-tertiary">{message}</Text>
-    </View>
-  );
-}
-
-function GridCard({
-  title,
-  subtitle,
-  coverUri,
-  onPress,
-}: {
-  title: string;
-  subtitle: string;
-  coverUri: string | null;
-  onPress: () => void;
-}) {
-  return (
-    <TouchableOpacity onPress={onPress} className="px-1">
-      <View className="overflow-hidden rounded-2xl border border-border bg-surface">
-        <View className="aspect-[2/3] bg-background p-2">
-          <View className="h-full w-full overflow-hidden rounded-xl bg-border">
-            <CoverImage uri={coverUri} className="h-full w-full" resizeMode="contain" />
-          </View>
-        </View>
-        <View className="min-h-[88px] justify-between px-3 py-3">
-          <Text className="text-sm font-semibold leading-6 text-secondary" numberOfLines={2}>
-            {title}
-          </Text>
-          <Text className="mt-2 text-xs text-tertiary" numberOfLines={1}>
-            {subtitle}
-          </Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-}
-
-function CardGrid<T extends { id: string }>({
-  items,
-  numCols,
-  cardWidth,
-  renderCard,
-}: {
-  items: T[];
-  numCols: number;
-  cardWidth: DimensionValue;
-  renderCard: (item: T) => React.ReactNode;
-}) {
-  const rows = chunkArray(items, numCols);
-
-  if (items.length === 0) return null;
-
-  return (
-    <View>
-      {rows.map((row, rowIndex) => (
-        <View key={`row-${rowIndex}`} className="mb-3 flex-row">
-          {row.map((item) => (
-            <View key={item.id} style={{ width: cardWidth }}>
-              {renderCard(item)}
-            </View>
-          ))}
-          {row.length < numCols
-            ? Array.from({ length: numCols - row.length }).map((_, index) => (
-                <View key={`spacer-${rowIndex}-${index}`} style={{ width: cardWidth }} />
-              ))
-            : null}
-        </View>
-      ))}
     </View>
   );
 }
@@ -107,7 +30,6 @@ export default function AuthorDetailScreen({ route, navigation }: AuthorDetailSc
     fetchSeriesByAuthor,
     fetchBooksByAuthor,
   } = useBrowseStore();
-  const { numCols, itemWidth } = useResponsiveGrid();
 
   const series = seriesByAuthor[authorId] ?? [];
   const books = booksByAuthor[authorId] ?? [];
@@ -132,15 +54,6 @@ export default function AuthorDetailScreen({ route, navigation }: AuthorDetailSc
     return provider.getBookCoverUrl?.(book.id)
       ?? provider.getVolumeCoverUrl?.(book.volumeId ?? book.id)
       ?? provider.getCoverUrl(book.seriesId ?? book.id);
-  }
-
-  function formatSeriesSubtitle(item: Book): string {
-    const count = item.pagesTotal;
-    return `${count} ${count === 1 ? 'book' : 'books'}`;
-  }
-
-  function formatBookSubtitle(_item: Book): string {
-    return '';
   }
 
   if ((loadingSeriesByAuthor || loadingBooksByAuthor) && series.length === 0 && books.length === 0) {
@@ -191,18 +104,16 @@ export default function AuthorDetailScreen({ route, navigation }: AuthorDetailSc
       <View className="px-4 pt-4">
         <SectionCard title="Author's Series">
           {series.length > 0 ? (
-            <CardGrid
+            <BookGrid
               items={series}
-              numCols={numCols}
-              cardWidth={itemWidth}
-              renderCard={(item) => (
-                <GridCard
-                  title={item.title}
-                  subtitle={formatSeriesSubtitle(item)}
-                  coverUri={getSeriesCoverUri(item.id)}
-                  onPress={() => navigation.navigate('SeriesDetail', { seriesId: item.id, title: item.title })}
-                />
-              )}
+              getCoverUri={(item) => getSeriesCoverUri(item.id)}
+              getTitle={(item) => item.title}
+              onPress={(item) =>
+                navigation.navigate('SeriesDetail', { seriesId: item.id, title: item.title })
+              }
+              scrollEnabled={false}
+              contentPadding={0}
+              titleAlign="left"
             />
           ) : (
             <EmptySectionMessage message="No series found for this author." />
@@ -211,24 +122,20 @@ export default function AuthorDetailScreen({ route, navigation }: AuthorDetailSc
 
         <SectionCard title="Author's Books">
           {books.length > 0 ? (
-            <CardGrid
+            <BookGrid
               items={books}
-              numCols={numCols}
-              cardWidth={itemWidth}
-              renderCard={(item) => (
-                <GridCard
-                  title={item.title}
-                  subtitle={formatBookSubtitle(item)}
-                  coverUri={getBookCoverUri(item)}
-                  onPress={() =>
-                    navigation.navigate('BookDetail', {
-                      chapterId: item.id,
-                      seriesId: item.seriesId ?? item.id,
-                      title: item.title,
-                    })
-                  }
-                />
-              )}
+              getCoverUri={getBookCoverUri}
+              getTitle={(item) => item.title}
+              onPress={(item) =>
+                navigation.navigate('BookDetail', {
+                  chapterId: item.id,
+                  seriesId: item.seriesId ?? item.id,
+                  title: item.title,
+                })
+              }
+              scrollEnabled={false}
+              contentPadding={0}
+              titleAlign="left"
             />
           ) : (
             <EmptySectionMessage message="No books found for this author." />
