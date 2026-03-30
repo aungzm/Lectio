@@ -14,6 +14,7 @@ import {
   Library,
   Shield,
   Sparkles,
+  User,
 } from 'lucide-react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useLibraryStore } from '@/store/libraryStore';
@@ -175,6 +176,7 @@ export default function SeriesDetailScreen() {
   const ageLabel = metadata ? AGE_RATING_LABELS[metadata.ageRating] ?? null : null;
   const statusLabel = formatSeriesStatus(metadata?.seriesStatus);
   const bookCountLabel = `${bookVolumes.length} ${bookVolumes.length === 1 ? 'Book' : 'Books'}`;
+  const authorNames = metadata?.writers?.map((writer) => writer.name).filter(Boolean) ?? [];
   const heroFacts = [
     { label: 'Books', value: bookCountLabel },
     statusLabel ? { label: 'Status', value: statusLabel } : null,
@@ -197,6 +199,18 @@ export default function SeriesDetailScreen() {
             <Text className="mt-5 text-center text-3xl font-bold text-secondary" numberOfLines={3}>
               {title}
             </Text>
+
+            {authorNames.length > 0 ? (
+              <View className="mt-3 w-full max-w-[320px] flex-row flex-wrap items-center justify-center gap-2 self-center">
+                {authorNames.map((author, index) => (
+                  <InfoPill
+                    key={`${author}-${index}`}
+                    icon={<User size={14} color="#6b7280" />}
+                    label={author}
+                  />
+                ))}
+              </View>
+            ) : null}
 
             <View className="mt-4 flex-row flex-wrap items-center justify-center gap-2">
               <InfoPill
@@ -263,7 +277,6 @@ export default function SeriesDetailScreen() {
 
         {metadata ? (
           <SectionCard>
-            <PeopleChips label="Author" people={metadata.writers} />
             <PeopleChips label="Penciller" people={metadata.pencillers} />
             <PeopleChips label="Inker" people={metadata.inkers} />
             <PeopleChips label="Colorist" people={metadata.colorists} />
