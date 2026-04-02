@@ -1,11 +1,14 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View } from 'react-native';
+import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
+import { View, Text, Pressable } from 'react-native';
+import { Search, SlidersHorizontal, X } from 'lucide-react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useFilterStore } from '@/store/filterStore';
 import { BookGrid } from '@/components/BookGrid';
 import { FilterBar } from '@/components/FilterBar';
-import { BrowseTopBar } from '@/components/BrowseTopBar';
+import { InfoPill } from '@/components/InfoPill';
 import { LoadingScreen } from '@/components/LoadingScreen';
+import NavIconButton from '@/components/NavIconButton';
+import { SearchBar } from '@/components/SearchBar';
 import { useCoverUri } from '@/hooks/useCoverUri';
 import type { SearchFilters, FilterType } from '@/providers';
 import type { SeriesScreenProps } from '@/navigation/types';
@@ -41,6 +44,8 @@ export default function SeriesScreen({ route, navigation }: SeriesScreenProps) {
     criteria: [...lockedCriteria],
   });
   const [searchText, setSearchText] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const doSearch = useCallback(
@@ -90,6 +95,43 @@ export default function SeriesScreen({ route, navigation }: SeriesScreenProps) {
   const items = seriesResults?.items ?? [];
   const isInitialLoad = loadingSeriesSearch && items.length === 0;
   const activeFilterCount = filters.criteria.filter((criterion) => !lockedTypes.includes(criterion.type)).length;
+  const searchButtonActive = searchOpen || Boolean(searchText);
+  const filterButtonActive = filtersOpen || activeFilterCount > 0;
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerTitle: () => <InfoPill label="Series" />,
+      headerTitleAlign: 'center',
+      headerLeft: () => <NavIconButton type="drawer" />,
+      headerRight: () => (
+        <View className="flex-row items-center gap-2">
+          <Pressable
+            onPress={() => setSearchOpen((value) => !value)}
+            className={`rounded-full border px-3 py-3 ${
+              searchButtonActive ? 'border-secondary bg-secondary' : 'border-border bg-primary'
+            }`}
+          >
+            {searchButtonActive ? <X size={18} color="#ffffff" /> : <Search size={18} color="#000000" />}
+          </Pressable>
+          <Pressable
+            onPress={() => setFiltersOpen((value) => !value)}
+            className={`rounded-full border px-3 py-3 ${
+              filterButtonActive ? 'border-secondary bg-secondary' : 'border-border bg-primary'
+            }`}
+          >
+            <View>
+              <SlidersHorizontal size={18} color={filterButtonActive ? '#ffffff' : '#000000'} />
+              {activeFilterCount > 0 ? (
+                <View className="absolute -right-2 -top-2 min-w-[18px] rounded-full bg-accent px-1 py-0.5">
+                  <Text className="text-center text-[10px] font-bold text-primary">{activeFilterCount}</Text>
+                </View>
+              ) : null}
+            </View>
+          </Pressable>
+        </View>
+      ),
+    });
+  }, [activeFilterCount, filterButtonActive, navigation, searchButtonActive]);
 
   if (isInitialLoad) {
     return <LoadingScreen />;
@@ -104,27 +146,35 @@ export default function SeriesScreen({ route, navigation }: SeriesScreenProps) {
         onPress={(book) => navigation.navigate('SeriesDetail', { seriesId: book.id, title: book.title })}
         emptyText="No series found."
         ListHeaderComponent={
-          <BrowseTopBar
-            title="Series"
-            subtitle="Browse full runs, discover fresh arrivals, and only open search or filters when you want them."
-            searchValue={searchText}
-            onSearchChange={setSearchText}
-            searchPlaceholder="Search series..."
-            resultCount={items.length}
-            resultLabel={items.length === 1 ? 'result' : 'results'}
-            activeFilterCount={activeFilterCount}
-            filterContent={
-              <FilterBar
-                filters={filters}
-                onFiltersChange={handleFiltersChange}
-                filterOptions={filterOptions}
-                availableTypes={SERIES_FILTER_TYPES}
-                lockedTypes={lockedTypes}
-                onLoadOptions={handleLoadOptions}
-                loading={loadingFilterOptions}
-              />
-            }
-          />
+          <View className="px-4 pt-2 pb-3">
+            <Text className="text-xs font-semibold uppercase tracking-wide text-tertiary">
+              {items.length} {items.length === 1 ? 'result' : 'results'}
+            </Text>
+
+            {searchOpen ? (
+              <View className="mt-3 rounded-2xl border border-border bg-surface">
+                <SearchBar
+                  value={searchText}
+                  onChangeText={setSearchText}
+                  placeholder="Search series..."
+                />
+              </View>
+            ) : null}
+
+            {filtersOpen ? (
+              <View className="mt-3 rounded-2xl border border-border bg-surface py-2">
+                <FilterBar
+                  filters={filters}
+                  onFiltersChange={handleFiltersChange}
+                  filterOptions={filterOptions}
+                  availableTypes={SERIES_FILTER_TYPES}
+                  lockedTypes={lockedTypes}
+                  onLoadOptions={handleLoadOptions}
+                  loading={loadingFilterOptions}
+                />
+              </View>
+            ) : null}
+          </View>
         }
         onEndReached={handleEndReached}
         loadingMore={loadingSeriesSearch && items.length > 0}
