@@ -150,10 +150,6 @@ export default function SeriesScreen({ route, navigation }: SeriesScreenProps) {
           </View>
         ) : null}
 
-        <Text className={`text-xs font-semibold uppercase tracking-wide text-tertiary ml-1 ${searchOpen ? 'mt-6' : ''}`}>
-          {items.length} {items.length === 1 ? 'result' : 'results'}
-        </Text>
-
         {filtersOpen ? (
           <View className="mt-3 rounded-2xl border border-border bg-surface py-2">
             <FilterBar
@@ -175,6 +171,13 @@ export default function SeriesScreen({ route, navigation }: SeriesScreenProps) {
         getTitle={(item) => item.title}
         onPress={(book) => navigation.navigate('SeriesDetail', { seriesId: book.id, title: book.title })}
         emptyText="No series found."
+        ListHeaderComponent={
+          <View className="px-4 pb-3 pt-2">
+            <Text className="ml-1 text-xs font-semibold uppercase tracking-wide text-tertiary">
+              {items.length} {items.length === 1 ? 'result' : 'results'}
+            </Text>
+          </View>
+        }
         onEndReached={handleEndReached}
         loadingMore={loadingSeriesSearch && items.length > 0}
       />
