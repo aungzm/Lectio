@@ -136,6 +136,32 @@ export default function BooksScreen({ route, navigation }: BooksScreenProps) {
 
   return (
     <View className="flex-1 bg-background">
+      <View className="px-4 pb-1">
+        {searchOpen ? (
+          <View className="mt-2 rounded-[26px] bg-primary-50/80">
+            <SearchBar
+              value={searchText}
+              onChangeText={setSearchText}
+              placeholder="Search books..."
+            />
+          </View>
+        ) : null}
+
+        {filtersOpen ? (
+          <View className="mt-3 rounded-2xl border border-border bg-surface py-2">
+            <FilterBar
+              filters={filters}
+              onFiltersChange={handleFiltersChange}
+              filterOptions={filterOptions}
+              availableTypes={BOOK_FILTER_TYPES}
+              lockedTypes={lockedTypes}
+              onLoadOptions={handleLoadOptions}
+              loading={loadingFilterOptions}
+            />
+          </View>
+        ) : null}
+      </View>
+
       <BookGrid
         items={items}
         getCoverUri={(item) => getCoverUri(item.id)}
@@ -143,34 +169,10 @@ export default function BooksScreen({ route, navigation }: BooksScreenProps) {
         onPress={handlePress}
         emptyText="No books found."
         ListHeaderComponent={
-          <View className="px-4 pt-2 pb-3">
-            <Text className="text-xs font-semibold uppercase tracking-wide text-tertiary">
+          <View className="px-4 pb-3 pt-2">
+            <Text className="ml-1 text-xs font-semibold uppercase tracking-wide text-tertiary">
               {items.length} {items.length === 1 ? 'result' : 'results'}
             </Text>
-
-            {searchOpen ? (
-              <View className="mt-3 rounded-2xl border border-border bg-surface">
-                <SearchBar
-                  value={searchText}
-                  onChangeText={setSearchText}
-                  placeholder="Search books..."
-                />
-              </View>
-            ) : null}
-
-            {filtersOpen ? (
-              <View className="mt-3 rounded-2xl border border-border bg-surface py-2">
-                <FilterBar
-                  filters={filters}
-                  onFiltersChange={handleFiltersChange}
-                  filterOptions={filterOptions}
-                  availableTypes={BOOK_FILTER_TYPES}
-                  lockedTypes={lockedTypes}
-                  onLoadOptions={handleLoadOptions}
-                  loading={loadingFilterOptions}
-                />
-              </View>
-            ) : null}
           </View>
         }
         onEndReached={handleEndReached}

@@ -60,16 +60,19 @@ export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
   if (loadingAuthors && authors.length === 0) {
     return (
       <View className="flex-1 bg-background">
+        <View className="px-4 pb-1">
+          {searchOpen ? (
+            <View className="mt-2 rounded-[26px] bg-primary-50/80">
+              <SearchBar value={search} onChangeText={setSearch} placeholder="Search authors..." />
+            </View>
+          ) : null}
+        </View>
+
         <FlatList
           data={[]}
           ListHeaderComponent={
-            <View className="px-4 pt-2 pb-3">
-              <Text className="text-xs font-semibold uppercase tracking-wide text-tertiary">0 authors</Text>
-              {searchOpen ? (
-                <View className="mt-3 rounded-2xl border border-border bg-surface">
-                  <SearchBar value={search} onChangeText={setSearch} placeholder="Search authors..." />
-                </View>
-              ) : null}
+            <View className="px-4 pb-3 pt-2">
+              <Text className="ml-1 text-xs font-semibold uppercase tracking-wide text-tertiary">0 authors</Text>
             </View>
           }
           ListEmptyComponent={
@@ -85,6 +88,14 @@ export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
 
   return (
     <View className="flex-1 bg-background">
+      <View className="px-4 pb-1">
+        {searchOpen ? (
+          <View className="mt-2 rounded-[26px] bg-primary-50/80">
+            <SearchBar value={search} onChangeText={setSearch} placeholder="Search authors..." />
+          </View>
+        ) : null}
+      </View>
+
       <FlatList
         key={`authors-grid-${numCols}`}
         data={authors}
@@ -92,15 +103,10 @@ export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
         numColumns={numCols}
         contentContainerStyle={{ padding: 12 }}
         ListHeaderComponent={
-          <View className="px-4 pt-2 pb-3">
-            <Text className="text-xs font-semibold uppercase tracking-wide text-tertiary">
+          <View className="px-4 pb-3 pt-2">
+            <Text className="ml-1 text-xs font-semibold uppercase tracking-wide text-tertiary">
               {authors.length} {authors.length === 1 ? 'author' : 'authors'}
             </Text>
-            {searchOpen ? (
-              <View className="mt-3 rounded-2xl border border-border bg-surface">
-                <SearchBar value={search} onChangeText={setSearch} placeholder="Search authors..." />
-              </View>
-            ) : null}
           </View>
         }
         ListEmptyComponent={<EmptyState message="No authors found." />}
