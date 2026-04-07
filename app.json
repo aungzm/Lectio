@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "lektio-tmp",
-    "slug": "lektio-tmp",
+    "name": "Lektio",
+    "slug": "lektio",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
