@@ -2,6 +2,7 @@ import React, { useCallback, useMemo } from 'react';
 import { View, FlatList, TouchableOpacity, Text, ActivityIndicator } from 'react-native';
 import { CoverImage } from './CoverImage';
 import { EmptyState } from './EmptyState';
+import { ImageWithFallback } from './ImageWithFallback';
 import { useResponsiveGrid } from '@/hooks/useResponsiveGrid';
 
 interface BookGridProps<T extends { id: string }> {
@@ -17,6 +18,7 @@ interface BookGridProps<T extends { id: string }> {
   scrollEnabled?: boolean;
   contentPadding?: number;
   titleAlign?: 'center' | 'left';
+  cardVariant?: 'book' | 'author';
 }
 
 export function BookGrid<T extends { id: string }>({
@@ -32,6 +34,7 @@ export function BookGrid<T extends { id: string }>({
   scrollEnabled = true,
   contentPadding = 12,
   titleAlign = 'center',
+  cardVariant = 'book',
 }: BookGridProps<T>) {
   const { numCols, itemWidth } = useResponsiveGrid();
   const rows = useMemo(() => {
@@ -47,6 +50,34 @@ export function BookGrid<T extends { id: string }>({
   const renderItem = useCallback(
     ({ item }: { item: T }) => {
       const coverUri = getCoverUri(item);
+
+      if (cardVariant === 'author') {
+        return (
+          <TouchableOpacity
+            style={{ width: itemWidth }}
+            className="mb-3 items-center px-1"
+            onPress={() => onPress(item)}
+          >
+            <View className="w-full overflow-hidden rounded-[28px] border border-border bg-surface px-3 py-4">
+              <View className="items-center">
+                <View className="h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-border bg-background p-2">
+                  <View className="h-full w-full items-center justify-center overflow-hidden rounded-full bg-border">
+                    <ImageWithFallback
+                      uri={coverUri}
+                      fallback={renderEmptyCover?.(item) ?? <View className="h-full w-full rounded-full bg-border" />}
+                    />
+                  </View>
+                </View>
+                <View className="min-h-[52px] justify-center px-2 pt-4">
+                  <Text className="text-center text-sm font-semibold text-secondary" numberOfLines={2}>
+                    {getTitle(item)}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </TouchableOpacity>
+        );
+      }
 
       return (
         <TouchableOpacity
@@ -76,7 +107,7 @@ export function BookGrid<T extends { id: string }>({
         </TouchableOpacity>
       );
     },
-    [getCoverUri, getTitle, itemWidth, onPress, renderEmptyCover, titleAlign],
+    [cardVariant, getCoverUri, getTitle, itemWidth, onPress, renderEmptyCover, titleAlign],
   );
 
   const keyExtractor = useCallback((item: T) => item.id, []);
