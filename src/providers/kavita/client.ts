@@ -8,6 +8,13 @@ import type {
   KavitaProgressDto,
   KavitaUpdateProgressDto,
   KavitaChapterInfoDto,
+  KavitaBrowsePersonDto,
+  KavitaBrowsePersonFilterDto,
+  KavitaCollectionDto,
+  KavitaReadingListDto,
+  KavitaReadingListItemDto,
+  KavitaBookmarkDto,
+  KavitaBookmarkUpdateDto,
 } from './types';
 
 function buildClient(serverUrl: string, token?: string): AxiosInstance {
@@ -21,6 +28,8 @@ function buildClient(serverUrl: string, token?: string): AxiosInstance {
   return client;
 }
 
+// ── Auth ─────────────────────────────────────────────────────────────────────
+
 export async function kavitaLogin(serverUrl: string, credentials: KavitaLoginDto): Promise<KavitaUserDto> {
   const client = buildClient(serverUrl);
   const { data } = await client.post<KavitaUserDto>('/api/Account/login', credentials);
@@ -33,11 +42,15 @@ export async function kavitaGetCurrentUser(serverUrl: string, token: string): Pr
   return data;
 }
 
+// ── Libraries ────────────────────────────────────────────────────────────────
+
 export async function kavitaGetLibraries(serverUrl: string, token: string): Promise<KavitaLibraryDto[]> {
   const client = buildClient(serverUrl, token);
   const { data } = await client.get<KavitaLibraryDto[]>('/api/Library');
   return data;
 }
+
+// ── Series ───────────────────────────────────────────────────────────────────
 
 export async function kavitaGetSeries(
   serverUrl: string,
@@ -77,6 +90,8 @@ export async function kavitaGetChapterInfo(serverUrl: string, token: string, cha
   return data;
 }
 
+// ── Progress ─────────────────────────────────────────────────────────────────
+
 export async function kavitaGetProgress(serverUrl: string, token: string, chapterId: number): Promise<KavitaProgressDto | null> {
   const client = buildClient(serverUrl, token);
   try {
@@ -92,6 +107,104 @@ export async function kavitaSaveProgress(serverUrl: string, token: string, progr
   await client.post('/api/Reader/progress', progress);
 }
 
+// ── Person / Authors ─────────────────────────────────────────────────────────
+
+export async function kavitaGetPersons(
+  serverUrl: string,
+  token: string,
+  filter: KavitaBrowsePersonFilterDto = {},
+): Promise<KavitaBrowsePersonDto[]> {
+  const client = buildClient(serverUrl, token);
+  const { data } = await client.post<KavitaBrowsePersonDto[]>('/api/Person/all', filter);
+  return data ?? [];
+}
+
+export async function kavitaGetSeriesByPerson(
+  serverUrl: string,
+  token: string,
+  personId: number,
+): Promise<KavitaSeriesDto[]> {
+  const client = buildClient(serverUrl, token);
+  const { data } = await client.get<KavitaSeriesDto[]>('/api/Person/series-known-for', { params: { personId } });
+  return data ?? [];
+}
+
+// ── Collections ───────────────────────────────────────────────────────────────
+
+export async function kavitaGetCollections(serverUrl: string, token: string): Promise<KavitaCollectionDto[]> {
+  const client = buildClient(serverUrl, token);
+  const { data } = await client.get<KavitaCollectionDto[]>('/api/Collection');
+  return data ?? [];
+}
+
+export async function kavitaGetCollectionSeries(
+  serverUrl: string,
+  token: string,
+  collectionId: number,
+  pageNumber = 0,
+  pageSize = 30,
+): Promise<KavitaSeriesDto[]> {
+  const client = buildClient(serverUrl, token);
+  const { data } = await client.get<{ content: KavitaSeriesDto[] }>('/api/Series/series-by-collection', {
+    params: { collectionId, PageNumber: pageNumber, PageSize: pageSize },
+  });
+  return data?.content ?? (data as any) ?? [];
+}
+
+// ── Reading Lists ─────────────────────────────────────────────────────────────
+
+export async function kavitaGetReadingLists(serverUrl: string, token: string): Promise<KavitaReadingListDto[]> {
+  const client = buildClient(serverUrl, token);
+  const { data } = await client.post<KavitaReadingListDto[]>('/api/ReadingList/lists', {});
+  return data ?? [];
+}
+
+export async function kavitaGetReadingListItems(
+  serverUrl: string,
+  token: string,
+  readingListId: number,
+): Promise<KavitaReadingListItemDto[]> {
+  const client = buildClient(serverUrl, token);
+  const { data } = await client.get<KavitaReadingListItemDto[]>('/api/ReadingList/items', {
+    params: { readingListId },
+  });
+  return data ?? [];
+}
+
+// ── Bookmarks ─────────────────────────────────────────────────────────────────
+
+export async function kavitaGetSeriesBookmarks(
+  serverUrl: string,
+  token: string,
+  seriesId: number,
+): Promise<KavitaBookmarkDto[]> {
+  const client = buildClient(serverUrl, token);
+  const { data } = await client.get<KavitaBookmarkDto[]>('/api/Reader/series-bookmarks', {
+    params: { seriesId },
+  });
+  return data ?? [];
+}
+
+export async function kavitaAddBookmark(
+  serverUrl: string,
+  token: string,
+  bookmark: KavitaBookmarkUpdateDto,
+): Promise<void> {
+  const client = buildClient(serverUrl, token);
+  await client.post('/api/Reader/bookmark', bookmark);
+}
+
+export async function kavitaRemoveBookmark(
+  serverUrl: string,
+  token: string,
+  bookmark: KavitaBookmarkUpdateDto,
+): Promise<void> {
+  const client = buildClient(serverUrl, token);
+  await client.post('/api/Reader/unbookmark', bookmark);
+}
+
+// ── URL helpers ───────────────────────────────────────────────────────────────
+
 /** Returns a URL to stream/download the epub file for a chapter. */
 export function kavitaEpubUrl(serverUrl: string, token: string, chapterId: number): string {
   return `${serverUrl.replace(/\/$/, '')}/api/Reader/epub?chapterId=${chapterId}&apiKey=${token}`;
@@ -100,4 +213,14 @@ export function kavitaEpubUrl(serverUrl: string, token: string, chapterId: numbe
 /** Returns a URL for a series cover image. */
 export function kavitaCoverUrl(serverUrl: string, seriesId: number, apiKey: string): string {
   return `${serverUrl.replace(/\/$/, '')}/api/Image/series-cover?seriesId=${seriesId}&apiKey=${apiKey}`;
+}
+
+/** Returns a URL for a person/author cover image. */
+export function kavitaPersonCoverUrl(serverUrl: string, personId: number, apiKey: string): string {
+  return `${serverUrl.replace(/\/$/, '')}/api/Image/person-cover?personId=${personId}&apiKey=${apiKey}`;
+}
+
+/** Returns a URL for a collection cover image. */
+export function kavitaCollectionCoverUrl(serverUrl: string, collectionId: number, apiKey: string): string {
+  return `${serverUrl.replace(/\/$/, '')}/api/Image/collection-cover?collectionId=${collectionId}&apiKey=${apiKey}`;
 }

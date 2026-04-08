@@ -1,4 +1,16 @@
-import type { ILibraryProvider, AuthResult, Library, Book, Volume, Chapter, ReadingProgress } from '../base/ILibraryProvider';
+import type {
+  ILibraryProvider,
+  AuthResult,
+  Library,
+  Book,
+  Volume,
+  Chapter,
+  ReadingProgress,
+  Author,
+  Collection,
+  ReadList,
+  Bookmark,
+} from '../base/ILibraryProvider';
 import { BookFormat, BookMetadata } from '../base/ILibraryProvider';
 import {
   kavitaLogin,
@@ -11,9 +23,47 @@ import {
   kavitaSaveProgress,
   kavitaEpubUrl,
   kavitaCoverUrl,
+  kavitaGetPersons,
+  kavitaGetSeriesByPerson,
+  kavitaGetCollections,
+  kavitaGetCollectionSeries,
+  kavitaGetReadingLists,
+  kavitaGetReadingListItems,
+  kavitaGetSeriesBookmarks,
+  kavitaAddBookmark,
+  kavitaRemoveBookmark,
+  kavitaPersonCoverUrl,
+  kavitaCollectionCoverUrl,
 } from './client';
-import type { KavitaSeriesDto, KavitaVolumeDto, KavitaChapterDto } from './types';
-import { MangaFormat, LibraryType } from './types';
+import type {
+  KavitaSeriesDto,
+  KavitaVolumeDto,
+  KavitaChapterDto,
+  KavitaBrowsePersonDto,
+  KavitaReadingListItemDto,
+  KavitaBookmarkDto,
+} from './types';
+import { MangaFormat } from './types';
+
+// Kavita person role integer → readable string
+const KAVITA_ROLE_MAP: Record<number, string> = {
+  1: 'writer',
+  3: 'penciller',
+  4: 'inker',
+  5: 'colorist',
+  6: 'letterer',
+  7: 'cover-artist',
+  8: 'editor',
+  9: 'publisher',
+  10: 'character',
+  11: 'translator',
+  12: 'artist',
+};
+
+function mapRole(roles: number[] | null): string {
+  if (!roles || roles.length === 0) return 'unknown';
+  return KAVITA_ROLE_MAP[roles[0]] ?? 'unknown';
+}
 
 function toBookFormat(format: MangaFormat): BookFormat {
   if (format === MangaFormat.Epub) return BookFormat.Epub;
@@ -35,7 +85,7 @@ function mapSeries(s: KavitaSeriesDto): Book {
     id: String(s.id),
     title: s.name,
     sortTitle: s.sortName,
-    coverUrl: null, // caller must build via getCoverUrl
+    coverUrl: null,
     pagesTotal: s.pages,
     pagesRead: s.pagesRead,
     format: toBookFormat(s.format),
@@ -57,6 +107,51 @@ function mapVolumes(volumes: KavitaVolumeDto[]): Volume[] {
       pagesRead: c.pagesRead,
     })),
   }));
+}
+
+function mapPerson(p: KavitaBrowsePersonDto, serverUrl: string, apiKey: string): Author {
+  return {
+    id: String(p.id),
+    name: p.name ?? '',
+    role: mapRole(p.roles),
+    coverUrl: p.coverImage ? kavitaPersonCoverUrl(serverUrl, p.id, apiKey) : null,
+    seriesCount: p.seriesCount,
+  };
+}
+
+function mapReadingListItem(item: KavitaReadingListItemDto): Book {
+  const label = item.chapterTitle
+    ? `${item.seriesName} — ${item.chapterTitle}`
+    : `${item.seriesName} — Chapter ${item.chapterNumber}`;
+  return {
+    id: String(item.chapterId),
+    title: label,
+    sortTitle: label,
+    coverUrl: null,
+    pagesTotal: item.pages,
+    pagesRead: item.pagesRead,
+    format: toBookFormat(item.seriesFormat),
+    libraryId: String(item.libraryId),
+    metadata: {
+      summary: null,
+      authors: [],
+      genres: [],
+      tags: [],
+      language: null,
+      year: null,
+    },
+  };
+}
+
+function mapBookmark(b: KavitaBookmarkDto): Bookmark {
+  return {
+    id: String(b.id),
+    seriesId: String(b.seriesId),
+    bookId: String(b.chapterId),
+    page: b.page,
+    xPath: b.xPath ?? null,
+    chapterTitle: b.chapterTitle ?? null,
+  };
 }
 
 export class KavitaProvider implements ILibraryProvider {
@@ -117,8 +212,6 @@ export class KavitaProvider implements ILibraryProvider {
   }
 
   async saveProgress(serverUrl: string, token: string, progress: ReadingProgress): Promise<void> {
-    // volumeId, seriesId, libraryId are required by Kavita — caller must supply via chapterId lookup
-    // For now we store what we have; the store layer should enrich this before calling
     await kavitaSaveProgress(serverUrl, token, {
       chapterId: Number(progress.chapterId),
       volumeId: 0,
@@ -131,5 +224,110 @@ export class KavitaProvider implements ILibraryProvider {
 
   getCoverUrl(serverUrl: string, seriesId: string, apiKey: string): string {
     return kavitaCoverUrl(serverUrl, Number(seriesId), apiKey);
+  }
+
+  async getAuthors(
+    serverUrl: string,
+    token: string,
+    _page: number,
+    _pageSize: number,
+    search?: string,
+  ): Promise<Author[]> {
+    const persons = await kavitaGetPersons(serverUrl, token, search ? { name: search } : {});
+    // Extract apiKey from token (for cover URLs, Kavita needs apiKey not JWT; we store apiKey separately)
+    // Cover URLs are built lazily by the UI using auth.apiKey
+    return persons.map((p) => mapPerson(p, serverUrl, ''));
+  }
+
+  async getSeriesByAuthor(
+    serverUrl: string,
+    token: string,
+    authorId: string,
+    _page: number,
+    _pageSize: number,
+  ): Promise<Book[]> {
+    const series = await kavitaGetSeriesByPerson(serverUrl, token, Number(authorId));
+    return series.map(mapSeries);
+  }
+
+  getAuthorCoverUrl(serverUrl: string, authorId: string, apiKey: string): string {
+    return kavitaPersonCoverUrl(serverUrl, Number(authorId), apiKey);
+  }
+
+
+  async getCollections(serverUrl: string, token: string): Promise<Collection[]> {
+    const cols = await kavitaGetCollections(serverUrl, token);
+    return cols.map((c) => ({
+      id: String(c.id),
+      name: c.title,
+      summary: c.summary ?? null,
+    }));
+  }
+
+  async getCollectionSeries(
+    serverUrl: string,
+    token: string,
+    collectionId: string,
+    page: number,
+    pageSize: number,
+  ): Promise<Book[]> {
+    const series = await kavitaGetCollectionSeries(serverUrl, token, Number(collectionId), page, pageSize);
+    return series.map(mapSeries);
+  }
+
+  getCollectionCoverUrl(serverUrl: string, collectionId: string, apiKey: string): string {
+    return kavitaCollectionCoverUrl(serverUrl, Number(collectionId), apiKey);
+  }
+
+
+  async getReadLists(serverUrl: string, token: string): Promise<ReadList[]> {
+    const lists = await kavitaGetReadingLists(serverUrl, token);
+    return lists.map((l) => ({
+      id: String(l.id),
+      name: l.title,
+      summary: l.summary ?? null,
+    }));
+  }
+
+  async getReadListBooks(
+    serverUrl: string,
+    token: string,
+    readListId: string,
+    _page: number,
+    _pageSize: number,
+  ): Promise<Book[]> {
+    const items = await kavitaGetReadingListItems(serverUrl, token, Number(readListId));
+    return items.map(mapReadingListItem);
+  }
+
+
+  async getBookmarks(serverUrl: string, token: string, seriesId: string): Promise<Bookmark[]> {
+    const bms = await kavitaGetSeriesBookmarks(serverUrl, token, Number(seriesId));
+    return bms.map(mapBookmark);
+  }
+
+  async addBookmark(serverUrl: string, token: string, bookmark: Omit<Bookmark, 'id'>): Promise<Bookmark> {
+    await kavitaAddBookmark(serverUrl, token, {
+      chapterId: Number(bookmark.bookId),
+      volumeId: 0,
+      seriesId: Number(bookmark.seriesId),
+      page: bookmark.page,
+      xPath: bookmark.xPath ?? undefined,
+    });
+    // Kavita doesn't return the created bookmark — re-fetch to get the id
+    const all = await kavitaGetSeriesBookmarks(serverUrl, token, Number(bookmark.seriesId));
+    const created = all.find(
+      (b) => b.chapterId === Number(bookmark.bookId) && b.page === bookmark.page,
+    );
+    return created ? mapBookmark(created) : { id: '0', ...bookmark };
+  }
+
+  async removeBookmark(serverUrl: string, token: string, bookmark: Bookmark): Promise<void> {
+    await kavitaRemoveBookmark(serverUrl, token, {
+      chapterId: Number(bookmark.bookId),
+      volumeId: 0,
+      seriesId: Number(bookmark.seriesId),
+      page: bookmark.page,
+    });
   }
 }
