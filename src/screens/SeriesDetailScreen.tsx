@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
-import { View, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useLibraryStore } from '@/store/libraryStore';
-import { KavitaProvider } from '@/providers';
+import { createProvider } from '@/store/authStore';
+import { CoverImage } from '@/components/CoverImage';
 import type { SeriesDetailScreenProps } from '@/navigation/types';
 
 export default function SeriesDetailScreen({ route, navigation }: SeriesDetailScreenProps) {
@@ -18,16 +19,22 @@ export default function SeriesDetailScreen({ route, navigation }: SeriesDetailSc
     }
   }, [seriesId, serverConfig, auth]);
 
-  function getCoverUrl(): string | null {
+  function getCoverUri(): string | null {
     if (!serverConfig || !auth) return null;
-    const provider = new KavitaProvider();
-    return provider.getCoverUrl(serverConfig.serverUrl, seriesId, auth.apiKey);
+    return createProvider(serverConfig.providerType).getCoverUrl(
+      serverConfig.serverUrl,
+      seriesId,
+      auth.apiKey,
+    );
   }
 
   function handleReadChapter(chapterId: string, title: string) {
     if (!serverConfig || !auth) return;
-    const provider = new KavitaProvider();
-    const epubUrl = provider.getEpubUrl(serverConfig.serverUrl, auth.token, chapterId);
+    const epubUrl = createProvider(serverConfig.providerType).getEpubUrl(
+      serverConfig.serverUrl,
+      auth.token,
+      chapterId,
+    );
     navigation.navigate('Reader', { chapterId, title, epubUrl });
   }
 
@@ -39,15 +46,11 @@ export default function SeriesDetailScreen({ route, navigation }: SeriesDetailSc
     );
   }
 
-  const coverUrl = getCoverUrl();
-
   return (
     <ScrollView className="flex-1 bg-white" contentContainerClassName="pb-10">
       <View className="items-center px-6 py-6 bg-gray-50 border-b border-gray-200">
         <View className="w-36 h-52 bg-gray-200 rounded-xl overflow-hidden mb-4 shadow">
-          {coverUrl ? (
-            <Image source={{ uri: coverUrl }} className="w-full h-full" resizeMode="cover" />
-          ) : null}
+          <CoverImage uri={getCoverUri()} className="w-full h-full" resizeMode="cover" />
         </View>
       </View>
 
