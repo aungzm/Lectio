@@ -12,7 +12,7 @@ interface ChipProps {
 export function Chip({ label, onPress, selected, onDismiss }: ChipProps) {
   const content = (
     <View
-      className={`rounded-full px-3 py-1 mr-2 mb-2 border flex-row items-center ${
+      className={`self-start rounded-full px-3 py-1 mr-2 mb-2 border flex-row items-center ${
         selected
           ? 'bg-secondary border-secondary'
           : 'bg-background border-border'

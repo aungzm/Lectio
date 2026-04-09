@@ -4,6 +4,7 @@ import { BookOpen } from 'lucide-react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useLibraryStore } from '@/store/libraryStore';
 import { BrowseHeaderTitle } from '@/components/BrowseHeaderTitle';
+import { Chip } from '@/components/Chip';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import NavIconButton from '@/components/NavIconButton';
 import { BookGrid } from '@/components/BookGrid';
@@ -60,11 +61,7 @@ export default function LibrariesScreen({ navigation }: LibrariesScreenProps) {
         emptyText="No libraries found."
         ListHeaderComponent={
           <View className="px-4 pt-2 pb-3">
-            <View className="rounded-full border border-border bg-surface px-3 py-2">
-              <Text className="text-xs font-semibold uppercase tracking-wide text-secondary">
-                {libraries.length} {libraries.length === 1 ? 'library' : 'libraries'}
-              </Text>
-            </View>
+            <Chip label={`${libraries.length} ${libraries.length === 1 ? 'library' : 'libraries'}`} />
           </View>
         }
         titleAlign="left"
