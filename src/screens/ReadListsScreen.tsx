@@ -3,6 +3,7 @@ import { View, Text } from 'react-native';
 import { ListChecks } from 'lucide-react-native';
 import { BrowseHeaderTitle } from '@/components/BrowseHeaderTitle';
 import { BookGrid } from '@/components/BookGrid';
+import { Chip } from '@/components/Chip';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import NavIconButton from '@/components/NavIconButton';
 import { useCoverUri } from '@/hooks/useCoverUri';
@@ -49,11 +50,7 @@ export default function ReadListsScreen({ navigation }: ReadListsScreenProps) {
         emptyText="No reading lists found."
         ListHeaderComponent={
           <View className="px-4 pb-3 pt-2">
-            <View className="rounded-full border border-border bg-surface px-3 py-2 self-start">
-              <Text className="text-xs font-semibold uppercase tracking-wide text-secondary">
-                {readLists.length} {readLists.length === 1 ? 'list' : 'lists'}
-              </Text>
-            </View>
+            <Chip label={`${readLists.length} ${readLists.length === 1 ? 'list' : 'lists'}`} />
           </View>
         }
         titleAlign="left"
