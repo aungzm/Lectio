@@ -263,6 +263,11 @@ export function kavitaCoverUrl(serverUrl: string, seriesId: number, apiKey: stri
   return `${serverUrl.replace(/\/$/, '')}/api/Image/series-cover?seriesId=${seriesId}&apiKey=${apiKey}`;
 }
 
+/** Returns a URL for a volume cover image. */
+export function kavitaVolumeCoverUrl(serverUrl: string, volumeId: number, apiKey: string): string {
+  return `${serverUrl.replace(/\/$/, '')}/api/Image/volume-cover?volumeId=${volumeId}&apiKey=${apiKey}`;
+}
+
 /** Returns a URL for a person/author cover image. */
 export function kavitaPersonCoverUrl(serverUrl: string, personId: number, apiKey: string): string {
   return `${serverUrl.replace(/\/$/, '')}/api/Image/person-cover?personId=${personId}&apiKey=${apiKey}`;

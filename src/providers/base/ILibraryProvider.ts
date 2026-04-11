@@ -125,6 +125,9 @@ export interface ILibraryProvider {
   /** Build a cover image URL for a series. */
   getCoverUrl(serverUrl: string, seriesId: string, token: string): string;
 
+  /** Build a cover image URL for a volume (optional — falls back to series cover if not implemented). */
+  getVolumeCoverUrl?(serverUrl: string, volumeId: string, apiKey: string): string;
+
   // --- Optional browse features (not all providers support all of these) ---
 
   /** List authors/persons. */
