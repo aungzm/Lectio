@@ -174,7 +174,7 @@ export default function SeriesScreen({ route, navigation }: SeriesScreenProps) {
         emptyText="No series found."
         ListHeaderComponent={
           <View className="px-4 pb-3 pt-2">
-            <Chip label={`${items.length} ${items.length === 1 ? 'result' : 'results'}`} />
+            <Chip label={`${items.length} series`} />
           </View>
         }
         onEndReached={handleEndReached}
