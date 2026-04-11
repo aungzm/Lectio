@@ -49,10 +49,7 @@ export default function CollectionDetailScreen({ route, navigation }: Collection
           <TouchableOpacity
             className="flex-1 items-center"
             onPress={() =>
-              navigation.getParent()?.navigate('Library', {
-                screen: 'SeriesDetail',
-                params: { seriesId: item.id, title: item.title },
-              })
+              navigation.navigate('SeriesDetail', { seriesId: item.id, title: item.title })
             }
           >
             <View className="w-full aspect-[2/3] bg-gray-200 rounded-lg overflow-hidden mb-1">

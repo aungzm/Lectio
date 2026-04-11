@@ -34,18 +34,24 @@ export type LibraryStackParamList = {
 // All Series stack
 export type AllSeriesStackParamList = {
   AllSeries: undefined;
+  SeriesDetail: { seriesId: string; title: string };
+  Reader: { chapterId: string; title: string; epubUrl: string };
 };
 
 // Authors stack
 export type AuthorsStackParamList = {
   Authors: undefined;
   AuthorDetail: { authorId: string; authorName: string };
+  SeriesDetail: { seriesId: string; title: string };
+  Reader: { chapterId: string; title: string; epubUrl: string };
 };
 
 // Collections stack
 export type CollectionsStackParamList = {
   Collections: undefined;
   CollectionDetail: { collectionId: string; collectionName: string };
+  SeriesDetail: { seriesId: string; title: string };
+  Reader: { chapterId: string; title: string; epubUrl: string };
 };
 
 // ReadLists stack
@@ -79,6 +85,8 @@ export type AuthorDetailScreenProps = NativeStackScreenProps<AuthorsStackParamLi
 
 export type CollectionsScreenProps = NativeStackScreenProps<CollectionsStackParamList, 'Collections'>;
 export type CollectionDetailScreenProps = NativeStackScreenProps<CollectionsStackParamList, 'CollectionDetail'>;
+
+export type AllSeriesScreenProps = NativeStackScreenProps<AllSeriesStackParamList, 'AllSeries'>;
 
 export type ReadListsScreenProps = NativeStackScreenProps<ReadListsStackParamList, 'ReadLists'>;
 export type ReadListDetailScreenProps = NativeStackScreenProps<ReadListsStackParamList, 'ReadListDetail'>;

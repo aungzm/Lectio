@@ -1,13 +1,22 @@
 import React, { useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuthStore } from '@/store/authStore';
 import { useLibraryStore } from '@/store/libraryStore';
 import { createProvider } from '@/store/authStore';
 import { CoverImage } from '@/components/CoverImage';
-import type { SeriesDetailScreenProps } from '@/navigation/types';
 
-export default function SeriesDetailScreen({ route, navigation }: SeriesDetailScreenProps) {
-  const { seriesId } = route.params;
+function volumeLabel(name: string | null | undefined, number: number): string {
+  if (name) return name;
+  if (number === 0) return 'Chapters';
+  if (number < 0) return 'Specials';
+  return `Volume ${number}`;
+}
+
+export default function SeriesDetailScreen() {
+  const navigation = useNavigation<any>();
+  const route = useRoute<any>();
+  const { seriesId } = route.params as { seriesId: string; title: string };
   const { serverConfig, auth } = useAuthStore();
   const { volumes, isLoading, fetchVolumes } = useLibraryStore();
 
@@ -58,7 +67,7 @@ export default function SeriesDetailScreen({ route, navigation }: SeriesDetailSc
         {bookVolumes.map((volume) => (
           <View key={volume.id} className="mb-6">
             <Text className="text-sm font-semibold text-gray-500 uppercase mb-2">
-              {volume.name || `Volume ${volume.number}`}
+              {volumeLabel(volume.name, volume.number)}
             </Text>
             {volume.chapters.map((chapter) => (
               <TouchableOpacity

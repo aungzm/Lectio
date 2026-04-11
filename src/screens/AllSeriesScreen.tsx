@@ -1,14 +1,13 @@
 import React, { useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { useAuthStore } from '@/store/authStore';
 import { useLibraryStore } from '@/store/libraryStore';
 import { createProvider } from '@/store/authStore';
 import { CoverImage } from '@/components/CoverImage';
 import type { Book } from '@/providers';
+import type { AllSeriesScreenProps } from '@/navigation/types';
 
-export default function AllSeriesScreen() {
-  const drawerNav = useNavigation<any>();
+export default function AllSeriesScreen({ navigation }: AllSeriesScreenProps) {
   const { serverConfig, auth } = useAuthStore();
   const { allSeries, isLoading, fetchAllSeries } = useLibraryStore();
 
@@ -28,10 +27,7 @@ export default function AllSeriesScreen() {
   }
 
   function handlePress(book: Book) {
-    drawerNav.navigate('Library', {
-      screen: 'SeriesDetail',
-      params: { seriesId: book.id, title: book.title },
-    });
+    navigation.navigate('SeriesDetail', { seriesId: book.id, title: book.title });
   }
 
   if (isLoading && allSeries.length === 0) {

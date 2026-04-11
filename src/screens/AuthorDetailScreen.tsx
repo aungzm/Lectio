@@ -30,15 +30,7 @@ export default function AuthorDetailScreen({ route, navigation }: AuthorDetailSc
   }
 
   function handlePress(book: Book) {
-    navigation.navigate('Reader', {
-      chapterId: book.id,
-      title: book.title,
-      epubUrl: createProvider(serverConfig!.providerType).getEpubUrl(
-        serverConfig!.serverUrl,
-        auth!.token,
-        book.id,
-      ),
-    });
+    navigation.navigate('SeriesDetail', { seriesId: book.id, title: book.title });
   }
 
   if (isLoading && series.length === 0) {

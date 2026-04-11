@@ -52,27 +52,17 @@ export default function ReadListDetailScreen({ route, navigation }: ReadListDeta
       <FlatList
         data={books}
         keyExtractor={(item) => item.id}
-        contentContainerClassName="px-4 py-4"
-        renderItem={({ item, index }) => (
-          <TouchableOpacity
-            className="flex-row items-center py-3 border-b border-gray-100"
-            onPress={() => handleRead(item)}
-          >
-            <Text className="text-sm text-gray-400 w-7">{index + 1}</Text>
-            <View className="w-10 h-14 bg-gray-200 rounded overflow-hidden mr-3">
+        numColumns={3}
+        contentContainerClassName="px-3 py-3"
+        columnWrapperClassName="gap-2 mb-3"
+        renderItem={({ item }) => (
+          <TouchableOpacity className="flex-1 items-center" onPress={() => handleRead(item)}>
+            <View className="w-full aspect-[2/3] bg-gray-200 rounded-lg overflow-hidden mb-1">
               <CoverImage uri={getCoverUri(item)} className="w-full h-full" resizeMode="cover" />
             </View>
-            <View className="flex-1 mr-4">
-              <Text className="text-base text-gray-900" numberOfLines={2}>
-                {item.title}
-              </Text>
-              {item.pagesTotal > 0 ? (
-                <Text className="text-xs text-gray-400 mt-0.5">
-                  {item.pagesRead}/{item.pagesTotal} pages
-                </Text>
-              ) : null}
-            </View>
-            <Text className="text-primary-600 text-sm font-medium">Read</Text>
+            <Text className="text-xs text-gray-700 text-center" numberOfLines={2}>
+              {item.title}
+            </Text>
           </TouchableOpacity>
         )}
         ListEmptyComponent={
