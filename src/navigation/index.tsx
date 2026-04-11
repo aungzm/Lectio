@@ -1,15 +1,17 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Text } from 'react-native';
+import { createDrawerNavigator, DrawerToggleButton } from '@react-navigation/drawer';
 import { useAuthStore } from '@/store/authStore';
 import type {
   RootStackParamList,
-  MainTabParamList,
+  MainDrawerParamList,
   LibraryStackParamList,
-  BrowseStackParamList,
-  BookmarksStackParamList,
+  AllSeriesStackParamList,
+  AuthorsStackParamList,
+  CollectionsStackParamList,
+  ReadListsStackParamList,
+  WantToReadStackParamList,
 } from './types';
 
 import LoginScreen from '@/screens/LoginScreen';
@@ -18,25 +20,28 @@ import SeriesListScreen from '@/screens/SeriesListScreen';
 import SeriesDetailScreen from '@/screens/SeriesDetailScreen';
 import ReaderScreen from '@/screens/ReaderScreen';
 import SettingsScreen from '@/screens/SettingsScreen';
-import BrowseScreen from '@/screens/BrowseScreen';
+import AllSeriesScreen from '@/screens/AllSeriesScreen';
 import AuthorsScreen from '@/screens/AuthorsScreen';
 import AuthorDetailScreen from '@/screens/AuthorDetailScreen';
 import CollectionsScreen from '@/screens/CollectionsScreen';
 import CollectionDetailScreen from '@/screens/CollectionDetailScreen';
 import ReadListsScreen from '@/screens/ReadListsScreen';
 import ReadListDetailScreen from '@/screens/ReadListDetailScreen';
-import BookmarksScreen from '@/screens/BookmarksScreen';
+import WantToReadScreen from '@/screens/WantToReadScreen';
 
 const RootStack = createNativeStackNavigator<RootStackParamList>();
-const Tab = createBottomTabNavigator<MainTabParamList>();
+const Drawer = createDrawerNavigator<MainDrawerParamList>();
 const LibraryStack = createNativeStackNavigator<LibraryStackParamList>();
-const BrowseStack = createNativeStackNavigator<BrowseStackParamList>();
-const BookmarksStack = createNativeStackNavigator<BookmarksStackParamList>();
+const AllSeriesStack = createNativeStackNavigator<AllSeriesStackParamList>();
+const AuthorsStack = createNativeStackNavigator<AuthorsStackParamList>();
+const CollectionsStack = createNativeStackNavigator<CollectionsStackParamList>();
+const ReadListsStack = createNativeStackNavigator<ReadListsStackParamList>();
+const WantToReadStack = createNativeStackNavigator<WantToReadStackParamList>();
 
 function LibraryNavigator() {
   return (
     <LibraryStack.Navigator>
-      <LibraryStack.Screen name="Libraries" component={LibrariesScreen} options={{ title: 'Libraries' }} />
+      <LibraryStack.Screen name="Libraries" component={LibrariesScreen} options={{ title: 'Libraries', headerLeft: () => <DrawerToggleButton tintColor="black" /> }} />
       <LibraryStack.Screen
         name="SeriesList"
         component={SeriesListScreen}
@@ -52,68 +57,78 @@ function LibraryNavigator() {
   );
 }
 
-function BrowseNavigator() {
+function AllSeriesNavigator() {
   return (
-    <BrowseStack.Navigator>
-      <BrowseStack.Screen name="BrowseHub" component={BrowseScreen} options={{ title: 'Browse' }} />
-      <BrowseStack.Screen name="Authors" component={AuthorsScreen} options={{ title: 'Authors' }} />
-      <BrowseStack.Screen
+    <AllSeriesStack.Navigator>
+      <AllSeriesStack.Screen name="AllSeries" component={AllSeriesScreen} options={{ title: 'Series', headerLeft: () => <DrawerToggleButton tintColor="black" /> }} />
+    </AllSeriesStack.Navigator>
+  );
+}
+
+function AuthorsNavigator() {
+  return (
+    <AuthorsStack.Navigator>
+      <AuthorsStack.Screen name="Authors" component={AuthorsScreen} options={{ title: 'Authors', headerLeft: () => <DrawerToggleButton tintColor="black" /> }} />
+      <AuthorsStack.Screen
         name="AuthorDetail"
         component={AuthorDetailScreen}
         options={({ route }) => ({ title: route.params.authorName })}
       />
-      <BrowseStack.Screen name="Collections" component={CollectionsScreen} options={{ title: 'Collections' }} />
-      <BrowseStack.Screen
+    </AuthorsStack.Navigator>
+  );
+}
+
+function CollectionsNavigator() {
+  return (
+    <CollectionsStack.Navigator>
+      <CollectionsStack.Screen name="Collections" component={CollectionsScreen} options={{ title: 'Collections', headerLeft: () => <DrawerToggleButton tintColor="black" /> }} />
+      <CollectionsStack.Screen
         name="CollectionDetail"
         component={CollectionDetailScreen}
         options={({ route }) => ({ title: route.params.collectionName })}
       />
-      <BrowseStack.Screen name="ReadLists" component={ReadListsScreen} options={{ title: 'Reading Lists' }} />
-      <BrowseStack.Screen
+    </CollectionsStack.Navigator>
+  );
+}
+
+function ReadListsNavigator() {
+  return (
+    <ReadListsStack.Navigator>
+      <ReadListsStack.Screen name="ReadLists" component={ReadListsScreen} options={{ title: 'Reading Lists', headerLeft: () => <DrawerToggleButton tintColor="black" /> }} />
+      <ReadListsStack.Screen
         name="ReadListDetail"
         component={ReadListDetailScreen}
         options={({ route }) => ({ title: route.params.readListName })}
       />
-      <BrowseStack.Screen name="Reader" component={ReaderScreen} options={{ headerShown: false }} />
-    </BrowseStack.Navigator>
+      <ReadListsStack.Screen name="Reader" component={ReaderScreen} options={{ headerShown: false }} />
+    </ReadListsStack.Navigator>
   );
 }
 
-function BookmarksNavigator() {
+function WantToReadNavigator() {
   return (
-    <BookmarksStack.Navigator>
-      <BookmarksStack.Screen name="BookmarksList" component={BookmarksScreen} options={{ title: 'Bookmarks' }} />
-      <BookmarksStack.Screen name="Reader" component={ReaderScreen} options={{ headerShown: false }} />
-    </BookmarksStack.Navigator>
+    <WantToReadStack.Navigator>
+      <WantToReadStack.Screen name="WantToRead" component={WantToReadScreen} options={{ title: 'Want to Read', headerLeft: () => <DrawerToggleButton tintColor="black" /> }} />
+    </WantToReadStack.Navigator>
   );
 }
 
-function MainTabs() {
+function MainDrawer() {
+  const providerType = useAuthStore((s) => s.serverConfig?.providerType);
+  const isKavita = providerType === 'kavita';
+
   return (
-    <Tab.Navigator
-      screenOptions={{ headerShown: false }}
-    >
-      <Tab.Screen
-        name="Library"
-        component={LibraryNavigator}
-        options={{ tabBarLabel: 'Library' }}
-      />
-      <Tab.Screen
-        name="Browse"
-        component={BrowseNavigator}
-        options={{ tabBarLabel: 'Browse' }}
-      />
-      <Tab.Screen
-        name="Bookmarks"
-        component={BookmarksNavigator}
-        options={{ tabBarLabel: 'Bookmarks' }}
-      />
-      <Tab.Screen
-        name="Settings"
-        component={SettingsScreen}
-        options={{ tabBarLabel: 'Settings', headerShown: true, headerTitle: 'Settings' }}
-      />
-    </Tab.Navigator>
+    <Drawer.Navigator screenOptions={{ headerShown: false, drawerType: 'slide' }}>
+      <Drawer.Screen name="Library" component={LibraryNavigator} options={{ title: 'Library' }} />
+      <Drawer.Screen name="Series" component={AllSeriesNavigator} options={{ title: 'Series' }} />
+      <Drawer.Screen name="Authors" component={AuthorsNavigator} options={{ title: 'Authors' }} />
+      <Drawer.Screen name="Collections" component={CollectionsNavigator} options={{ title: 'Collections' }} />
+      <Drawer.Screen name="ReadList" component={ReadListsNavigator} options={{ title: 'Read List' }} />
+      {isKavita && (
+        <Drawer.Screen name="WantToRead" component={WantToReadNavigator} options={{ title: 'Want to Read' }} />
+      )}
+      <Drawer.Screen name="Settings" component={SettingsScreen} options={{ title: 'Settings', headerShown: true, headerLeft: () => <DrawerToggleButton tintColor="black" /> }} />
+    </Drawer.Navigator>
   );
 }
 
@@ -124,7 +139,7 @@ export default function AppNavigator() {
     <NavigationContainer>
       <RootStack.Navigator screenOptions={{ headerShown: false }}>
         {isAuthenticated ? (
-          <RootStack.Screen name="Main" component={MainTabs} />
+          <RootStack.Screen name="Main" component={MainDrawer} />
         ) : (
           <RootStack.Screen name="Login" component={LoginScreen} />
         )}
