@@ -34,7 +34,7 @@ export const APP_THEMES: Record<AppThemeName, AppThemeDefinition> = {
   },
   dark: {
     label: 'Dark',
-    description: 'Low-glare nighttime reading.',
+    description: 'Low glare nighttime reading.',
     statusBarStyle: 'light',
     isDark: true,
     preview: {
