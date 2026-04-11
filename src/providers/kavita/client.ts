@@ -46,7 +46,7 @@ export async function kavitaGetCurrentUser(serverUrl: string, token: string): Pr
 
 export async function kavitaGetLibraries(serverUrl: string, token: string): Promise<KavitaLibraryDto[]> {
   const client = buildClient(serverUrl, token);
-  const { data } = await client.get<KavitaLibraryDto[]>('/api/Library');
+  const { data } = await client.get<KavitaLibraryDto[]>('/api/library/libraries');
   return data;
 }
 
@@ -60,7 +60,7 @@ export async function kavitaGetSeries(
   pageSize = 30,
 ): Promise<KavitaSeriesDto[]> {
   const client = buildClient(serverUrl, token);
-  const { data } = await client.post<{ content: KavitaSeriesDto[] }>('/api/Series/all-v2', {
+  const { data } = await client.post<KavitaSeriesDto[]>('/api/Series/all-v2', {
     statements: [],
     combination: 1,
     limitTo: 0,
@@ -69,7 +69,7 @@ export async function kavitaGetSeries(
     pageNumber,
     pageSize,
   });
-  return data.content ?? [];
+  return data ?? [];
 }
 
 export async function kavitaGetSeriesDetail(serverUrl: string, token: string, seriesId: number): Promise<KavitaSeriesDto> {
@@ -169,6 +169,54 @@ export async function kavitaGetReadingListItems(
     params: { readingListId },
   });
   return data ?? [];
+}
+
+// ── Want to Read ──────────────────────────────────────────────────────────────
+
+export async function kavitaGetWantToRead(
+  serverUrl: string,
+  token: string,
+  pageNumber = 0,
+  pageSize = 30,
+): Promise<KavitaSeriesDto[]> {
+  const client = buildClient(serverUrl, token);
+  const { data } = await client.post<KavitaSeriesDto[]>('/api/want-to-read', { pageNumber, pageSize });
+  return data ?? [];
+}
+
+export async function kavitaGetRecentlyAdded(
+  serverUrl: string,
+  token: string,
+  pageSize = 20,
+): Promise<KavitaSeriesDto[]> {
+  const client = buildClient(serverUrl, token);
+  const { data } = await client.post<KavitaSeriesDto[]>('/api/Series/all-v2', {
+    statements: [],
+    combination: 1,
+    limitTo: 0,
+    sortOptions: { sortField: 6, isAscending: false },
+    pageNumber: 0,
+    pageSize,
+  });
+  return data ?? [];
+}
+
+export async function kavitaGetContinueReading(
+  serverUrl: string,
+  token: string,
+  pageSize = 20,
+): Promise<KavitaSeriesDto[]> {
+  const client = buildClient(serverUrl, token);
+  const { data } = await client.post<KavitaSeriesDto[]>('/api/Series/all-v2', {
+    statements: [],
+    combination: 1,
+    limitTo: 0,
+    sortOptions: { sortField: 5, isAscending: false },
+    pageNumber: 0,
+    pageSize,
+  });
+  // Filter client-side to only series with reading progress
+  return (data ?? []).filter((s) => s.pagesRead > 0);
 }
 
 // ── Bookmarks ─────────────────────────────────────────────────────────────────
