@@ -199,11 +199,6 @@ useEffect(() => {
                     <Text className="text-xs font-medium text-gray-800 text-center" numberOfLines={1}>
                       {label}
                     </Text>
-                    {chapter.pagesTotal > 0 && (
-                      <Text className="text-[10px] text-gray-400 text-center mt-0.5">
-                        {chapter.pagesRead}/{chapter.pagesTotal} pages
-                      </Text>
-                    )}
                   </TouchableOpacity>
                 );
               })}
