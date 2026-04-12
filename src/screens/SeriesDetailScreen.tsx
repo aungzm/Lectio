@@ -99,8 +99,6 @@ export default function SeriesDetailScreen() {
   const genres = meta?.genres ?? [];
   const summary = meta?.summary ?? null;
   const year = meta?.year ?? null;
-  const pagesTotal = detail?.pagesTotal ?? 0;
-
   return (
     <ScrollView className="flex-1 bg-white" contentContainerClassName="pb-10">
 
@@ -129,10 +127,7 @@ export default function SeriesDetailScreen() {
           {bookCount > 0 && (
             <StatBadge value={String(bookCount)} label={bookCount === 1 ? 'Book' : 'Books'} />
           )}
-          {pagesTotal > 0 && (
-            <StatBadge value={String(pagesTotal)} label="Pages" />
-          )}
-          {year != null && year > 0 && (
+{year != null && year > 0 && (
             <StatBadge value={String(year)} label="Year" />
           )}
         </ScrollView>
