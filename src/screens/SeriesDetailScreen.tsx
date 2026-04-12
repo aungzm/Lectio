@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Pressable,
   useWindowDimensions,
 } from 'react-native';
+import { useActionSheet } from '@expo/react-native-action-sheet';
 import RenderHtml from 'react-native-render-html';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuthStore } from '@/store/authStore';
@@ -58,7 +59,9 @@ export default function SeriesDetailScreen() {
   const { serverConfig, auth } = useAuthStore();
   const { volumes, isLoading, fetchVolumes, seriesDetails, fetchSeriesDetail } = useLibraryStore();
   const [summaryExpanded, setSummaryExpanded] = useState(false);
-  const [sortOrder, setSortOrder] = useState<'number' | 'title'>('number');
+  const [sortBy, setSortBy] = useState<'number' | 'title'>('number');
+  const [sortAsc, setSortAsc] = useState(true);
+  const { showActionSheetWithOptions } = useActionSheet();
   const { width } = useWindowDimensions();
 
   const bookVolumes = volumes[seriesId] ?? [];
@@ -85,6 +88,16 @@ useEffect(() => {
     navigation.navigate('Reader', { chapterId, title, epubUrl });
   }
 
+  const htmlTagsStyles = useMemo(() => ({
+    body: { margin: 0, padding: 0 },
+    p: { fontSize: 14, lineHeight: 22, color: '#374151', marginTop: 0, marginBottom: 8 },
+    h3: { fontSize: 15, fontWeight: '700' as const, color: '#111827', marginTop: 0, marginBottom: 4 },
+    strong: { fontWeight: '700' as const, color: '#111827' },
+    em: { fontStyle: 'italic' as const },
+  }), []);
+
+  const htmlBaseStyle = useMemo(() => ({ fontSize: 14, lineHeight: 22, color: '#374151' }), []);
+
   if (isLoading && bookVolumes.length === 0) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
@@ -105,6 +118,7 @@ useEffect(() => {
   const genres = meta?.genres ?? [];
   const summary = meta?.summary ?? null;
   const year = meta?.year ?? null;
+
   return (
     <ScrollView className="flex-1 bg-white" contentContainerClassName="pb-10">
 
@@ -150,14 +164,8 @@ useEffect(() => {
               <RenderHtml
                 contentWidth={width - 32}
                 source={{ html: summary }}
-                tagsStyles={{
-                  body: { margin: 0, padding: 0 },
-                  p: { fontSize: 14, lineHeight: 22, color: '#374151', marginTop: 0, marginBottom: 8 },
-                  h3: { fontSize: 15, fontWeight: '700', color: '#111827', marginTop: 0, marginBottom: 4 },
-                  strong: { fontWeight: '700', color: '#111827' },
-                  em: { fontStyle: 'italic' },
-                }}
-                baseStyle={{ fontSize: 14, lineHeight: 22, color: '#374151' }}
+                tagsStyles={htmlTagsStyles}
+                baseStyle={htmlBaseStyle}
               />
             </View>
             <Text className="text-xs text-gray-400 mt-1.5">
@@ -186,7 +194,7 @@ useEffect(() => {
       {/* ── Books grid ─────────────────────────────────────────────── */}
       {singleBooks.length > 0 && (
         <View className="px-4 pt-5">
-          {/* Header row: label + count + sort toggle */}
+          {/* Header row: label + count + sort button */}
           <View className="flex-row items-center justify-between mb-4">
             <View className="flex-row items-baseline">
               <Text className="text-xs font-semibold text-gray-400 uppercase tracking-widest">
@@ -194,28 +202,39 @@ useEffect(() => {
               </Text>
               <Text className="text-xs text-gray-400 ml-2">{singleBooks.length}</Text>
             </View>
-            <View className="flex-row border border-gray-200 rounded-lg overflow-hidden">
-              {(['number', 'title'] as const).map((opt) => (
-                <TouchableOpacity
-                  key={opt}
-                  onPress={() => setSortOrder(opt)}
-                  className={`px-3 py-1 ${sortOrder === opt ? 'bg-gray-900' : 'bg-white'}`}
-                >
-                  <Text className={`text-xs ${sortOrder === opt ? 'text-white' : 'text-gray-500'}`}>
-                    {opt === 'number' ? '#' : 'A–Z'}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+            <TouchableOpacity
+              onPress={() => {
+                const options = [
+                  sortBy === 'number' ? `Series order ${sortAsc ? '↑' : '↓'}` : 'Series order',
+                  sortBy === 'title'  ? `Name ${sortAsc ? '↑' : '↓'}` : 'Name',
+                  'Cancel',
+                ];
+                showActionSheetWithOptions(
+                  { options, cancelButtonIndex: 2 },
+                  (index) => {
+                    if (index === 0) {
+                      sortBy === 'number' ? setSortAsc((v) => !v) : (setSortBy('number'), setSortAsc(true));
+                    } else if (index === 1) {
+                      sortBy === 'title' ? setSortAsc((v) => !v) : (setSortBy('title'), setSortAsc(true));
+                    }
+                  },
+                );
+              }}
+              className="flex-row items-center bg-gray-100 rounded-full px-4 py-1.5"
+            >
+              <Text className="text-xs font-medium text-gray-600">Sort</Text>
+            </TouchableOpacity>
           </View>
+
           {chunkArray(
-            [...singleBooks].sort((a, b) =>
-              sortOrder === 'title'
+            [...singleBooks].sort((a, b) => {
+              const cmp = sortBy === 'title'
                 ? bookLabel(a.chapters[0].title, a.name, a.number).localeCompare(
                     bookLabel(b.chapters[0].title, b.name, b.number),
                   )
-                : a.number - b.number,
-            ),
+                : a.number - b.number;
+              return sortAsc ? cmp : -cmp;
+            }),
             3,
           ).map((row, rowIndex) => (
             <View key={rowIndex} className="flex-row gap-3 mb-5">
@@ -294,3 +313,4 @@ useEffect(() => {
     </ScrollView>
   );
 }
+
