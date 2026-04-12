@@ -15,24 +15,14 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
       headerTitleAlign: 'center',
       headerLeft: () => <NavIconButton type="drawer" />,
       headerRight: () => <View className="w-10" />,
+      headerLeftContainerStyle: { paddingLeft: 16 },
+      headerRightContainerStyle: { paddingRight: 16 },
+      headerTitleContainerStyle: { paddingRight: 32 },
     });
   }, [navigation]);
 
   return (
     <ScrollView className="flex-1 bg-background" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
-      <View className="mb-4 flex-row flex-wrap gap-2">
-        <View className="rounded-full border border-border bg-surface px-3 py-2">
-          <Text className="text-xs font-semibold uppercase tracking-wide text-secondary">
-            {serverConfig?.providerType ?? 'Unknown provider'}
-          </Text>
-        </View>
-        <View className="rounded-full border border-border bg-surface px-3 py-2">
-          <Text className="text-xs font-semibold uppercase tracking-wide text-secondary">
-            {auth?.username ?? 'No user'}
-          </Text>
-        </View>
-      </View>
-
       <View className="mb-4 overflow-hidden rounded-2xl border border-border bg-surface">
         <View className="flex-row items-center gap-3 border-b border-border px-4 py-4">
           <View className="rounded-full bg-primary-50 p-3">
