@@ -58,7 +58,7 @@ export default function SeriesDetailScreen() {
   const bookVolumes = volumes[seriesId] ?? [];
   const detail = seriesDetails[seriesId] ?? null;
 
-  useEffect(() => {
+useEffect(() => {
     if (serverConfig && auth) {
       fetchVolumes(serverConfig, auth.token, seriesId);
       fetchSeriesDetail(serverConfig, auth.token, seriesId);
