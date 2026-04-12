@@ -6,7 +6,9 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Pressable,
+  useWindowDimensions,
 } from 'react-native';
+import RenderHtml from 'react-native-render-html';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuthStore } from '@/store/authStore';
 import { useLibraryStore } from '@/store/libraryStore';
@@ -54,6 +56,7 @@ export default function SeriesDetailScreen() {
   const { serverConfig, auth } = useAuthStore();
   const { volumes, isLoading, fetchVolumes, seriesDetails, fetchSeriesDetail } = useLibraryStore();
   const [summaryExpanded, setSummaryExpanded] = useState(false);
+  const { width } = useWindowDimensions();
 
   const bookVolumes = volumes[seriesId] ?? [];
   const detail = seriesDetails[seriesId] ?? null;
@@ -140,12 +143,20 @@ useEffect(() => {
             Overview
           </Text>
           <Pressable onPress={() => setSummaryExpanded((v) => !v)}>
-            <Text
-              className="text-sm text-gray-700 leading-[22px]"
-              numberOfLines={summaryExpanded ? undefined : 4}
-            >
-              {summary}
-            </Text>
+            <View style={summaryExpanded ? undefined : { maxHeight: 110, overflow: 'hidden' }}>
+              <RenderHtml
+                contentWidth={width - 32}
+                source={{ html: summary }}
+                tagsStyles={{
+                  body: { margin: 0, padding: 0 },
+                  p: { fontSize: 14, lineHeight: 22, color: '#374151', marginTop: 0, marginBottom: 8 },
+                  h3: { fontSize: 15, fontWeight: '700', color: '#111827', marginTop: 0, marginBottom: 4 },
+                  strong: { fontWeight: '700', color: '#111827' },
+                  em: { fontStyle: 'italic' },
+                }}
+                baseStyle={{ fontSize: 14, lineHeight: 22, color: '#374151' }}
+              />
+            </View>
             <Text className="text-xs text-gray-400 mt-1.5">
               {summaryExpanded ? 'Show less' : 'Show more'}
             </Text>
