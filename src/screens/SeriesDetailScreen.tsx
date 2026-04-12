@@ -20,11 +20,13 @@ function isBookVolume(volume: Volume): boolean {
   return volume.chapters.length === 1 && Number(volume.chapters[0].number) <= 0;
 }
 
-function bookLabel(name: string | null | undefined, number: number): string {
-  const parsed = name ? Number(name) : NaN;
+function bookLabel(chapterTitle: string, volumeName: string | null | undefined, volumeNumber: number): string {
+  // chapterTitle is now the real book name from Kavita's titleName field when available
+  if (chapterTitle && chapterTitle !== '-100000') return chapterTitle;
+  const parsed = volumeName ? Number(volumeName) : NaN;
   if (!isNaN(parsed) && parsed > 0) return `Book ${parsed}`;
-  if (number > 0) return `Book ${number}`;
-  return name || 'Book';
+  if (volumeNumber > 0) return `Book ${volumeNumber}`;
+  return volumeName || 'Book';
 }
 
 function volumeLabel(name: string | null | undefined, number: number): string {
@@ -56,6 +58,7 @@ export default function SeriesDetailScreen() {
   const { serverConfig, auth } = useAuthStore();
   const { volumes, isLoading, fetchVolumes, seriesDetails, fetchSeriesDetail } = useLibraryStore();
   const [summaryExpanded, setSummaryExpanded] = useState(false);
+  const [sortOrder, setSortOrder] = useState<'number' | 'title'>('number');
   const { width } = useWindowDimensions();
 
   const bookVolumes = volumes[seriesId] ?? [];
@@ -183,17 +186,42 @@ useEffect(() => {
       {/* ── Books grid ─────────────────────────────────────────────── */}
       {singleBooks.length > 0 && (
         <View className="px-4 pt-5">
-          <View className="flex-row items-baseline mb-4">
-            <Text className="text-xs font-semibold text-gray-400 uppercase tracking-widest">
-              Books
-            </Text>
-            <Text className="text-xs text-gray-400 ml-2">{singleBooks.length}</Text>
+          {/* Header row: label + count + sort toggle */}
+          <View className="flex-row items-center justify-between mb-4">
+            <View className="flex-row items-baseline">
+              <Text className="text-xs font-semibold text-gray-400 uppercase tracking-widest">
+                Books
+              </Text>
+              <Text className="text-xs text-gray-400 ml-2">{singleBooks.length}</Text>
+            </View>
+            <View className="flex-row border border-gray-200 rounded-lg overflow-hidden">
+              {(['number', 'title'] as const).map((opt) => (
+                <TouchableOpacity
+                  key={opt}
+                  onPress={() => setSortOrder(opt)}
+                  className={`px-3 py-1 ${sortOrder === opt ? 'bg-gray-900' : 'bg-white'}`}
+                >
+                  <Text className={`text-xs ${sortOrder === opt ? 'text-white' : 'text-gray-500'}`}>
+                    {opt === 'number' ? '#' : 'A–Z'}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
-          {chunkArray(singleBooks, 3).map((row, rowIndex) => (
+          {chunkArray(
+            [...singleBooks].sort((a, b) =>
+              sortOrder === 'title'
+                ? bookLabel(a.chapters[0].title, a.name, a.number).localeCompare(
+                    bookLabel(b.chapters[0].title, b.name, b.number),
+                  )
+                : a.number - b.number,
+            ),
+            3,
+          ).map((row, rowIndex) => (
             <View key={rowIndex} className="flex-row gap-3 mb-5">
               {row.map((volume) => {
                 const chapter = volume.chapters[0];
-                const label = bookLabel(volume.name, volume.number);
+                const label = bookLabel(chapter.title, volume.name, volume.number);
                 return (
                   <TouchableOpacity
                     key={volume.id}

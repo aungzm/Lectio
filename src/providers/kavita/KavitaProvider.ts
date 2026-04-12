@@ -105,13 +105,21 @@ function mapVolumes(volumes: KavitaVolumeDto[]): Volume[] {
     id: String(v.id),
     number: v.number,
     name: v.name,
-    chapters: v.chapters.map((c: KavitaChapterDto): Chapter => ({
-      id: String(c.id),
-      title: c.title || c.range || `Chapter ${c.number}`,
-      number: c.number,
-      pagesTotal: c.pages,
-      pagesRead: c.pagesRead,
-    })),
+    chapters: v.chapters.map((c: KavitaChapterDto): Chapter => {
+      // Sentinel chapters (number <= 0) represent a whole epub/pdf book.
+      // Use titleName (per-book metadata title) when available, otherwise fall back.
+      const isSentinel = Number(c.number) <= 0;
+      const title = isSentinel && c.titleName
+        ? c.titleName
+        : (c.title && Number(c.title) > 0 ? `Chapter ${c.title}` : c.title || c.range || `Chapter ${c.number}`);
+      return {
+        id: String(c.id),
+        title,
+        number: c.number,
+        pagesTotal: c.pages,
+        pagesRead: c.pagesRead,
+      };
+    }),
   }));
 }
 
