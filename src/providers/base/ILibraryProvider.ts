@@ -16,6 +16,7 @@ export interface Book {
 export interface BookMetadata {
   summary: string | null;
   authors: string[];
+  publishers: string[];
   genres: string[];
   tags: string[];
   language: string | null;

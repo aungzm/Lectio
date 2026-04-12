@@ -8,6 +8,7 @@ interface LibraryState {
   seriesByLibrary: Record<string, Book[]>;
   allSeries: Book[];
   volumes: Record<string, Volume[]>; // keyed by seriesId
+  seriesDetails: Record<string, Book>; // keyed by seriesId
   isLoading: boolean;
   error: string | null;
 
@@ -15,6 +16,7 @@ interface LibraryState {
   fetchSeries: (config: ServerConfig, token: string, libraryId: string, page?: number) => Promise<void>;
   fetchAllSeries: (config: ServerConfig, token: string, page?: number) => Promise<void>;
   fetchVolumes: (config: ServerConfig, token: string, seriesId: string) => Promise<void>;
+  fetchSeriesDetail: (config: ServerConfig, token: string, seriesId: string) => Promise<void>;
 }
 
 export const useLibraryStore = create<LibraryState>((set, get) => ({
@@ -22,6 +24,7 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   seriesByLibrary: {},
   allSeries: [],
   volumes: {},
+  seriesDetails: {},
   isLoading: false,
   error: null,
 
@@ -76,6 +79,16 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
       set((state) => ({ volumes: { ...state.volumes, [seriesId]: volumes }, isLoading: false }));
     } catch (e: any) {
       set({ isLoading: false, error: e?.message ?? 'Failed to load volumes' });
+    }
+  },
+
+  fetchSeriesDetail: async (config, token, seriesId) => {
+    try {
+      const provider = createProvider(config.providerType);
+      const detail = await provider.getSeriesDetail(config.serverUrl, token, seriesId);
+      set((state) => ({ seriesDetails: { ...state.seriesDetails, [seriesId]: detail } }));
+    } catch {
+      // Non-fatal — screen still works without metadata
     }
   },
 }));

@@ -85,6 +85,7 @@ export interface KavitaSeriesMetadata {
   tags: { id: number; title: string }[];
   writers: { id: number; name: string }[];
   coverArtists: { id: number; name: string }[];
+  publishers: { id: number; name: string }[];
   totalCount: number;
   maxCount: number;
   status: number;

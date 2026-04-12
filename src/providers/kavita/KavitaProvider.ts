@@ -18,6 +18,7 @@ import {
   kavitaGetLibraries,
   kavitaGetSeries,
   kavitaGetSeriesDetail,
+  kavitaGetSeriesMetadata,
   kavitaGetVolumes,
   kavitaGetProgress,
   kavitaSaveProgress,
@@ -80,6 +81,7 @@ function mapSeries(s: KavitaSeriesDto): Book {
   const metadata: BookMetadata = {
     summary: meta?.summary ?? null,
     authors: meta?.writers.map((w) => w.name) ?? [],
+    publishers: meta?.publishers?.map((p) => p.name) ?? [],
     genres: meta?.genres.map((g) => g.title) ?? [],
     tags: meta?.tags.map((t) => t.title) ?? [],
     language: meta?.language ?? null,
@@ -139,6 +141,7 @@ function mapReadingListItem(item: KavitaReadingListItemDto): Book {
     metadata: {
       summary: null,
       authors: [],
+      publishers: [],
       genres: [],
       tags: [],
       language: null,
@@ -192,7 +195,12 @@ export class KavitaProvider implements ILibraryProvider {
   }
 
   async getSeriesDetail(serverUrl: string, token: string, seriesId: string): Promise<Book> {
-    const s = await kavitaGetSeriesDetail(serverUrl, token, Number(seriesId));
+    const [s, meta] = await Promise.all([
+      kavitaGetSeriesDetail(serverUrl, token, Number(seriesId)),
+      kavitaGetSeriesMetadata(serverUrl, token, Number(seriesId)),
+    ]);
+    // Merge the separately-fetched metadata into the series DTO before mapping
+    s.metadata = meta;
     return mapSeries(s);
   }
 

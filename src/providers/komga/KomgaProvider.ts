@@ -49,6 +49,7 @@ function mapSeries(s: KomgaSeriesDto): Book {
   const metadata: BookMetadata = {
     summary: meta?.summary ?? null,
     authors: booksMeta?.authors?.filter((a) => a.role === 'writer').map((a) => a.name) ?? [],
+    publishers: [],
     genres: meta?.genres ?? [],
     tags: meta?.tags ?? [],
     language: meta?.language ?? null,
@@ -72,6 +73,7 @@ function mapBook(b: KomgaBookDto): Book {
   const metadata: BookMetadata = {
     summary: meta?.summary ?? null,
     authors: meta?.authors?.filter((a) => a.role === 'writer').map((a) => a.name) ?? [],
+    publishers: [],
     genres: [],
     tags: meta?.tags ?? [],
     language: null,

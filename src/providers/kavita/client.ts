@@ -4,6 +4,7 @@ import type {
   KavitaUserDto,
   KavitaLibraryDto,
   KavitaSeriesDto,
+  KavitaSeriesMetadata,
   KavitaVolumeDto,
   KavitaProgressDto,
   KavitaUpdateProgressDto,
@@ -75,6 +76,12 @@ export async function kavitaGetSeries(
 export async function kavitaGetSeriesDetail(serverUrl: string, token: string, seriesId: number): Promise<KavitaSeriesDto> {
   const client = buildClient(serverUrl, token);
   const { data } = await client.get<KavitaSeriesDto>(`/api/Series/${seriesId}`);
+  return data;
+}
+
+export async function kavitaGetSeriesMetadata(serverUrl: string, token: string, seriesId: number): Promise<KavitaSeriesMetadata> {
+  const client = buildClient(serverUrl, token);
+  const { data } = await client.get<KavitaSeriesMetadata>('/api/Series/metadata', { params: { seriesId } });
   return data;
 }
 
