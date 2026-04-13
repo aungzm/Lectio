@@ -21,7 +21,7 @@ export function Chip({ label, onPress, selected, onDismiss }: ChipProps) {
       <Text
         className={`text-xs font-medium ${
           selected ? 'text-primary' : 'text-primary-700'
-        }`}
+        } shrink`}
       >
         {label}
       </Text>
