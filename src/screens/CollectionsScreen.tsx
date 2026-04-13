@@ -1,11 +1,12 @@
-import React, { useLayoutEffect } from 'react';
-import { View, Text } from 'react-native';
-import { Layers3 } from 'lucide-react-native';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { View, Text, Pressable } from 'react-native';
+import { Layers3, Search, X } from 'lucide-react-native';
 import { BookGrid } from '@/components/BookGrid';
 import { BrowseHeaderTitle } from '@/components/BrowseHeaderTitle';
 import { Chip } from '@/components/Chip';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import NavIconButton from '@/components/NavIconButton';
+import { SearchBar } from '@/components/SearchBar';
 import { useCoverUri } from '@/hooks/useCoverUri';
 import { useProviderFetch } from '@/hooks/useProviderFetch';
 import { useBrowseStore } from '@/store/browseStore';
@@ -14,17 +15,50 @@ import type { CollectionsScreenProps } from '@/navigation/types';
 export default function CollectionsScreen({ navigation }: CollectionsScreenProps) {
   const { collections, loadingCollections, fetchCollections } = useBrowseStore();
   const getCoverUri = useCoverUri('getCollectionCoverUrl');
+  const [searchText, setSearchText] = useState('');
+  const [debouncedSearchText, setDebouncedSearchText] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useProviderFetch((p) => fetchCollections(p));
 
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setDebouncedSearchText(searchText.trim().toLowerCase());
+    }, 300);
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [searchText]);
+
   useLayoutEffect(() => {
+    const searchButtonActive = searchOpen || Boolean(searchText);
+
     navigation.setOptions({
       headerTitle: () => <BrowseHeaderTitle label="Collections" />,
       headerTitleAlign: 'center',
       headerLeft: () => <NavIconButton type="drawer" />,
-      headerRight: () => <View className="w-10" />,
+      headerRight: () => (
+        <Pressable
+          onPress={() => setSearchOpen((value) => !value)}
+          className={`rounded-full border px-3 py-3 ${
+            searchButtonActive ? 'border-secondary bg-secondary' : 'border-border bg-primary'
+          }`}
+        >
+          {searchButtonActive ? <X size={18} color="#ffffff" /> : <Search size={18} color="#000000" />}
+        </Pressable>
+      ),
     });
-  }, [navigation]);
+  }, [navigation, searchOpen, searchText]);
+
+  const filteredCollections = debouncedSearchText
+    ? collections.filter((collection) => {
+        const haystack = `${collection.name} ${collection.summary ?? ''}`.toLowerCase();
+        return haystack.includes(debouncedSearchText);
+      })
+    : collections;
 
   if (loadingCollections && collections.length === 0) {
     return <LoadingScreen />;
@@ -32,8 +66,20 @@ export default function CollectionsScreen({ navigation }: CollectionsScreenProps
 
   return (
     <View className="flex-1 bg-background">
+      <View className="px-4 pb-1">
+        {searchOpen ? (
+          <View className="mt-2 rounded-[26px] bg-primary-50/80">
+            <SearchBar
+              value={searchText}
+              onChangeText={setSearchText}
+              placeholder="Search collections..."
+            />
+          </View>
+        ) : null}
+      </View>
+
       <BookGrid
-        items={collections}
+        items={filteredCollections}
         getCoverUri={(collection) => getCoverUri(collection.id)}
         getTitle={(collection) => collection.name}
         renderEmptyCover={() => (
@@ -53,7 +99,11 @@ export default function CollectionsScreen({ navigation }: CollectionsScreenProps
         emptyText="No collections found."
         ListHeaderComponent={
           <View className="px-4 pb-3 pt-2">
-            <Chip label={`${collections.length} ${collections.length === 1 ? 'collection' : 'collections'}`} />
+            <Chip
+              label={`${filteredCollections.length} ${
+                filteredCollections.length === 1 ? 'collection' : 'collections'
+              }`}
+            />
           </View>
         }
         titleAlign="left"
