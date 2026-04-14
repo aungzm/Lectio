@@ -47,6 +47,7 @@ export interface DetailedMetadata {
   language: string | null;
   releaseYear: number | null;
   ageRating: number;
+  seriesStatus?: string | null;
 }
 
 export enum BookFormat {
@@ -119,6 +120,49 @@ export interface Bookmark {
   chapterTitle: string | null;
 }
 
+// ── Search / Filter types ────────────────────────────────────────────────────
+
+export type FilterType =
+  | 'readStatus'    // UNREAD, IN_PROGRESS, READ
+  | 'genre'
+  | 'tag'
+  | 'publisher'
+  | 'language'
+  | 'ageRating'
+  | 'seriesStatus'  // ONGOING, ENDED, HIATUS, ABANDONED
+  | 'libraryId'
+  | 'complete'      // true / false
+  | 'oneShot';      // true / false
+
+export interface FilterCriterion {
+  type: FilterType;
+  value: string;
+}
+
+export interface SearchFilters {
+  fullTextSearch?: string;
+  criteria: FilterCriterion[];
+  sort?: string;
+}
+
+export interface PagedResult<T> {
+  items: T[];
+  totalItems: number;
+  totalPages: number;
+  currentPage: number;
+}
+
+export interface FilterOptions {
+  genres: string[];
+  tags: string[];
+  publishers: string[];
+  languages: string[];
+  ageRatings: string[];
+  libraries: { id: string; name: string }[];
+}
+
+// ── Provider interface ───────────────────────────────────────────────────────
+
 export interface ILibraryProvider {
   readonly name: string;
 
@@ -130,6 +174,9 @@ export interface ILibraryProvider {
 
   /** Get full detail for a single series. */
   getSeriesDetail(seriesId: string): Promise<Book>;
+
+  /** Get full detail for a single book/chapter. */
+  getBookDetail?(bookId: string): Promise<Book>;
 
   /** Get volumes (and their chapters) for a series. For Komga: each book becomes one volume with one chapter. */
   getVolumes(seriesId: string): Promise<Volume[]>;
@@ -171,6 +218,9 @@ export interface ILibraryProvider {
 
   /** List series by a specific author (authorId is provider-specific). */
   getSeriesByAuthor?(authorId: string, page: number, pageSize: number): Promise<Book[]>;
+
+  /** List individual books by a specific author (authorId is provider-specific). */
+  getBooksByAuthor?(authorId: string, page: number, pageSize: number): Promise<Book[]>;
 
   /** List server-defined collections. */
   getCollections?(): Promise<Collection[]>;
@@ -214,6 +264,20 @@ export interface ILibraryProvider {
   /** Get recently updated series (optional). */
   getRecentlyUpdatedSeries?(pageSize: number): Promise<Book[]>;
 
+  /** Get recently added books (optional). */
+  getRecentlyAddedBooks?(pageSize: number): Promise<Book[]>;
+
   /** Get the chapter to continue reading for a series (optional). */
   getContinuePoint?(seriesId: string): Promise<{ chapterId: string; title: string } | null>;
+
+  // --- Search / filter (optional — providers that support structured search) ---
+
+  /** Search series with structured filters + full-text search. */
+  searchSeries?(filters: SearchFilters, page: number, pageSize: number): Promise<PagedResult<Book>>;
+
+  /** Search books with structured filters + full-text search. */
+  searchBooks?(filters: SearchFilters, page: number, pageSize: number): Promise<PagedResult<Book>>;
+
+  /** Get available filter option values (genres, tags, etc.) for populating filter UI. */
+  getFilterOptions?(): Promise<FilterOptions>;
 }

@@ -9,10 +9,23 @@ import type {
   Collection,
   ReadList,
   Bookmark,
+  SearchFilters,
+  FilterCriterion,
+  PagedResult,
+  FilterOptions,
+  DetailedMetadata,
+  PersonInfo,
 } from '../base/ILibraryProvider';
 import { BookFormat, BookMetadata } from '../base/ILibraryProvider';
 import { KomgaClient } from './client';
-import type { KomgaSeriesDto, KomgaBookDto, KomgaAuthorDto } from './types';
+import type {
+  KomgaSeriesDto,
+  KomgaBookDto,
+  KomgaAuthorDto,
+  KomgaSeriesCondition,
+  KomgaBookCondition,
+  KomgaConditionOperator,
+} from './types';
 
 // ── Mappers ───────────────────────────────────────────────────────────────────
 
@@ -65,6 +78,7 @@ function mapBook(b: KomgaBookDto): Book {
     pagesRead: b.readProgress?.page ?? 0,
     format: mapMediaTypeToFormat(b.media?.mediaType ?? ''),
     libraryId: b.libraryId,
+    seriesId: b.seriesId,
     metadata,
   };
 }
@@ -79,14 +93,21 @@ function mapAuthor(a: KomgaAuthorDto): Author {
   };
 }
 
+function mapPeopleByRole(authors: KomgaAuthorDto[] | undefined, roles: string[]): PersonInfo[] {
+  if (!authors?.length) return [];
+  return authors
+    .filter((author) => roles.includes(author.role))
+    .map((author) => ({ id: `${author.name}|${author.role}`, name: author.name }));
+}
+
 // ── Provider ──────────────────────────────────────────────────────────────────
 
 export class KomgaProvider implements ILibraryProvider {
   readonly name = 'Komga';
   private readonly client: KomgaClient;
 
-  constructor(serverUrl: string, token: string) {
-    this.client = new KomgaClient(serverUrl, token);
+  constructor(serverUrl: string, basicAuth: string) {
+    this.client = new KomgaClient(serverUrl, basicAuth);
   }
 
   async getLibraries(): Promise<Library[]> {
@@ -114,6 +135,39 @@ export class KomgaProvider implements ILibraryProvider {
     return mapSeries(s);
   }
 
+  async getBookDetail(bookId: string): Promise<Book> {
+    const book = await this.client.getBookDetail(bookId);
+    return mapBook(book);
+  }
+
+  async getDetailedMetadata(seriesId: string): Promise<DetailedMetadata> {
+    const series = await this.client.getSeriesDetail(seriesId);
+    const authors = series.booksMetadata?.authors ?? [];
+    const releaseDate = series.booksMetadata?.releaseDate ?? null;
+    const releaseYear = releaseDate ? Number.parseInt(releaseDate.slice(0, 4), 10) : null;
+    const publisher = series.metadata?.publisher?.trim();
+
+    return {
+      summary: series.metadata?.summary?.trim() || series.booksMetadata?.summary?.trim() || null,
+      writers: mapPeopleByRole(authors, ['writer']),
+      pencillers: mapPeopleByRole(authors, ['penciller', 'penciler']),
+      inkers: mapPeopleByRole(authors, ['inker']),
+      colorists: mapPeopleByRole(authors, ['colorist']),
+      letterers: mapPeopleByRole(authors, ['letterer']),
+      coverArtists: mapPeopleByRole(authors, ['cover', 'coverArtist', 'cover_artist']),
+      editors: mapPeopleByRole(authors, ['editor']),
+      publishers: publisher ? [{ id: publisher, name: publisher }] : [],
+      translators: mapPeopleByRole(authors, ['translator']),
+      characters: [],
+      genres: series.metadata?.genres ?? [],
+      tags: series.metadata?.tags ?? [],
+      language: series.metadata?.language ?? null,
+      releaseYear: Number.isFinite(releaseYear) ? releaseYear : null,
+      ageRating: series.metadata?.ageRating ?? 0,
+      seriesStatus: series.metadata?.status ?? null,
+    };
+  }
+
   async getVolumes(seriesId: string): Promise<Volume[]> {
     const result = await this.client.getSeriesBooks(seriesId, 0, 50);
     return result.content.map((book: KomgaBookDto): Volume => ({
@@ -133,6 +187,10 @@ export class KomgaProvider implements ILibraryProvider {
   }
 
   getEpubUrl(bookId: string): string {
+    return this.client.bookFileUrl(bookId);
+  }
+
+  getDownloadUrl(bookId: string): string {
     return this.client.bookFileUrl(bookId);
   }
 
@@ -161,6 +219,10 @@ export class KomgaProvider implements ILibraryProvider {
     return this.client.bookCoverUrl(bookId);
   }
 
+  getVolumeCoverUrl(volumeId: string): string {
+    return this.client.bookCoverUrl(volumeId);
+  }
+
   // ── Authors ─────────────────────────────────────────────────────────────────
 
   async getAuthors(page: number, pageSize: number, search?: string): Promise<Author[]> {
@@ -175,6 +237,12 @@ export class KomgaProvider implements ILibraryProvider {
   }
 
   // ── Collections ───────────────────────────────────────────────────────────────
+
+  async getBooksByAuthor(authorId: string, page: number, pageSize: number): Promise<Book[]> {
+    const [name, role = 'writer'] = authorId.split('|');
+    const result = await this.client.getBooksByAuthor(name, role, page, pageSize);
+    return result.content.map(mapBook);
+  }
 
   async getCollections(): Promise<Collection[]> {
     const result = await this.client.getCollections();
@@ -229,5 +297,164 @@ export class KomgaProvider implements ILibraryProvider {
 
   async removeBookmark(bookmark: Bookmark): Promise<void> {
     await this.client.removeBookmark(bookmark);
+  }
+
+  // ── Home screen ──────────────────────────────────────────────────────────────
+
+  async getRecentlyAdded(pageSize: number): Promise<Book[]> {
+    const result = await this.client.getNewSeries(0, pageSize);
+    return result.content.map(mapSeries);
+  }
+
+  async getContinueReading(pageSize: number): Promise<Book[]> {
+    const result = await this.client.getInProgressSeries(0, pageSize);
+    return result.content.map(mapSeries);
+  }
+
+  async getRecentlyAddedBooks(pageSize: number): Promise<Book[]> {
+    const result = await this.client.getLatestBooks(0, pageSize);
+    return result.content.map(mapBook);
+  }
+
+  async getRecentlyUpdatedSeries(pageSize: number): Promise<Book[]> {
+    const result = await this.client.getLatestSeries(0, pageSize);
+    return result.content.map(mapSeries);
+  }
+
+  async getContinuePoint(seriesId: string): Promise<{ chapterId: string; title: string } | null> {
+    const result = await this.client.getSeriesBooks(seriesId, 0, 500);
+    const books = result.content;
+    // Find the first book that is in progress
+    const inProgress = books.find(
+      (b) => b.readProgress && !b.readProgress.completed && b.readProgress.page > 0,
+    );
+    if (inProgress) {
+      return {
+        chapterId: inProgress.id,
+        title: inProgress.metadata?.title || inProgress.name,
+      };
+    }
+    // Otherwise find the first unread book (after at least one read book)
+    let foundRead = false;
+    for (const b of books) {
+      if (b.readProgress?.completed) {
+        foundRead = true;
+        continue;
+      }
+      if (foundRead) {
+        return {
+          chapterId: b.id,
+          title: b.metadata?.title || b.name,
+        };
+      }
+    }
+    return null;
+  }
+
+  // ── Search / Filter ──────────────────────────────────────────────────────────
+
+  private criterionToSeriesCondition(c: FilterCriterion): KomgaSeriesCondition {
+    const op: KomgaConditionOperator = c.type === 'complete' || c.type === 'oneShot'
+      ? (c.value === 'true' ? { operator: 'isTrue' } : { operator: 'isFalse' })
+      : { operator: 'is', value: c.value };
+
+    const keyMap: Record<string, string> = {
+      readStatus: 'readStatus',
+      genre: 'genre',
+      tag: 'tag',
+      publisher: 'publisher',
+      language: 'language',
+      ageRating: 'ageRating',
+      seriesStatus: 'seriesStatus',
+      libraryId: 'libraryId',
+      complete: 'complete',
+      oneShot: 'oneshot',
+    };
+    const key = keyMap[c.type] ?? c.type;
+    return { [key]: op } as KomgaSeriesCondition;
+  }
+
+  private buildSeriesCondition(criteria: FilterCriterion[]): KomgaSeriesCondition | undefined {
+    if (criteria.length === 0) return undefined;
+    const conditions = criteria.map((c) => this.criterionToSeriesCondition(c));
+    if (conditions.length === 1) return conditions[0];
+    return { allOf: conditions };
+  }
+
+  private criterionToBookCondition(c: FilterCriterion): KomgaBookCondition {
+    const op: KomgaConditionOperator = c.type === 'oneShot'
+      ? (c.value === 'true' ? { operator: 'isTrue' } : { operator: 'isFalse' })
+      : { operator: 'is', value: c.value };
+
+    const keyMap: Record<string, string> = {
+      readStatus: 'readStatus',
+      tag: 'tag',
+      libraryId: 'libraryId',
+      oneShot: 'oneshot',
+    };
+    const key = keyMap[c.type] ?? c.type;
+    return { [key]: op } as KomgaBookCondition;
+  }
+
+  private buildBookCondition(criteria: FilterCriterion[]): KomgaBookCondition | undefined {
+    if (criteria.length === 0) return undefined;
+    const conditions = criteria.map((c) => this.criterionToBookCondition(c));
+    if (conditions.length === 1) return conditions[0];
+    return { allOf: conditions };
+  }
+
+  async searchSeries(filters: SearchFilters, page: number, pageSize: number): Promise<PagedResult<Book>> {
+    const result = await this.client.searchSeries(
+      {
+        condition: this.buildSeriesCondition(filters.criteria),
+        fullTextSearch: filters.fullTextSearch || undefined,
+      },
+      page,
+      pageSize,
+      filters.sort ?? 'metadata.titleSort,asc',
+    );
+    return {
+      items: result.content.map(mapSeries),
+      totalItems: result.totalElements,
+      totalPages: result.totalPages,
+      currentPage: result.number,
+    };
+  }
+
+  async searchBooks(filters: SearchFilters, page: number, pageSize: number): Promise<PagedResult<Book>> {
+    const result = await this.client.searchBooks(
+      {
+        condition: this.buildBookCondition(filters.criteria),
+        fullTextSearch: filters.fullTextSearch || undefined,
+      },
+      page,
+      pageSize,
+      filters.sort ?? 'metadata.titleSort,asc',
+    );
+    return {
+      items: result.content.map(mapBook),
+      totalItems: result.totalElements,
+      totalPages: result.totalPages,
+      currentPage: result.number,
+    };
+  }
+
+  async getFilterOptions(): Promise<FilterOptions> {
+    const [genres, tags, publishers, languages, ageRatings, libs] = await Promise.all([
+      this.client.getGenres(),
+      this.client.getTags(),
+      this.client.getPublishers(),
+      this.client.getLanguages(),
+      this.client.getAgeRatings(),
+      this.client.getLibraries(),
+    ]);
+    return {
+      genres,
+      tags,
+      publishers,
+      languages,
+      ageRatings,
+      libraries: libs.map((l) => ({ id: l.id, name: l.name })),
+    };
   }
 }

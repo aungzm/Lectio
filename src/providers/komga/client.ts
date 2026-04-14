@@ -13,6 +13,8 @@ import type {
   KomgaStoredBookmark,
   KomgaClientSettingsPatch,
   KomgaClientSettingsResponse,
+  KomgaSeriesSearch,
+  KomgaBookSearch,
 } from './types';
 import { normalizeUrl } from '../base/url';
 
@@ -60,14 +62,16 @@ export async function komgaValidateToken(serverUrl: string, token: string): Prom
 export class KomgaClient {
   private readonly http: AxiosInstance;
   private readonly baseUrl: string;
+  readonly basicAuth: string;
 
-  constructor(serverUrl: string, token: string) {
+  constructor(serverUrl: string, basicAuth: string) {
     this.baseUrl = normalizeUrl(serverUrl);
+    this.basicAuth = basicAuth;
     this.http = axios.create({
       baseURL: this.baseUrl,
       headers: {
         'Content-Type': 'application/json',
-        'X-Auth-Token': token,
+        'Authorization': `Basic ${basicAuth}`,
       },
     });
   }
@@ -108,6 +112,11 @@ export class KomgaClient {
     return data;
   }
 
+  async getBookDetail(bookId: string): Promise<KomgaBookDto> {
+    const { data } = await this.http.get<KomgaBookDto>(`/api/v1/books/${bookId}`);
+    return data;
+  }
+
   async getSeriesByAuthor(authorName: string, authorRole: string, page = 0, size = 30): Promise<KomgaPageResultDto<KomgaSeriesDto>> {
     const { data } = await this.http.get<KomgaPageResultDto<KomgaSeriesDto>>('/api/v1/series', {
       params: {
@@ -121,6 +130,15 @@ export class KomgaClient {
   }
 
   // ── Authors ────────────────────────────────────────────────────────────────
+
+  async getBooksByAuthor(authorName: string, authorRole: string, page = 0, size = 30): Promise<KomgaPageResultDto<KomgaBookDto>> {
+    const { data } = await this.http.post<KomgaPageResultDto<KomgaBookDto>>(
+      '/api/v1/books/list',
+      { condition: { author: { operator: 'is', value: { name: authorName, role: authorRole } } } },
+      { params: { page, size, sort: 'metadata.titleSort,asc' } },
+    );
+    return data;
+  }
 
   async getAuthors(page = 0, size = 30, search?: string): Promise<KomgaPageResultDto<KomgaAuthorDto>> {
     const params: Record<string, any> = { page, size, role: 'writer' };
@@ -217,6 +235,83 @@ export class KomgaClient {
     const updated = existing.filter((b) => b.id !== bookmark.id);
     const key = `lektio.bookmarks.${bookmark.seriesId}`;
     await this.patchClientSettings({ [key]: { value: JSON.stringify(updated) } });
+  }
+
+  // ── Search (POST) ─────────────────────────────────────────────────────────
+
+  async searchSeries(body: KomgaSeriesSearch, page = 0, size = 30, sort = 'metadata.titleSort,asc'): Promise<KomgaPageResultDto<KomgaSeriesDto>> {
+    const { data } = await this.http.post<KomgaPageResultDto<KomgaSeriesDto>>(
+      '/api/v1/series/list',
+      body,
+      { params: { page, size, sort } },
+    );
+    return data;
+  }
+
+  async searchBooks(body: KomgaBookSearch, page = 0, size = 30, sort = 'metadata.titleSort,asc'): Promise<KomgaPageResultDto<KomgaBookDto>> {
+    const { data } = await this.http.post<KomgaPageResultDto<KomgaBookDto>>(
+      '/api/v1/books/list',
+      body,
+      { params: { page, size, sort } },
+    );
+    return data;
+  }
+
+  // ── Referential (for filter dropdowns) ────────────────────────────────────
+
+  async getGenres(): Promise<string[]> {
+    const { data } = await this.http.get<string[]>('/api/v1/genres');
+    return data;
+  }
+
+  async getTags(): Promise<string[]> {
+    const { data } = await this.http.get<string[]>('/api/v1/tags');
+    return data;
+  }
+
+  async getPublishers(): Promise<string[]> {
+    const { data } = await this.http.get<string[]>('/api/v1/publishers');
+    return data;
+  }
+
+  async getLanguages(): Promise<string[]> {
+    const { data } = await this.http.get<string[]>('/api/v1/languages');
+    return data;
+  }
+
+  async getAgeRatings(): Promise<string[]> {
+    const { data } = await this.http.get<string[]>('/api/v1/age-ratings');
+    return data;
+  }
+
+  // ── Home screen ───────────────────────────────────────────────────────────
+
+  async getNewSeries(page = 0, size = 20): Promise<KomgaPageResultDto<KomgaSeriesDto>> {
+    const { data } = await this.http.get<KomgaPageResultDto<KomgaSeriesDto>>('/api/v1/series/new', {
+      params: { page, size },
+    });
+    return data;
+  }
+
+  async getLatestSeries(page = 0, size = 20): Promise<KomgaPageResultDto<KomgaSeriesDto>> {
+    const { data } = await this.http.get<KomgaPageResultDto<KomgaSeriesDto>>('/api/v1/series/latest', {
+      params: { page, size },
+    });
+    return data;
+  }
+
+  async getLatestBooks(page = 0, size = 20): Promise<KomgaPageResultDto<KomgaBookDto>> {
+    const { data } = await this.http.get<KomgaPageResultDto<KomgaBookDto>>('/api/v1/books/latest', {
+      params: { page, size },
+    });
+    return data;
+  }
+
+  async getInProgressSeries(page = 0, size = 20): Promise<KomgaPageResultDto<KomgaSeriesDto>> {
+    const { data } = await this.http.get<KomgaPageResultDto<KomgaSeriesDto>>('/api/v1/series', {
+      params: { page, size, read_status: 'IN_PROGRESS' },
+    });
+    return data;
   }
 
   // ── URL helpers ────────────────────────────────────────────────────────────

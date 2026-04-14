@@ -1,7 +1,8 @@
-import React from 'react';
-import { View, ScrollView, TouchableOpacity, Text } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { View, FlatList, TouchableOpacity, Text, ActivityIndicator } from 'react-native';
 import { CoverImage } from './CoverImage';
 import { EmptyState } from './EmptyState';
+import { ImageWithFallback } from './ImageWithFallback';
 import { useResponsiveGrid } from '@/hooks/useResponsiveGrid';
 
 interface BookGridProps<T extends { id: string }> {
@@ -9,8 +10,15 @@ interface BookGridProps<T extends { id: string }> {
   getCoverUri: (item: T) => string | null;
   getTitle: (item: T) => string;
   onPress: (item: T) => void;
+  renderEmptyCover?: (item: T) => React.ReactNode;
   emptyText?: string;
   ListHeaderComponent?: React.ReactElement;
+  onEndReached?: () => void;
+  loadingMore?: boolean;
+  scrollEnabled?: boolean;
+  contentPadding?: number;
+  titleAlign?: 'center' | 'left';
+  cardVariant?: 'book' | 'author';
 }
 
 export function BookGrid<T extends { id: string }>({
@@ -18,35 +26,147 @@ export function BookGrid<T extends { id: string }>({
   getCoverUri,
   getTitle,
   onPress,
+  renderEmptyCover,
   emptyText = 'No items found.',
   ListHeaderComponent,
+  onEndReached,
+  loadingMore,
+  scrollEnabled = true,
+  contentPadding = 12,
+  titleAlign = 'center',
+  cardVariant = 'book',
 }: BookGridProps<T>) {
-  const { itemWidth } = useResponsiveGrid();
+  const { numCols, itemWidth } = useResponsiveGrid();
+  const rows = useMemo(() => {
+    if (scrollEnabled) return [];
 
-  return (
-    <ScrollView contentContainerStyle={{ padding: 12 }}>
-      {ListHeaderComponent}
-      {items.length === 0 ? (
-        <EmptyState message={emptyText} />
-      ) : (
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-          {items.map((item) => (
-            <TouchableOpacity
-              key={item.id}
-              style={{ width: itemWidth }}
-              className="items-center px-1 mb-3"
-              onPress={() => onPress(item)}
-            >
-              <View className="w-full aspect-[2/3] bg-gray-200 rounded-lg overflow-hidden mb-1">
-                <CoverImage uri={getCoverUri(item)} className="w-full h-full" resizeMode="cover" />
+    const nextRows: T[][] = [];
+    for (let index = 0; index < items.length; index += numCols) {
+      nextRows.push(items.slice(index, index + numCols));
+    }
+    return nextRows;
+  }, [items, numCols, scrollEnabled]);
+
+  const renderItem = useCallback(
+    ({ item }: { item: T }) => {
+      const coverUri = getCoverUri(item);
+
+      if (cardVariant === 'author') {
+        return (
+          <TouchableOpacity
+            style={{ width: itemWidth }}
+            className="mb-3 items-center px-1"
+            onPress={() => onPress(item)}
+          >
+            <View className="w-full overflow-hidden rounded-[28px] border border-border bg-surface px-3 py-4">
+              <View className="items-center">
+                <View className="h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-border bg-background p-2">
+                  <View className="h-full w-full items-center justify-center overflow-hidden rounded-full bg-border">
+                    <ImageWithFallback
+                      uri={coverUri}
+                      fallback={renderEmptyCover?.(item) ?? <View className="h-full w-full rounded-full bg-border" />}
+                    />
+                  </View>
+                </View>
+                <View className="min-h-[52px] justify-center px-2 pt-4">
+                  <Text className="text-center text-sm font-semibold text-secondary" numberOfLines={2}>
+                    {getTitle(item)}
+                  </Text>
+                </View>
               </View>
-              <Text className="text-xs text-gray-700 text-center" numberOfLines={2}>
+            </View>
+          </TouchableOpacity>
+        );
+      }
+
+      return (
+        <TouchableOpacity
+          style={{ width: itemWidth }}
+          className="mb-3 items-center px-1"
+          onPress={() => onPress(item)}
+        >
+          <View className="w-full overflow-hidden rounded-2xl border border-border bg-surface">
+            <View className="aspect-[2/3] bg-background p-2">
+              <View className="h-full w-full overflow-hidden rounded-xl bg-border">
+                {coverUri ? (
+                  <CoverImage uri={coverUri} className="w-full h-full" resizeMode="contain" />
+                ) : (
+                  renderEmptyCover?.(item) ?? <View className="h-full w-full bg-border" />
+                )}
+              </View>
+            </View>
+            <View className="min-h-[52px] px-3 pb-2 pt-1.5">
+              <Text
+                className={`text-sm font-semibold leading-5 text-secondary ${titleAlign === 'center' ? 'text-center' : ''}`}
+                numberOfLines={2}
+              >
                 {getTitle(item)}
               </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
-    </ScrollView>
+            </View>
+          </View>
+        </TouchableOpacity>
+      );
+    },
+    [cardVariant, getCoverUri, getTitle, itemWidth, onPress, renderEmptyCover, titleAlign],
+  );
+
+  const keyExtractor = useCallback((item: T) => item.id, []);
+
+  const footer = loadingMore ? (
+    <View className="py-4 items-center">
+      <ActivityIndicator size="small" />
+    </View>
+  ) : null;
+
+  if (items.length === 0 && !ListHeaderComponent) {
+    return (
+      <View style={{ padding: contentPadding }}>
+        <EmptyState message={emptyText} />
+      </View>
+    );
+  }
+
+  if (!scrollEnabled) {
+    return (
+      <View style={{ padding: contentPadding }}>
+        {ListHeaderComponent}
+        {items.length === 0 ? (
+          <EmptyState message={emptyText} />
+        ) : (
+          rows.map((row, rowIndex) => (
+            <View key={`book-grid-row-${rowIndex}`} className="mb-3 flex-row">
+              {row.map((item) => (
+                <React.Fragment key={item.id}>{renderItem({ item })}</React.Fragment>
+              ))}
+              {row.length < numCols
+                ? Array.from({ length: numCols - row.length }).map((_, index) => (
+                    <View
+                      key={`book-grid-spacer-${rowIndex}-${index}`}
+                      style={{ width: itemWidth }}
+                    />
+                  ))
+                : null}
+            </View>
+          ))
+        )}
+        {footer}
+      </View>
+    );
+  }
+
+  return (
+    <FlatList
+      key={`book-grid-${numCols}`}
+      data={items}
+      renderItem={renderItem}
+      keyExtractor={keyExtractor}
+      numColumns={numCols}
+      contentContainerStyle={{ padding: contentPadding }}
+      ListHeaderComponent={ListHeaderComponent}
+      ListEmptyComponent={<EmptyState message={emptyText} />}
+      ListFooterComponent={footer}
+      onEndReached={onEndReached}
+      onEndReachedThreshold={0.5}
+    />
   );
 }

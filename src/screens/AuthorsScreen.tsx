@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { User } from 'lucide-react-native';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { View, Text, FlatList, ActivityIndicator, Pressable } from 'react-native';
+import { Search, User, X } from 'lucide-react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useBrowseStore } from '@/store/browseStore';
-import { ImageWithFallback } from '@/components/ImageWithFallback';
+import { BrowseHeaderTitle } from '@/components/BrowseHeaderTitle';
+import { BookGrid } from '@/components/BookGrid';
+import { Chip } from '@/components/Chip';
+import NavIconButton from '@/components/NavIconButton';
 import { SearchBar } from '@/components/SearchBar';
-import { EmptyState } from '@/components/EmptyState';
-import { useResponsiveGrid } from '@/hooks/useResponsiveGrid';
 import { useProviderFetch } from '@/hooks/useProviderFetch';
 import type { AuthorsScreenProps } from '@/navigation/types';
 import type { Author } from '@/providers';
@@ -14,68 +15,101 @@ import type { Author } from '@/providers';
 export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
   const { provider } = useAuthStore();
   const { authors, loadingAuthors, fetchAuthors } = useBrowseStore();
-  const [search, setSearch] = useState('');
-  const { itemWidth } = useResponsiveGrid();
+  const [searchText, setSearchText] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useProviderFetch((p) => fetchAuthors(p, 0, search || undefined));
+  useProviderFetch((p) => fetchAuthors(p, 0, searchText || undefined));
 
-  function handleSearch(text: string) {
-    setSearch(text);
-    if (provider) {
-      fetchAuthors(provider, 0, text || undefined);
-    }
-  }
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      if (provider) fetchAuthors(provider, 0, searchText || undefined);
+    }, 300);
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [searchText, provider, fetchAuthors]);
 
   function getAuthorCoverUri(author: Author): string | null {
     if (!provider) return null;
     return provider.getAuthorCoverUrl?.(author.id) ?? null;
   }
 
-  return (
-    <View className="flex-1 bg-white">
-      <SearchBar
-        value={search}
-        onChangeText={handleSearch}
-        placeholder="Search authors…"
-      />
+  useLayoutEffect(() => {
+    const searchButtonActive = searchOpen || Boolean(searchText);
 
-      {loadingAuthors && authors.length === 0 ? (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" />
-        </View>
-      ) : (
-        <ScrollView contentContainerStyle={{ padding: 12 }}>
-          {authors.length === 0 ? (
-            <EmptyState message="No authors found." />
-          ) : (
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-              {authors.map((item) => (
-                <TouchableOpacity
-                  key={item.id}
-                  style={{ width: itemWidth }}
-                  className="items-center px-2 mb-5"
-                  onPress={() => navigation.navigate('AuthorDetail', { authorId: item.id, authorName: item.name })}
-                >
-                  <View className="w-full aspect-square rounded-full bg-gray-100 overflow-hidden items-center justify-center mb-2">
-                    <ImageWithFallback
-                      uri={getAuthorCoverUri(item)}
-                      fallback={<User size={36} color="#9ca3af" />}
-                    />
-                  </View>
-                  <Text className="text-sm text-gray-900 font-medium text-center" numberOfLines={2}>
-                    {item.name}
-                  </Text>
-                  {item.role ? (
-                    <Text className="text-xs text-gray-400 capitalize text-center" numberOfLines={1}>
-                      {item.role}
-                    </Text>
-                  ) : null}
-                </TouchableOpacity>
-              ))}
+    navigation.setOptions({
+      headerTitle: () => <BrowseHeaderTitle label="Authors" />,
+      headerTitleAlign: 'center',
+      headerLeft: () => <NavIconButton type="drawer" />,
+      headerRight: () => (
+        <Pressable
+          onPress={() => setSearchOpen((value) => !value)}
+          className={`rounded-full border px-3 py-3 ${
+            searchButtonActive ? 'border-secondary bg-secondary' : 'border-border bg-primary'
+          }`}
+        >
+          {searchButtonActive ? <X size={18} color="#ffffff" /> : <Search size={18} color="#000000" />}
+        </Pressable>
+      ),
+    });
+  }, [navigation, searchOpen, searchText]);
+
+  if (loadingAuthors && authors.length === 0) {
+    return (
+      <View className="flex-1 bg-background">
+        <View className="px-4 pb-1">
+          {searchOpen ? (
+            <View className="mt-2 rounded-[26px] bg-primary-50/80">
+              <SearchBar value={searchText} onChangeText={setSearchText} placeholder="Search authors..." />
             </View>
-          )}
-        </ScrollView>
-      )}
+          ) : null}
+        </View>
+
+        <FlatList
+          data={[]}
+          ListHeaderComponent={
+            <View className="px-4 pb-3 pt-2">
+              <Chip label="0 authors" />
+            </View>
+          }
+          ListEmptyComponent={
+            <View className="py-16 items-center">
+              <ActivityIndicator size="large" />
+            </View>
+          }
+          renderItem={() => null}
+        />
+      </View>
+    );
+  }
+
+  return (
+    <View className="flex-1 bg-background">
+      <View className="px-4 pb-1">
+        {searchOpen ? (
+          <View className="mt-2 rounded-[26px] bg-primary-50/80">
+            <SearchBar value={searchText} onChangeText={setSearchText} placeholder="Search authors..." />
+          </View>
+        ) : null}
+      </View>
+
+      <BookGrid
+        items={authors}
+        getCoverUri={getAuthorCoverUri}
+        getTitle={(item) => item.name}
+        onPress={(item) => navigation.navigate('AuthorDetail', { authorId: item.id, authorName: item.name })}
+        renderEmptyCover={() => <User size={32} color="#9ca3af" />}
+        emptyText="No authors found."
+        cardVariant="author"
+        ListHeaderComponent={
+          <View className="px-4 pb-3 pt-2">
+            <Chip label={`${authors.length} ${authors.length === 1 ? 'author' : 'authors'}`} />
+          </View>
+        }
+      />
     </View>
   );
 }

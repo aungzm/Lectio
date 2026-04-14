@@ -7,12 +7,13 @@ interface SearchBarProps {
   placeholder?: string;
 }
 
-export function SearchBar({ value, onChangeText, placeholder = 'Search…' }: SearchBarProps) {
+export function SearchBar({ value, onChangeText, placeholder = 'Search...' }: SearchBarProps) {
   return (
-    <View className="px-4 py-3 border-b border-gray-100">
+    <View className="px-4 py-3">
       <TextInput
-        className="bg-gray-100 rounded-lg px-4 py-2.5 text-base text-gray-900"
+        className="rounded-[22px] border border-primary-100 bg-background px-4 py-3.5 text-base text-secondary"
         placeholder={placeholder}
+        placeholderTextColor="#9ca3af"
         value={value}
         onChangeText={onChangeText}
         autoCorrect={false}
