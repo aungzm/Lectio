@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -18,14 +18,17 @@ import {
   Shield,
   User,
 } from 'lucide-react-native';
+import { AnimatedBrowseTopBar } from '@/components/AnimatedBrowseTopBar';
 import { useAuthStore } from '@/store/authStore';
 import { CoverImage } from '@/components/CoverImage';
 import { LoadingScreen } from '@/components/LoadingScreen';
+import NavIconButton from '@/components/NavIconButton';
 import { SectionCard } from '@/components/SectionCard';
 import { InfoPill } from '@/components/InfoPill';
 import { KeyFact } from '@/components/KeyFact';
 import { PeopleChips } from '@/components/PeopleChips';
 import { CollapsibleChipSection } from '@/components/CollapsibleChipSection';
+import { useScrollAwareHeader } from '@/hooks/useScrollAwareHeader';
 import { useThemeColors } from '@/theme/useThemeColors';
 import { BookFormat, type DetailedMetadata } from '@/providers';
 
@@ -114,6 +117,13 @@ export default function BookDetailScreen() {
   const [synopsisExpanded, setSynopsisExpanded] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const { accent, accentSoft, accentSoftStrong, muted, primary, secondary, tertiary } = useThemeColors();
+  const { headerVisible, handleScroll } = useScrollAwareHeader();
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerShown: false,
+    });
+  }, [navigation]);
 
   useEffect(() => {
     if (!provider?.getDetailedMetadata) {
@@ -254,133 +264,147 @@ export default function BookDetailScreen() {
   const authorNames = metadata?.writers?.map((writer) => writer.name).filter(Boolean) ?? [];
 
   return (
-    <ScrollView className="flex-1 bg-background" contentContainerClassName="pb-10">
-      <View className="px-4 pt-4">
-        <View className="relative overflow-hidden rounded-[32px] border border-border bg-surface px-5 pb-6 pt-5">
-          <View className="absolute -top-12 -right-10 h-36 w-36 rounded-full bg-accent-soft-strong" />
-          <View className="absolute top-24 -left-12 h-28 w-28 rounded-full bg-accent-soft" />
+    <View className="flex-1 bg-background">
+      <AnimatedBrowseTopBar
+        title="Book"
+        visible={headerVisible}
+        leftSlot={<NavIconButton type="back" />}
+        rightSlot={<View className="w-10" />}
+      />
 
-          <View className="items-center">
-            <View className="h-64 w-44 overflow-hidden rounded-[28px] border border-border bg-border shadow-lg">
-              <CoverImage uri={getCoverUri()} className="h-full w-full" resizeMode="cover" />
+      <ScrollView
+        className="flex-1 bg-background"
+        contentContainerStyle={{ paddingBottom: 40 }}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+      >
+        <View className="px-4 pt-4">
+          <View className="relative overflow-hidden rounded-[32px] border border-border bg-surface px-5 pb-6 pt-5">
+            <View className="absolute -top-12 -right-10 h-36 w-36 rounded-full bg-accent-soft-strong" />
+            <View className="absolute top-24 -left-12 h-28 w-28 rounded-full bg-accent-soft" />
+
+            <View className="items-center">
+              <View className="h-64 w-44 overflow-hidden rounded-[28px] border border-border bg-border shadow-lg">
+                <CoverImage uri={getCoverUri()} className="h-full w-full" resizeMode="cover" />
+              </View>
+
+              <View className="mt-5 items-center">
+                <Text className="text-center text-3xl font-bold text-secondary" numberOfLines={3}>
+                  {title}
+                </Text>
+                {authorNames.length > 0 ? (
+                  <View className="mt-3 w-full max-w-[320px] flex-row flex-wrap items-center justify-center gap-2 self-center">
+                    {authorNames.map((author, index) => (
+                      <InfoPill
+                        key={`${author}-${index}`}
+                        icon={<User size={14} color={tertiary} />}
+                        label={author}
+                      />
+                    ))}
+                  </View>
+                ) : null}
+              </View>
+
+              {heroFacts.length > 0 && (
+                <View className="mt-4 flex-row flex-wrap items-center justify-center gap-2">
+                  {metadata?.releaseYear ? (
+                    <InfoPill
+                      icon={<CalendarDays size={14} color={tertiary} />}
+                      label={`${metadata.releaseYear}`}
+                    />
+                  ) : null}
+                  {book?.pagesTotal ? (
+                    <InfoPill
+                      icon={<BookOpen size={14} color={tertiary} />}
+                      label={`${book.pagesTotal} pages`}
+                    />
+                  ) : null}
+                  {metadata?.language ? (
+                    <InfoPill
+                      icon={<Languages size={14} color={tertiary} />}
+                      label={metadata.language.toUpperCase()}
+                    />
+                  ) : null}
+                  {ageLabel && ageLabel !== 'Unknown' ? (
+                    <InfoPill icon={<Shield size={14} color={tertiary} />} label={ageLabel} />
+                  ) : null}
+                </View>
+              )}
             </View>
 
-            <View className="mt-5 items-center">
-              <Text className="text-center text-3xl font-bold text-secondary" numberOfLines={3}>
-                {title}
-              </Text>
-              {authorNames.length > 0 ? (
-                <View className="mt-3 w-full max-w-[320px] flex-row flex-wrap items-center justify-center gap-2 self-center">
-                  {authorNames.map((author, index) => (
-                    <InfoPill
-                      key={`${author}-${index}`}
-                      icon={<User size={14} color={tertiary} />}
-                      label={author}
-                    />
-                  ))}
-                </View>
-              ) : null}
+            <View className="mt-6 flex-row gap-3">
+              <ActionTile
+                label="Read Now"
+                primary
+                onPress={handleReadNow}
+                icon={<BookOpen size={18} color={primary} />}
+              />
+              <ActionTile
+                label={downloading ? 'Saving...' : 'Download'}
+                onPress={handleDownload}
+                icon={<Download size={18} color={secondary} />}
+              />
             </View>
 
             {heroFacts.length > 0 && (
-              <View className="mt-4 flex-row flex-wrap items-center justify-center gap-2">
-                {metadata?.releaseYear ? (
-                  <InfoPill
-                    icon={<CalendarDays size={14} color={tertiary} />}
-                    label={`${metadata.releaseYear}`}
-                  />
-                ) : null}
-                {book?.pagesTotal ? (
-                  <InfoPill
-                    icon={<BookOpen size={14} color={tertiary} />}
-                    label={`${book.pagesTotal} pages`}
-                  />
-                ) : null}
-                {metadata?.language ? (
-                  <InfoPill
-                    icon={<Languages size={14} color={tertiary} />}
-                    label={metadata.language.toUpperCase()}
-                  />
-                ) : null}
-                {ageLabel && ageLabel !== 'Unknown' ? (
-                  <InfoPill icon={<Shield size={14} color={tertiary} />} label={ageLabel} />
-                ) : null}
+              <View className="mt-5 flex-row flex-wrap gap-3">
+                {heroFacts.map((fact) => (
+                  <KeyFact key={fact.label} label={fact.label} value={fact.value} />
+                ))}
               </View>
             )}
           </View>
+        </View>
 
-          <View className="mt-6 flex-row gap-3">
-            <ActionTile
-              label="Read Now"
-              primary
-              onPress={handleReadNow}
-              icon={<BookOpen size={18} color={primary} />}
-            />
-            <ActionTile
-              label={downloading ? 'Saving...' : 'Download'}
-              onPress={handleDownload}
-              icon={<Download size={18} color={secondary} />}
-            />
-          </View>
-
-          {heroFacts.length > 0 && (
-            <View className="mt-5 flex-row flex-wrap gap-3">
-              {heroFacts.map((fact) => (
-                <KeyFact key={fact.label} label={fact.label} value={fact.value} />
-              ))}
+        {error ? (
+          <View className="px-4 pt-4">
+            <View className="rounded-2xl border border-danger bg-surface px-4 py-3">
+              <Text className="text-sm text-danger">{error}</Text>
             </View>
-          )}
-        </View>
-      </View>
-
-      {error ? (
-        <View className="px-4 pt-4">
-          <View className="rounded-2xl border border-danger bg-surface px-4 py-3">
-            <Text className="text-sm text-danger">{error}</Text>
           </View>
-        </View>
-      ) : null}
+        ) : null}
 
-      {metadata ? (
-        <View className="px-4 pt-4">
-          {synopsisPlain.length > 0 ? (
-            <SectionCard title="Synopsis">
-              <Text
-                className="text-sm leading-6 text-secondary"
-                numberOfLines={synopsisExpanded ? undefined : 5}
-              >
-                {synopsisPlain}
-              </Text>
-              {synopsisNeedsTruncation ? (
-                <Pressable onPress={() => setSynopsisExpanded((value) => !value)} className="mt-2">
-                  <Text className="text-accent text-sm font-medium">
-                    {synopsisExpanded ? 'Show less' : 'Read full synopsis'}
-                  </Text>
-                </Pressable>
-              ) : null}
-            </SectionCard>
-          ) : null}
+        {metadata ? (
+          <View className="px-4 pt-4">
+            {synopsisPlain.length > 0 ? (
+              <SectionCard title="Synopsis">
+                <Text
+                  className="text-sm leading-6 text-secondary"
+                  numberOfLines={synopsisExpanded ? undefined : 5}
+                >
+                  {synopsisPlain}
+                </Text>
+                {synopsisNeedsTruncation ? (
+                  <Pressable onPress={() => setSynopsisExpanded((value) => !value)} className="mt-2">
+                    <Text className="text-accent text-sm font-medium">
+                      {synopsisExpanded ? 'Show less' : 'Read full synopsis'}
+                    </Text>
+                  </Pressable>
+                ) : null}
+              </SectionCard>
+            ) : null}
 
-          {(metadata.genres.length > 0 || metadata.tags.length > 0) && (
+            {(metadata.genres.length > 0 || metadata.tags.length > 0) && (
+              <SectionCard>
+                <CollapsibleChipSection label="Genres" items={metadata.genres} />
+                <CollapsibleChipSection label="Tags" items={metadata.tags} />
+              </SectionCard>
+            )}
+
             <SectionCard>
-              <CollapsibleChipSection label="Genres" items={metadata.genres} />
-              <CollapsibleChipSection label="Tags" items={metadata.tags} />
+              <PeopleChips label="Penciller(s)" people={metadata.pencillers} />
+              <PeopleChips label="Inker(s)" people={metadata.inkers} />
+              <PeopleChips label="Colorist(s)" people={metadata.colorists} />
+              <PeopleChips label="Letterer(s)" people={metadata.letterers} />
+              <PeopleChips label="Cover Artist(s)" people={metadata.coverArtists} />
+              <PeopleChips label="Editor(s)" people={metadata.editors} />
+              <PeopleChips label="Publisher(s)" people={metadata.publishers} />
+              <PeopleChips label="Translator(s)" people={metadata.translators} />
+              <PeopleChips label="Character(s)" people={metadata.characters} />
             </SectionCard>
-          )}
-
-          <SectionCard>
-            <PeopleChips label="Penciller(s)" people={metadata.pencillers} />
-            <PeopleChips label="Inker(s)" people={metadata.inkers} />
-            <PeopleChips label="Colorist(s)" people={metadata.colorists} />
-            <PeopleChips label="Letterer(s)" people={metadata.letterers} />
-            <PeopleChips label="Cover Artist(s)" people={metadata.coverArtists} />
-            <PeopleChips label="Editor(s)" people={metadata.editors} />
-            <PeopleChips label="Publisher(s)" people={metadata.publishers} />
-            <PeopleChips label="Translator(s)" people={metadata.translators} />
-            <PeopleChips label="Character(s)" people={metadata.characters} />
-          </SectionCard>
-        </View>
-      ) : null}
-    </ScrollView>
+          </View>
+        ) : null}
+      </ScrollView>
+    </View>
   );
 }
