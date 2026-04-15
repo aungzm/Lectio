@@ -1,11 +1,30 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, TextInput } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, TextInput, Image } from 'react-native';
+import { User } from 'lucide-react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useBrowseStore } from '@/store/browseStore';
-import { CoverImage } from '@/components/CoverImage';
 import { createProvider } from '@/store/authStore';
 import type { AuthorsScreenProps } from '@/navigation/types';
 import type { Author } from '@/providers';
+
+const NUM_COLUMNS = 3;
+
+function AuthorAvatar({ uri }: { uri: string | null }) {
+  const [errored, setErrored] = useState(false);
+
+  if (!uri || errored) {
+    return <User size={36} color="#9ca3af" />;
+  }
+
+  return (
+    <Image
+      source={{ uri }}
+      style={{ width: '100%', height: '100%' }}
+      resizeMode="cover"
+      onError={() => setErrored(true)}
+    />
+  );
+}
 
 export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
   const { serverConfig, auth } = useAuthStore();
@@ -59,26 +78,26 @@ export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
         <FlatList
           data={authors}
           keyExtractor={(item) => item.id}
-          contentContainerClassName="px-4 py-4"
+          numColumns={NUM_COLUMNS}
+          contentContainerStyle={{ paddingHorizontal: 12, paddingVertical: 16 }}
+          columnWrapperStyle={{ justifyContent: 'flex-start' }}
           renderItem={({ item }) => (
             <TouchableOpacity
-              className="flex-row items-center py-3 border-b border-gray-100"
+              style={{ width: `${100 / NUM_COLUMNS}%` }}
+              className="items-center px-2 mb-5"
               onPress={() => handlePress(item)}
             >
-              <View className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden mr-3">
-                <CoverImage
-                  uri={getAuthorCoverUri(item)}
-                  className="w-full h-full"
-                  resizeMode="cover"
-                />
+              <View className="w-20 h-20 rounded-full bg-gray-100 overflow-hidden items-center justify-center mb-2">
+                <AuthorAvatar uri={getAuthorCoverUri(item)} />
               </View>
-              <View className="flex-1">
-                <Text className="text-base text-gray-900 font-medium">{item.name}</Text>
-                <Text className="text-sm text-gray-400 capitalize">
-                  {item.role}{item.seriesCount > 0 ? ` · ${item.seriesCount} series` : ''}
+              <Text className="text-sm text-gray-900 font-medium text-center" numberOfLines={2}>
+                {item.name}
+              </Text>
+              {item.role ? (
+                <Text className="text-xs text-gray-400 capitalize text-center" numberOfLines={1}>
+                  {item.role}
                 </Text>
-              </View>
-              <Text className="text-gray-400 text-lg">›</Text>
+              ) : null}
             </TouchableOpacity>
           )}
           ListEmptyComponent={
