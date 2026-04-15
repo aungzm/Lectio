@@ -111,6 +111,8 @@ export interface KavitaChapterDto {
   number: string;
   range: string;
   title: string;
+  titleName: string | null; // actual book/chapter title (e.g. "Pegasus and the Flame")
+  volumeTitle: string | null;
   pages: number;
   pagesRead: number;
   isSpecial: boolean;
