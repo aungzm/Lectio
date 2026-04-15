@@ -25,7 +25,6 @@ import { LoadingScreen } from '@/components/LoadingScreen';
 import NavIconButton from '@/components/NavIconButton';
 import { SectionCard } from '@/components/SectionCard';
 import { InfoPill } from '@/components/InfoPill';
-import { KeyFact } from '@/components/KeyFact';
 import { PeopleChips } from '@/components/PeopleChips';
 import { CollapsibleChipSection } from '@/components/CollapsibleChipSection';
 import { useProviderFetch } from '@/hooks/useProviderFetch';
@@ -189,12 +188,6 @@ export default function SeriesDetailScreen() {
   const statusLabel = formatSeriesStatus(metadata?.seriesStatus);
   const bookCountLabel = `${bookVolumes.length} ${bookVolumes.length === 1 ? 'Book' : 'Books'}`;
   const authorNames = metadata?.writers?.map((writer) => writer.name).filter(Boolean) ?? [];
-  const heroFacts = [
-    { label: 'Books', value: bookCountLabel },
-    statusLabel ? { label: 'Status', value: statusLabel } : null,
-    metadata?.releaseYear ? { label: 'Year', value: `${metadata.releaseYear}` } : null,
-    metadata?.language ? { label: 'Language', value: metadata.language.toUpperCase() } : null,
-  ].filter((item): item is { label: string; value: string } => Boolean(item));
 
   return (
     <View className="flex-1 bg-background">
@@ -264,12 +257,6 @@ export default function SeriesDetailScreen() {
                   <InfoPill icon={<Shield size={14} color={tertiary} />} label={ageLabel} />
                 ) : null}
               </View>
-            </View>
-
-            <View className="mt-5 flex-row flex-wrap gap-3">
-              {heroFacts.map((fact) => (
-                <KeyFact key={`${fact.label}-${fact.value}`} label={fact.label} value={fact.value} />
-              ))}
             </View>
           </View>
         </View>
