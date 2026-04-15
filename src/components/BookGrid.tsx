@@ -3,24 +3,24 @@ import { View, Text, FlatList, TouchableOpacity } from 'react-native';
 import { CoverImage } from './CoverImage';
 import type { Book } from '@/providers';
 
-interface SeriesGridProps {
-  series: Book[];
+interface BookGridProps {
+  books: Book[];
   getCoverUri: (book: Book) => string | null;
   onPress: (book: Book) => void;
   emptyText?: string;
   ListHeaderComponent?: React.ReactElement;
 }
 
-export function SeriesGrid({
-  series,
+export function BookGrid({
+  books,
   getCoverUri,
   onPress,
-  emptyText = 'No series found.',
+  emptyText = 'No items found.',
   ListHeaderComponent,
-}: SeriesGridProps) {
+}: BookGridProps) {
   return (
     <FlatList
-      data={series}
+      data={books}
       keyExtractor={(item) => item.id}
       numColumns={3}
       contentContainerClassName="px-3 py-3"

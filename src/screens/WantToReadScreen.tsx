@@ -3,7 +3,7 @@ import { View, ActivityIndicator } from 'react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useHomeStore } from '@/store/homeStore';
 import { createProvider } from '@/store/authStore';
-import { SeriesGrid } from '@/components/SeriesGrid';
+import { BookGrid } from '@/components/BookGrid';
 import type { Book } from '@/providers';
 import type { WantToReadScreenProps } from '@/navigation/types';
 
@@ -36,8 +36,8 @@ export default function WantToReadScreen({ navigation }: WantToReadScreenProps) 
 
   return (
     <View className="flex-1 bg-white">
-      <SeriesGrid
-        series={wantToRead}
+      <BookGrid
+        books={wantToRead}
         getCoverUri={getCoverUri}
         onPress={(book) => navigation.navigate('SeriesDetail', { seriesId: book.id, title: book.title })}
         emptyText="Your Want to Read list is empty."
