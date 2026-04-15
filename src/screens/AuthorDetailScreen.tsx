@@ -70,13 +70,13 @@ export default function AuthorDetailScreen({ route, navigation }: AuthorDetailSc
         keyExtractor={(item) => `${item.seriesId}-${item.id}`}
         numColumns={3}
         contentContainerStyle={{ paddingHorizontal: 12, paddingVertical: 12 }}
-        columnWrapperStyle={{ gap: 8, marginBottom: 16 }}
+        columnWrapperStyle={{ marginBottom: 16 }}
         renderItem={({ item }) => {
           const label = isBookVolume(item)
             ? bookLabel(item.name, item.number)
             : item.name || `Vol. ${item.number}`;
           return (
-            <TouchableOpacity className="flex-1 items-center" onPress={() => handlePress(item)}>
+            <TouchableOpacity style={{ width: '33.33%' }} className="items-center px-1" onPress={() => handlePress(item)}>
               <View className="w-full aspect-[2/3] bg-gray-200 rounded-lg overflow-hidden mb-1">
                 <CoverImage uri={getVolumeCoverUri(item)} className="w-full h-full" resizeMode="cover" />
               </View>
