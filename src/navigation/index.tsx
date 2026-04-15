@@ -45,7 +45,7 @@ function HomeNavigator() {
   return (
     <HomeStack.Navigator>
       <HomeStack.Screen
-        name="Home"
+        name="HomeScreen"
         component={HomeScreen}
         options={{ title: 'Home', headerLeft: () => <DrawerToggleButton tintColor="black" /> }}
       />
@@ -85,7 +85,7 @@ function AllSeriesNavigator() {
 function AuthorsNavigator() {
   return (
     <AuthorsStack.Navigator>
-      <AuthorsStack.Screen name="Authors" component={AuthorsScreen} options={{ title: 'Authors', headerLeft: () => <DrawerToggleButton tintColor="black" /> }} />
+      <AuthorsStack.Screen name="AuthorsList" component={AuthorsScreen} options={{ title: 'Authors', headerLeft: () => <DrawerToggleButton tintColor="black" /> }} />
       <AuthorsStack.Screen
         name="AuthorDetail"
         component={AuthorDetailScreen}
@@ -129,7 +129,7 @@ function ReadListsNavigator() {
 function WantToReadNavigator() {
   return (
     <WantToReadStack.Navigator>
-      <WantToReadStack.Screen name="WantToRead" component={WantToReadScreen} options={{ title: 'Want to Read', headerLeft: () => <DrawerToggleButton tintColor="black" /> }} />
+      <WantToReadStack.Screen name="WantToReadScreen" component={WantToReadScreen} options={{ title: 'Want to Read', headerLeft: () => <DrawerToggleButton tintColor="black" /> }} />
     </WantToReadStack.Navigator>
   );
 }

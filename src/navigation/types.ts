@@ -20,7 +20,7 @@ export type MainDrawerParamList = {
 };
 
 export type HomeStackParamList = {
-  Home: undefined;
+  HomeScreen: undefined;
 };
 
 // Library stack — Libraries → SeriesList → SeriesDetail → Reader
@@ -40,7 +40,7 @@ export type AllSeriesStackParamList = {
 
 // Authors stack
 export type AuthorsStackParamList = {
-  Authors: undefined;
+  AuthorsList: undefined;
   AuthorDetail: { authorId: string; authorName: string };
   SeriesDetail: { seriesId: string; title: string };
   Reader: { chapterId: string; title: string; epubUrl: string };
@@ -63,7 +63,7 @@ export type ReadListsStackParamList = {
 
 // Want to Read stack (Kavita only)
 export type WantToReadStackParamList = {
-  WantToRead: undefined;
+  WantToReadScreen: undefined;
 };
 
 // Bookmarks stack
@@ -80,7 +80,7 @@ export type SeriesDetailScreenProps = NativeStackScreenProps<LibraryStackParamLi
 export type ReaderScreenProps = NativeStackScreenProps<LibraryStackParamList, 'Reader'>;
 export type SettingsScreenProps = DrawerScreenProps<MainDrawerParamList, 'Settings'>;
 
-export type AuthorsScreenProps = NativeStackScreenProps<AuthorsStackParamList, 'Authors'>;
+export type AuthorsScreenProps = NativeStackScreenProps<AuthorsStackParamList, 'AuthorsList'>;
 export type AuthorDetailScreenProps = NativeStackScreenProps<AuthorsStackParamList, 'AuthorDetail'>;
 
 export type CollectionsScreenProps = NativeStackScreenProps<CollectionsStackParamList, 'Collections'>;
