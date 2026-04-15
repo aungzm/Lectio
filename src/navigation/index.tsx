@@ -45,7 +45,7 @@ function HomeNavigator() {
   return (
     <HomeStack.Navigator>
       <HomeStack.Screen
-        name="Home"
+        name="HomeScreen"
         component={HomeScreen}
         options={{ title: 'Home', headerLeft: () => <DrawerToggleButton tintColor="black" /> }}
       />
@@ -85,7 +85,7 @@ function AllSeriesNavigator() {
 function AuthorsNavigator() {
   return (
     <AuthorsStack.Navigator>
-      <AuthorsStack.Screen name="Authors" component={AuthorsScreen} options={{ title: 'Authors', headerLeft: () => <DrawerToggleButton tintColor="black" /> }} />
+      <AuthorsStack.Screen name="AuthorsList" component={AuthorsScreen} options={{ title: 'Authors', headerLeft: () => <DrawerToggleButton tintColor="black" /> }} />
       <AuthorsStack.Screen
         name="AuthorDetail"
         component={AuthorDetailScreen}
@@ -100,7 +100,7 @@ function AuthorsNavigator() {
 function CollectionsNavigator() {
   return (
     <CollectionsStack.Navigator>
-      <CollectionsStack.Screen name="Collections" component={CollectionsScreen} options={{ title: 'Collections', headerLeft: () => <DrawerToggleButton tintColor="black" /> }} />
+      <CollectionsStack.Screen name="CollectionsList" component={CollectionsScreen} options={{ title: 'Collections', headerLeft: () => <DrawerToggleButton tintColor="black" /> }} />
       <CollectionsStack.Screen
         name="CollectionDetail"
         component={CollectionDetailScreen}
@@ -129,7 +129,7 @@ function ReadListsNavigator() {
 function WantToReadNavigator() {
   return (
     <WantToReadStack.Navigator>
-      <WantToReadStack.Screen name="WantToRead" component={WantToReadScreen} options={{ title: 'Want to Read', headerLeft: () => <DrawerToggleButton tintColor="black" /> }} />
+      <WantToReadStack.Screen name="WantToReadList" component={WantToReadScreen} options={{ title: 'Want to Read', headerLeft: () => <DrawerToggleButton tintColor="black" /> }} />
       <WantToReadStack.Screen name="SeriesDetail" component={SeriesDetailScreen} options={({ route }) => ({ title: route.params.title })} />
       <WantToReadStack.Screen name="Reader" component={ReaderScreen} options={{ headerShown: false }} />
     </WantToReadStack.Navigator>
