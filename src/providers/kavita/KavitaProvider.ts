@@ -49,20 +49,27 @@ import type {
 } from './types';
 import { MangaFormat } from './types';
 
-// Kavita person role integer → readable string
+// Kavita PersonRole enum → readable string (matches Kavita source)
 const KAVITA_ROLE_MAP: Record<number, string> = {
-  1: 'writer',
-  3: 'penciller',
-  4: 'inker',
-  5: 'colorist',
-  6: 'letterer',
-  7: 'cover-artist',
-  8: 'editor',
-  9: 'publisher',
-  10: 'character',
-  11: 'translator',
-  12: 'artist',
+  1: 'other',
+  3: 'writer',
+  4: 'penciller',
+  5: 'inker',
+  6: 'colorist',
+  7: 'letterer',
+  8: 'cover-artist',
+  9: 'editor',
+  10: 'publisher',
+  11: 'character',
+  12: 'translator',
+  13: 'imprint',
+  14: 'team',
+  15: 'location',
 };
+
+// Creative roles to show in authors browse (matches Kavita web UI default filter)
+// Writer=3, Penciller=4, Inker=5, Colorist=6, Letterer=7, CoverArtist=8
+const CREATIVE_ROLES = [3, 4, 5, 6, 7, 8];
 
 function mapRole(roles: number[] | null): string {
   if (!roles || roles.length === 0) return 'unknown';
@@ -242,9 +249,14 @@ export class KavitaProvider implements ILibraryProvider {
     _pageSize: number,
     search?: string,
   ): Promise<Author[]> {
-    const persons = await kavitaGetPersons(serverUrl, token, search ? { name: search } : {});
-    // Extract apiKey from token (for cover URLs, Kavita needs apiKey not JWT; we store apiKey separately)
-    // Cover URLs are built lazily by the UI using auth.apiKey
+    // Filter server-side to creative roles only.
+    // field=1 (Role), comparison=5 (Contains), value=comma-separated role ints.
+    // Matches how Kavita's own web UI calls this endpoint.
+    const persons = await kavitaGetPersons(serverUrl, token, {
+      ...(search ? { name: search } : {}),
+      statements: [{ field: 1, comparison: 5, value: CREATIVE_ROLES.join(',') }],
+      combination: 0,
+    });
     return persons.map((p) => mapPerson(p, serverUrl, ''));
   }
 

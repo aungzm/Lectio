@@ -184,10 +184,16 @@ export interface KavitaBrowsePersonDto {
   chapterCount: number;
 }
 
+export interface KavitaPersonFilterStatementDto {
+  field: number;       // PersonFilterField: 1=Name, 2=Role, 3=SeriesCount, 4=ChapterCount
+  comparison: number;  // FilterComparison: 0=Equal
+  value: string;
+}
+
 export interface KavitaBrowsePersonFilterDto {
   name?: string | null;
-  statements?: any[];
-  combination?: 0 | 1;
+  statements?: KavitaPersonFilterStatementDto[];
+  combination?: 0 | 1;  // 0=AND, 1=OR
   limitTo?: number;
 }
 
