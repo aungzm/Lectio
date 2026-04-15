@@ -7,6 +7,7 @@ import type {
   Chapter,
   ReadingProgress,
   Author,
+  AuthorChapter,
   Collection,
   ReadList,
   Bookmark,
@@ -26,6 +27,8 @@ import {
   kavitaVolumeCoverUrl,
   kavitaGetPersons,
   kavitaGetSeriesByPerson,
+  kavitaGetChaptersByRole,
+  kavitaChapterCoverUrl,
   kavitaGetCollections,
   kavitaGetCollectionSeries,
   kavitaGetReadingLists,
@@ -273,6 +276,37 @@ export class KavitaProvider implements ILibraryProvider {
 
   getAuthorCoverUrl(serverUrl: string, authorId: string, apiKey: string): string {
     return kavitaPersonCoverUrl(serverUrl, Number(authorId), apiKey);
+  }
+
+  async getChaptersByAuthor(
+    serverUrl: string,
+    token: string,
+    authorId: string,
+    apiKey: string,
+  ): Promise<AuthorChapter[]> {
+    const personId = Number(authorId);
+    // Call chapters-by-role for each creative role in parallel, then deduplicate by chapter id
+    const results = await Promise.all(
+      CREATIVE_ROLES.map((role) => kavitaGetChaptersByRole(serverUrl, token, personId, role))
+    );
+    const seen = new Set<number>();
+    const chapters: AuthorChapter[] = [];
+    for (const batch of results) {
+      for (const c of batch) {
+        if (!seen.has(c.id)) {
+          seen.add(c.id);
+          chapters.push({
+            id: String(c.id),
+            title: c.titleName || c.title || 'Unknown',
+            seriesId: String(c.seriesId),
+            coverUrl: kavitaChapterCoverUrl(serverUrl, c.id, apiKey),
+            pagesTotal: c.pages,
+            pagesRead: c.pagesRead,
+          });
+        }
+      }
+    }
+    return chapters;
   }
 
 

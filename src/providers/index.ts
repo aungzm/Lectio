@@ -10,6 +10,7 @@ export type {
   ReadingProgress,
   AuthResult,
   Author,
+  AuthorChapter,
   Collection,
   ReadList,
   Bookmark,

@@ -1,17 +1,12 @@
 import { create } from 'zustand';
-import type { Author, Collection, ReadList, Book, Volume } from '@/providers';
+import type { Author, Collection, ReadList, Book, AuthorChapter } from '@/providers';
 import type { ServerConfig } from './authStore';
 import { createProvider } from './authStore';
-
-export interface VolumeWithSeries extends Volume {
-  seriesId: string;
-  seriesTitle: string;
-}
 
 interface BrowseState {
   authors: Author[];
   seriesByAuthor: Record<string, Book[]>;
-  volumesByAuthor: Record<string, VolumeWithSeries[]>;
+  chaptersByAuthor: Record<string, AuthorChapter[]>;
   collections: Collection[];
   seriesByCollection: Record<string, Book[]>;
   readLists: ReadList[];
@@ -21,7 +16,7 @@ interface BrowseState {
 
   fetchAuthors: (config: ServerConfig, token: string, page?: number, search?: string) => Promise<void>;
   fetchSeriesByAuthor: (config: ServerConfig, token: string, authorId: string) => Promise<void>;
-  fetchVolumesByAuthor: (config: ServerConfig, token: string, authorId: string) => Promise<void>;
+  fetchChaptersByAuthor: (config: ServerConfig, token: string, authorId: string, apiKey: string) => Promise<void>;
   fetchCollections: (config: ServerConfig, token: string) => Promise<void>;
   fetchCollectionSeries: (config: ServerConfig, token: string, collectionId: string) => Promise<void>;
   fetchReadLists: (config: ServerConfig, token: string) => Promise<void>;
@@ -31,7 +26,7 @@ interface BrowseState {
 export const useBrowseStore = create<BrowseState>((set, get) => ({
   authors: [],
   seriesByAuthor: {},
-  volumesByAuthor: {},
+  chaptersByAuthor: {},
   collections: [],
   seriesByCollection: {},
   readLists: [],
@@ -72,29 +67,21 @@ export const useBrowseStore = create<BrowseState>((set, get) => ({
     }
   },
 
-  fetchVolumesByAuthor: async (config, token, authorId) => {
+  fetchChaptersByAuthor: async (config, token, authorId, apiKey) => {
     set({ isLoading: true, error: null });
     try {
       const provider = createProvider(config.providerType);
-      if (!provider.getSeriesByAuthor || !provider.getVolumes) {
+      if (!provider.getChaptersByAuthor) {
         set({ isLoading: false });
         return;
       }
-      const series = await provider.getSeriesByAuthor(config.serverUrl, token, authorId, 0, 50);
-      const volumeArrays = await Promise.all(
-        series.map((s) =>
-          provider.getVolumes(config.serverUrl, token, s.id).then((vols) =>
-            vols.map((v) => ({ ...v, seriesId: s.id, seriesTitle: s.title }))
-          )
-        )
-      );
-      const flat = volumeArrays.flat();
+      const chapters = await provider.getChaptersByAuthor(config.serverUrl, token, authorId, apiKey);
       set((state) => ({
-        volumesByAuthor: { ...state.volumesByAuthor, [authorId]: flat },
+        chaptersByAuthor: { ...state.chaptersByAuthor, [authorId]: chapters },
         isLoading: false,
       }));
     } catch (e: any) {
-      set({ isLoading: false, error: e?.message ?? 'Failed to load volumes by author' });
+      set({ isLoading: false, error: e?.message ?? 'Failed to load chapters by author' });
     }
   },
 

@@ -197,6 +197,18 @@ export interface KavitaBrowsePersonFilterDto {
   limitTo?: number;
 }
 
+export interface KavitaStandaloneChapterDto {
+  id: number;
+  title: string | null;
+  titleName: string | null;  // series/volume title
+  pages: number;
+  pagesRead: number;
+  volumeId: number;
+  seriesId: number;
+  libraryId: number;
+  coverImage: string | null;
+}
+
 // --- Collections ---
 
 export interface KavitaCollectionDto {

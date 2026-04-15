@@ -71,6 +71,15 @@ export interface Author {
   seriesCount: number;
 }
 
+export interface AuthorChapter {
+  id: string;          // chapterId — pass directly to getEpubUrl
+  title: string;       // display title (titleName / series name from Kavita)
+  seriesId: string;
+  coverUrl: string | null;
+  pagesTotal: number;
+  pagesRead: number;
+}
+
 export interface Collection {
   id: string;
   name: string;
@@ -135,6 +144,9 @@ export interface ILibraryProvider {
 
   /** List series by a specific author (authorId is provider-specific). */
   getSeriesByAuthor?(serverUrl: string, token: string, authorId: string, page: number, pageSize: number): Promise<Book[]>;
+
+  /** List all individual chapters/books by an author across all their series. */
+  getChaptersByAuthor?(serverUrl: string, token: string, authorId: string, apiKey: string): Promise<AuthorChapter[]>;
 
   /** List server-defined collections. */
   getCollections?(serverUrl: string, token: string): Promise<Collection[]>;

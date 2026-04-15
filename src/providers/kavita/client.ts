@@ -10,6 +10,7 @@ import type {
   KavitaChapterInfoDto,
   KavitaBrowsePersonDto,
   KavitaBrowsePersonFilterDto,
+  KavitaStandaloneChapterDto,
   KavitaCollectionDto,
   KavitaReadingListDto,
   KavitaReadingListItemDto,
@@ -127,6 +128,23 @@ export async function kavitaGetSeriesByPerson(
   const client = buildClient(serverUrl, token);
   const { data } = await client.get<KavitaSeriesDto[]>('/api/Person/series-known-for', { params: { personId } });
   return data ?? [];
+}
+
+export async function kavitaGetChaptersByRole(
+  serverUrl: string,
+  token: string,
+  personId: number,
+  role: number,
+): Promise<KavitaStandaloneChapterDto[]> {
+  const client = buildClient(serverUrl, token);
+  const { data } = await client.get<KavitaStandaloneChapterDto[]>('/api/Person/chapters-by-role', {
+    params: { personId, role },
+  });
+  return data ?? [];
+}
+
+export function kavitaChapterCoverUrl(serverUrl: string, chapterId: number, apiKey: string): string {
+  return `${serverUrl.replace(/\/$/, '')}/api/Image/chapter-cover?chapterId=${chapterId}&apiKey=${apiKey}`;
 }
 
 // ── Collections ───────────────────────────────────────────────────────────────
