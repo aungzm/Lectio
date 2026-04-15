@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useBrowseStore } from '@/store/browseStore';
+import { CoverImage } from '@/components/CoverImage';
+import { createProvider } from '@/store/authStore';
 import type { CollectionsScreenProps } from '@/navigation/types';
 import type { Collection } from '@/providers';
 
@@ -14,6 +16,15 @@ export default function CollectionsScreen({ navigation }: CollectionsScreenProps
       fetchCollections(serverConfig, auth.token);
     }
   }, [serverConfig, auth]);
+
+  function getCollectionCoverUri(collection: Collection): string | null {
+    if (!serverConfig || !auth) return null;
+    const provider = createProvider(serverConfig.providerType) as any;
+    if (provider.getCollectionCoverUrl) {
+      return provider.getCollectionCoverUrl(serverConfig.serverUrl, collection.id, auth.apiKey);
+    }
+    return null;
+  }
 
   function handlePress(collection: Collection) {
     navigation.navigate('CollectionDetail', {
@@ -35,21 +46,26 @@ export default function CollectionsScreen({ navigation }: CollectionsScreenProps
       <FlatList
         data={collections}
         keyExtractor={(item) => item.id}
-        contentContainerClassName="px-4 py-4 gap-3"
+        numColumns={2}
+        contentContainerClassName="px-3 py-3"
+        columnWrapperClassName="gap-3 mb-4"
         renderItem={({ item }) => (
-          <TouchableOpacity
-            className="bg-gray-100 rounded-xl px-5 py-4 flex-row items-center justify-between"
-            onPress={() => handlePress(item)}
-          >
-            <View className="flex-1 mr-4">
-              <Text className="text-base font-semibold text-gray-900">{item.name}</Text>
-              {item.summary ? (
-                <Text className="text-sm text-gray-500 mt-0.5" numberOfLines={1}>
-                  {item.summary}
-                </Text>
-              ) : null}
+          <TouchableOpacity className="w-1/2 px-1" onPress={() => handlePress(item)}>
+            <View className="w-full aspect-[2/3] bg-gray-200 rounded-xl overflow-hidden mb-2">
+              <CoverImage
+                uri={getCollectionCoverUri(item)}
+                className="w-full h-full"
+                resizeMode="cover"
+              />
             </View>
-            <Text className="text-gray-400 text-lg">›</Text>
+            <Text className="text-sm font-semibold text-gray-900 text-center" numberOfLines={2}>
+              {item.name}
+            </Text>
+            {item.summary ? (
+              <Text className="text-xs text-gray-400 text-center mt-0.5" numberOfLines={1}>
+                {item.summary}
+              </Text>
+            ) : null}
           </TouchableOpacity>
         )}
         ListEmptyComponent={
