@@ -26,6 +26,7 @@ import {
   kavitaVolumeCoverUrl,
   kavitaGetPersons,
   kavitaGetSeriesByPerson,
+  kavitaLibraryCoverUrl,
   kavitaGetCollections,
   kavitaGetCollectionSeries,
   kavitaGetReadingLists,
@@ -196,6 +197,10 @@ export class KavitaProvider implements ILibraryProvider {
       bookCount: l.count,
       coverUrl: null,
     }));
+  }
+
+  getLibraryCoverUrl(serverUrl: string, libraryId: string, apiKey: string): string {
+    return kavitaLibraryCoverUrl(serverUrl, Number(libraryId), apiKey);
   }
 
   async getSeries(serverUrl: string, token: string, libraryId: string | undefined, page: number, pageSize: number): Promise<Book[]> {
