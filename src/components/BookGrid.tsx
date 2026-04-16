@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Text } from 'react-native';
 import { CoverImage } from './CoverImage';
+import { EmptyState } from './EmptyState';
 import { useResponsiveGrid } from '@/hooks/useResponsiveGrid';
 
 interface BookGridProps<T extends { id: string }> {
@@ -26,7 +27,7 @@ export function BookGrid<T extends { id: string }>({
     <ScrollView contentContainerStyle={{ padding: 12 }}>
       {ListHeaderComponent}
       {items.length === 0 ? (
-        <Text className="text-center text-gray-400 mt-20">{emptyText}</Text>
+        <EmptyState message={emptyText} />
       ) : (
         <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
           {items.map((item) => (

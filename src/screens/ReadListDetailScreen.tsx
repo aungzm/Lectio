@@ -1,26 +1,24 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View } from 'react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useBrowseStore } from '@/store/browseStore';
 import { BookGrid } from '@/components/BookGrid';
 import { LoadingScreen } from '@/components/LoadingScreen';
+import { useProviderFetch } from '@/hooks/useProviderFetch';
+import { useBookDetailNavigation } from '@/hooks/useBookDetailNavigation';
 import type { ReadListDetailScreenProps } from '@/navigation/types';
 import type { Book } from '@/providers';
 
-export default function ReadListDetailScreen({ route, navigation }: ReadListDetailScreenProps) {
+export default function ReadListDetailScreen({ route }: ReadListDetailScreenProps) {
   const { readListId } = route.params;
-  const { provider } = useAuthStore();
+  const provider = useAuthStore((s) => s.provider);
   const { booksByReadList, loadingReadListBooks, fetchReadListBooks } = useBrowseStore();
+  const handlePress = useBookDetailNavigation();
 
   const books = booksByReadList[readListId] ?? [];
 
-  useEffect(() => {
-    if (provider) {
-      fetchReadListBooks(provider, readListId);
-    }
-  }, [readListId, provider]);
+  useProviderFetch((p) => fetchReadListBooks(p, readListId), [readListId]);
 
-  // Use volume cover for distinct images per entry; fall back to series cover
   function getCoverUri(book: Book): string | null {
     if (!provider) return null;
     if (book.volumeId) {
@@ -28,15 +26,6 @@ export default function ReadListDetailScreen({ route, navigation }: ReadListDeta
         ?? provider.getCoverUrl(book.seriesId ?? book.id);
     }
     return provider.getCoverUrl(book.seriesId ?? book.id);
-  }
-
-  function handleRead(book: Book) {
-    if (!provider) return;
-    navigation.navigate('BookDetail', {
-      chapterId: book.id,
-      seriesId: book.seriesId ?? book.id,
-      title: book.title,
-    });
   }
 
   if (loadingReadListBooks && books.length === 0) {
@@ -49,7 +38,7 @@ export default function ReadListDetailScreen({ route, navigation }: ReadListDeta
         items={books}
         getCoverUri={getCoverUri}
         getTitle={(book) => book.title}
-        onPress={handleRead}
+        onPress={handlePress}
         emptyText="No books in this list."
       />
     </View>

@@ -1,25 +1,20 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View } from 'react-native';
-import { useAuthStore } from '@/store/authStore';
 import { useLibraryStore } from '@/store/libraryStore';
 import { BookGrid } from '@/components/BookGrid';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { useCoverUri } from '@/hooks/useCoverUri';
+import { useProviderFetch } from '@/hooks/useProviderFetch';
 import type { SeriesListScreenProps } from '@/navigation/types';
 
 export default function SeriesListScreen({ route, navigation }: SeriesListScreenProps) {
   const { libraryId } = route.params;
-  const { provider } = useAuthStore();
   const { seriesByLibrary, loadingSeries, fetchSeries } = useLibraryStore();
   const getCoverUri = useCoverUri();
 
   const series = seriesByLibrary[libraryId] ?? [];
 
-  useEffect(() => {
-    if (provider) {
-      fetchSeries(provider, libraryId, 0);
-    }
-  }, [libraryId, provider]);
+  useProviderFetch((p) => fetchSeries(p, libraryId, 0), [libraryId]);
 
   if (loadingSeries && series.length === 0) {
     return <LoadingScreen />;

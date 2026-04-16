@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -7,11 +7,11 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useAuthStore } from '@/store/authStore';
 import { useHomeStore } from '@/store/homeStore';
 import { CoverImage } from '@/components/CoverImage';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { useCoverUri } from '@/hooks/useCoverUri';
+import { useProviderFetch } from '@/hooks/useProviderFetch';
 import type { Book } from '@/providers';
 
 function SeriesCard({ book, onPress, getCoverUri }: {
@@ -61,15 +61,10 @@ function Section({ title, data, onPress, getCoverUri, emptyText }: {
 
 export default function HomeScreen() {
   const drawerNav = useNavigation<any>();
-  const { provider } = useAuthStore();
   const { recentlyAdded, continueReading, loadingHome, fetchHomeData } = useHomeStore();
   const getCoverUri = useCoverUri();
 
-  useEffect(() => {
-    if (provider) {
-      fetchHomeData(provider);
-    }
-  }, [provider]);
+  useProviderFetch((p) => fetchHomeData(p));
 
   function handlePress(book: Book) {
     drawerNav.navigate('Library', {

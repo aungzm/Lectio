@@ -3,7 +3,6 @@ import {
   View,
   Text,
   ScrollView,
-  TouchableOpacity,
   Alert,
   Linking,
 } from 'react-native';
@@ -11,6 +10,9 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuthStore } from '@/store/authStore';
 import { CoverImage } from '@/components/CoverImage';
 import { LoadingScreen } from '@/components/LoadingScreen';
+import { Chip } from '@/components/Chip';
+import { MetadataSection } from '@/components/MetadataSection';
+import { ActionButton } from '@/components/ActionButton';
 import type { DetailedMetadata, PersonInfo } from '@/providers';
 
 const AGE_RATING_LABELS: Record<number, string> = {
@@ -37,14 +39,6 @@ function PeopleRow({ label, people }: { label: string; people: PersonInfo[] }) {
     <View className="mb-3">
       <Text className="text-xs font-semibold text-gray-500 uppercase mb-1">{label}</Text>
       <Text className="text-sm text-gray-800">{people.map((p) => p.name).join(', ')}</Text>
-    </View>
-  );
-}
-
-function TagChip({ label }: { label: string }) {
-  return (
-    <View className="bg-gray-100 rounded-full px-3 py-1 mr-2 mb-2">
-      <Text className="text-xs text-gray-700">{label}</Text>
     </View>
   );
 }
@@ -134,18 +128,8 @@ export default function BookDetailScreen() {
 
       {/* Action buttons */}
       <View className="flex-row px-4 py-4 gap-3">
-        <TouchableOpacity
-          className="flex-1 bg-blue-600 rounded-xl py-3 items-center"
-          onPress={handleReadNow}
-        >
-          <Text className="text-white font-semibold text-base">Read Now</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          className="flex-1 bg-gray-200 rounded-xl py-3 items-center"
-          onPress={handleDownload}
-        >
-          <Text className="text-gray-800 font-semibold text-base">Download</Text>
-        </TouchableOpacity>
+        <ActionButton label="Read Now" onPress={handleReadNow} />
+        <ActionButton label="Download" onPress={handleDownload} variant="secondary" />
       </View>
 
       {error && (
@@ -156,30 +140,27 @@ export default function BookDetailScreen() {
         <View className="px-4">
           {/* Synopsis */}
           {metadata.summary && metadata.summary.length > 0 && (
-            <View className="mb-5">
-              <Text className="text-sm font-semibold text-gray-500 uppercase mb-2">Synopsis</Text>
+            <MetadataSection label="Synopsis">
               <Text className="text-sm text-gray-800 leading-5">{metadata.summary}</Text>
-            </View>
+            </MetadataSection>
           )}
 
           {/* Genres */}
           {metadata.genres.length > 0 && (
-            <View className="mb-5">
-              <Text className="text-xs font-semibold text-gray-500 uppercase mb-2">Genres</Text>
+            <MetadataSection label="Genres">
               <View className="flex-row flex-wrap">
-                {metadata.genres.map((g) => <TagChip key={g} label={g} />)}
+                {metadata.genres.map((g) => <Chip key={g} label={g} />)}
               </View>
-            </View>
+            </MetadataSection>
           )}
 
           {/* Tags */}
           {metadata.tags.length > 0 && (
-            <View className="mb-5">
-              <Text className="text-xs font-semibold text-gray-500 uppercase mb-2">Tags</Text>
+            <MetadataSection label="Tags">
               <View className="flex-row flex-wrap">
-                {metadata.tags.map((t) => <TagChip key={t} label={t} />)}
+                {metadata.tags.map((t) => <Chip key={t} label={t} />)}
               </View>
-            </View>
+            </MetadataSection>
           )}
 
           {/* People */}

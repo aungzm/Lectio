@@ -1,10 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, TextInput } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { User } from 'lucide-react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useBrowseStore } from '@/store/browseStore';
 import { ImageWithFallback } from '@/components/ImageWithFallback';
+import { SearchBar } from '@/components/SearchBar';
+import { EmptyState } from '@/components/EmptyState';
 import { useResponsiveGrid } from '@/hooks/useResponsiveGrid';
+import { useProviderFetch } from '@/hooks/useProviderFetch';
 import type { AuthorsScreenProps } from '@/navigation/types';
 import type { Author } from '@/providers';
 
@@ -14,11 +17,7 @@ export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
   const [search, setSearch] = useState('');
   const { itemWidth } = useResponsiveGrid();
 
-  useEffect(() => {
-    if (provider) {
-      fetchAuthors(provider, 0, search || undefined);
-    }
-  }, [provider]);
+  useProviderFetch((p) => fetchAuthors(p, 0, search || undefined));
 
   function handleSearch(text: string) {
     setSearch(text);
@@ -34,16 +33,11 @@ export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
 
   return (
     <View className="flex-1 bg-white">
-      <View className="px-4 py-3 border-b border-gray-100">
-        <TextInput
-          className="bg-gray-100 rounded-lg px-4 py-2.5 text-base text-gray-900"
-          placeholder="Search authors…"
-          value={search}
-          onChangeText={handleSearch}
-          autoCorrect={false}
-          autoCapitalize="none"
-        />
-      </View>
+      <SearchBar
+        value={search}
+        onChangeText={handleSearch}
+        placeholder="Search authors…"
+      />
 
       {loadingAuthors && authors.length === 0 ? (
         <View className="flex-1 items-center justify-center">
@@ -52,7 +46,7 @@ export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
       ) : (
         <ScrollView contentContainerStyle={{ padding: 12 }}>
           {authors.length === 0 ? (
-            <Text className="text-center text-gray-400 mt-20">No authors found.</Text>
+            <EmptyState message="No authors found." />
           ) : (
             <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
               {authors.map((item) => (
