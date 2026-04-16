@@ -199,7 +199,7 @@ export function SeriesFilterModal({
   availableTypes = SERIES_FILTER_TYPES,
   loading = false,
   title = 'Filter Series',
-  subtitle = 'Pick the fields that matter most, then apply everything at once.',
+  subtitle = 'Choose filters and see results update as you go.',
   emptyStateText = 'No filters selected yet. Start with reading progress, status, or genre.',
   notesByType,
   onClose,
@@ -214,14 +214,12 @@ export function SeriesFilterModal({
       ),
     [availableTypes, lockedTypes],
   );
-  const [draftFilters, setDraftFilters] = useState<SearchFilters>(filters);
   const [activeType, setActiveType] = useState<FilterType | null>(visibleSections[0]?.type ?? null);
   const [optionSearch, setOptionSearch] = useState('');
 
   useEffect(() => {
     if (!visible) return;
 
-    setDraftFilters(filters);
     setOptionSearch('');
     setActiveType((current) => {
       if (current && visibleSections.some((section) => section.type === current)) {
@@ -236,7 +234,7 @@ export function SeriesFilterModal({
   }, [visible, filters, visibleSections, filterOptions, onLoadOptions]);
 
   const activeSection = visibleSections.find((section) => section.type === activeType) ?? visibleSections[0] ?? null;
-  const activeCriteria = draftFilters.criteria.filter((criterion) => !lockedTypes.includes(criterion.type));
+  const activeCriteria = filters.criteria.filter((criterion) => !lockedTypes.includes(criterion.type));
   const allOptions = activeSection ? getOptionsForType(activeSection.type, filterOptions) : [];
   const filteredOptions = allOptions.filter((option) =>
     option.label.toLowerCase().includes(optionSearch.trim().toLowerCase()),
@@ -244,42 +242,36 @@ export function SeriesFilterModal({
 
   const isSelected = useCallback(
     (type: FilterType, value: string) =>
-      draftFilters.criteria.some((criterion) => criterion.type === type && criterion.value === value),
-    [draftFilters.criteria],
+      filters.criteria.some((criterion) => criterion.type === type && criterion.value === value),
+    [filters.criteria],
   );
 
   const toggleCriterion = useCallback((type: FilterType, value: string) => {
-    setDraftFilters((current) => {
-      const exists = current.criteria.some((criterion) => criterion.type === type && criterion.value === value);
-      return {
-        ...current,
-        criteria: exists
-          ? current.criteria.filter((criterion) => !(criterion.type === type && criterion.value === value))
-          : [...current.criteria, { type, value }],
-      };
-    });
-  }, []);
+    const exists = filters.criteria.some((criterion) => criterion.type === type && criterion.value === value);
+    const nextFilters = {
+      ...filters,
+      criteria: exists
+        ? filters.criteria.filter((criterion) => !(criterion.type === type && criterion.value === value))
+        : [...filters.criteria, { type, value }],
+    };
+    onApply(nextFilters);
+  }, [filters, onApply]);
 
   const removeCriterion = useCallback((criterion: FilterCriterion) => {
-    setDraftFilters((current) => ({
-      ...current,
-      criteria: current.criteria.filter(
+    onApply({
+      ...filters,
+      criteria: filters.criteria.filter(
         (item) => !(item.type === criterion.type && item.value === criterion.value),
       ),
-    }));
-  }, []);
+    });
+  }, [filters, onApply]);
 
   const clearAll = useCallback(() => {
-    setDraftFilters((current) => ({
-      ...current,
-      criteria: removeUnlockedCriteria(current.criteria, lockedTypes),
-    }));
-  }, [lockedTypes]);
-
-  const handleApply = useCallback(() => {
-    onApply(draftFilters);
-    onClose();
-  }, [draftFilters, onApply, onClose]);
+    onApply({
+      ...filters,
+      criteria: removeUnlockedCriteria(filters.criteria, lockedTypes),
+    });
+  }, [filters, lockedTypes, onApply]);
 
   const shouldShowSearch = allOptions.length > 6;
 
@@ -355,7 +347,7 @@ export function SeriesFilterModal({
 
             <View className="mt-3 flex-row flex-wrap gap-2">
               {visibleSections.map((section) => {
-                const count = draftFilters.criteria.filter((criterion) => criterion.type === section.type).length;
+                const count = filters.criteria.filter((criterion) => criterion.type === section.type).length;
                 const selected = activeSection?.type === section.type;
 
                 return (
@@ -382,10 +374,10 @@ export function SeriesFilterModal({
                     {count > 0 ? (
                       <View
                         className={`mt-3 self-start rounded-full px-2.5 py-1 ${
-                          selected ? 'bg-primary-100' : 'bg-primary-50'
+                          selected ? 'bg-accent-soft-strong' : 'bg-accent-soft'
                         }`}
                       >
-                        <Text className={`text-[11px] font-semibold ${selected ? 'text-primary' : 'text-accent'}`}>
+                        <Text className={`text-[11px] font-semibold ${selected ? 'text-secondary' : 'text-accent'}`}>
                           {count} selected
                         </Text>
                       </View>
@@ -435,7 +427,7 @@ export function SeriesFilterModal({
                           key={option.value}
                           onPress={() => toggleCriterion(activeSection.type, option.value)}
                           className={`rounded-2xl border px-4 py-3 ${
-                            selected ? 'border-accent bg-primary-50' : 'border-border bg-surface'
+                            selected ? 'border-accent-soft-strong bg-accent-soft' : 'border-border bg-surface'
                           }`}
                         >
                           <View className="flex-row items-center justify-between gap-3">
@@ -474,12 +466,10 @@ export function SeriesFilterModal({
             </Pressable>
 
             <Pressable
-              onPress={handleApply}
+              onPress={onClose}
               className="flex-1 items-center justify-center rounded-2xl bg-secondary px-4 py-4"
             >
-              <Text className="text-sm font-semibold text-primary">
-                Apply {activeCriteria.length > 0 ? `(${activeCriteria.length})` : ''}
-              </Text>
+              <Text className="text-sm font-semibold text-primary">Done</Text>
             </Pressable>
           </View>
         </View>
