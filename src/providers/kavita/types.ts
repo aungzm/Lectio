@@ -164,11 +164,11 @@ export interface KavitaUpdateProgressDto {
   bookScrollId?: string;
 }
 
-export interface KavitaSeriesFilter {
-  libraryId?: number;
-  pageNumber?: number;
-  pageSize?: number;
-}
+// export interface KavitaSeriesFilter {
+//   libraryId?: number;
+//   pageNumber?: number;
+//   pageSize?: number;
+// }
 
 // --- Person / Author ---
 
