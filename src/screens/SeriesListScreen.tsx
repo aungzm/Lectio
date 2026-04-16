@@ -9,7 +9,7 @@ import type { Book } from '@/providers';
 export default function SeriesListScreen({ route, navigation }: SeriesListScreenProps) {
   const { libraryId } = route.params;
   const { provider } = useAuthStore();
-  const { seriesByLibrary, isLoading, fetchSeries } = useLibraryStore();
+  const { seriesByLibrary, loadingSeries, fetchSeries } = useLibraryStore();
 
   const series = seriesByLibrary[libraryId] ?? [];
 
@@ -24,7 +24,7 @@ export default function SeriesListScreen({ route, navigation }: SeriesListScreen
     return provider.getCoverUrl(book.id);
   }
 
-  if (isLoading && series.length === 0) {
+  if (loadingSeries && series.length === 0) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
         <ActivityIndicator size="large" />

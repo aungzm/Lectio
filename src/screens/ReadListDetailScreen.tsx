@@ -9,7 +9,7 @@ import type { Book } from '@/providers';
 export default function ReadListDetailScreen({ route, navigation }: ReadListDetailScreenProps) {
   const { readListId } = route.params;
   const { provider } = useAuthStore();
-  const { booksByReadList, isLoading, fetchReadListBooks } = useBrowseStore();
+  const { booksByReadList, loadingReadListBooks, fetchReadListBooks } = useBrowseStore();
 
   const books = booksByReadList[readListId] ?? [];
 
@@ -35,7 +35,7 @@ export default function ReadListDetailScreen({ route, navigation }: ReadListDeta
     navigation.navigate('Reader', { chapterId: book.id, title: book.title, epubUrl });
   }
 
-  if (isLoading && books.length === 0) {
+  if (loadingReadListBooks && books.length === 0) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
         <ActivityIndicator size="large" />

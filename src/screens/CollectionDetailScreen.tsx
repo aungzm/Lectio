@@ -9,7 +9,7 @@ import type { Book } from '@/providers';
 export default function CollectionDetailScreen({ route, navigation }: CollectionDetailScreenProps) {
   const { collectionId } = route.params;
   const { provider } = useAuthStore();
-  const { seriesByCollection, isLoading, fetchCollectionSeries } = useBrowseStore();
+  const { seriesByCollection, loadingCollectionSeries, fetchCollectionSeries } = useBrowseStore();
 
   const series = seriesByCollection[collectionId] ?? [];
 
@@ -24,7 +24,7 @@ export default function CollectionDetailScreen({ route, navigation }: Collection
     return provider.getCoverUrl(book.id);
   }
 
-  if (isLoading && series.length === 0) {
+  if (loadingCollectionSeries && series.length === 0) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
         <ActivityIndicator size="large" />

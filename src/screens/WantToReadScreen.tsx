@@ -8,7 +8,7 @@ import type { WantToReadScreenProps } from '@/navigation/types';
 
 export default function WantToReadScreen({ navigation }: WantToReadScreenProps) {
   const { provider } = useAuthStore();
-  const { wantToRead, isLoading, fetchWantToRead } = useHomeStore();
+  const { wantToRead, loadingWantToRead, fetchWantToRead } = useHomeStore();
 
   useEffect(() => {
     if (provider) {
@@ -21,7 +21,7 @@ export default function WantToReadScreen({ navigation }: WantToReadScreenProps) 
     return provider.getCoverUrl(book.id);
   }
 
-  if (isLoading && wantToRead.length === 0) {
+  if (loadingWantToRead && wantToRead.length === 0) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
         <ActivityIndicator size="large" />

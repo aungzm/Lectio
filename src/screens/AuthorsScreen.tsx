@@ -25,7 +25,7 @@ function AuthorAvatar({ uri }: { uri: string | null }) {
 
 export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
   const { provider } = useAuthStore();
-  const { authors, isLoading, fetchAuthors } = useBrowseStore();
+  const { authors, loadingAuthors, fetchAuthors } = useBrowseStore();
   const [search, setSearch] = useState('');
   const { width } = useWindowDimensions();
   const numCols = width >= 600 ? 4 : 3;
@@ -62,7 +62,7 @@ export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
         />
       </View>
 
-      {isLoading && authors.length === 0 ? (
+      {loadingAuthors && authors.length === 0 ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" />
         </View>

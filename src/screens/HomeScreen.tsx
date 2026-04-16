@@ -61,7 +61,7 @@ function Section({ title, data, onPress, getCoverUri, emptyText }: {
 export default function HomeScreen() {
   const drawerNav = useNavigation<any>();
   const { provider } = useAuthStore();
-  const { recentlyAdded, continueReading, isLoading, fetchHomeData } = useHomeStore();
+  const { recentlyAdded, continueReading, loadingHome, fetchHomeData } = useHomeStore();
 
   useEffect(() => {
     if (provider) {
@@ -81,7 +81,7 @@ export default function HomeScreen() {
     });
   }
 
-  if (isLoading && recentlyAdded.length === 0 && continueReading.length === 0) {
+  if (loadingHome && recentlyAdded.length === 0 && continueReading.length === 0) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
         <ActivityIndicator size="large" />
