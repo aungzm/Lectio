@@ -1,6 +1,5 @@
 import type {
   ILibraryProvider,
-  AuthResult,
   Library,
   Book,
   Volume,
@@ -12,40 +11,11 @@ import type {
   Bookmark,
 } from '../base/ILibraryProvider';
 import { BookFormat, BookMetadata } from '../base/ILibraryProvider';
-import {
-  kavitaLogin,
-  kavitaGetCurrentUser,
-  kavitaGetLibraries,
-  kavitaGetSeries,
-  kavitaGetSeriesDetail,
-  kavitaGetVolumes,
-  kavitaGetProgress,
-  kavitaSaveProgress,
-  kavitaEpubUrl,
-  kavitaCoverUrl,
-  kavitaVolumeCoverUrl,
-  kavitaGetPersons,
-  kavitaGetSeriesByPerson,
-  kavitaLibraryCoverUrl,
-  kavitaGetCollections,
-  kavitaGetCollectionSeries,
-  kavitaGetReadingLists,
-  kavitaGetReadingListItems,
-  kavitaReadingListCoverUrl,
-  kavitaGetSeriesBookmarks,
-  kavitaAddBookmark,
-  kavitaRemoveBookmark,
-  kavitaPersonCoverUrl,
-  kavitaCollectionCoverUrl,
-  kavitaGetWantToRead,
-  kavitaGetRecentlyAdded,
-  kavitaGetContinueReading,
-} from './client';
+import { KavitaClient } from './client';
 import type {
   KavitaSeriesDto,
   KavitaVolumeDto,
   KavitaChapterDto,
-  KavitaBrowsePersonDto,
   KavitaReadingListItemDto,
   KavitaBookmarkDto,
 } from './types';
@@ -115,19 +85,8 @@ function mapVolumes(volumes: KavitaVolumeDto[]): Volume[] {
   }));
 }
 
-function mapPerson(p: KavitaBrowsePersonDto, serverUrl: string, apiKey: string): Author {
-  return {
-    id: String(p.id),
-    name: p.name ?? '',
-    role: mapRole(p.roles),
-    coverUrl: p.coverImage ? kavitaPersonCoverUrl(serverUrl, p.id, apiKey) : null,
-    seriesCount: p.seriesCount,
-  };
-}
-
 function readingListItemLabel(item: KavitaReadingListItemDto): string {
   if (item.chapterTitle) return `${item.seriesName} — ${item.chapterTitle}`;
-  // -100000 is Kavita's sentinel for a volume-level file with no discrete chapter number
   const chapterNum = parseFloat(item.chapterNumber);
   if (chapterNum < 0) {
     return item.volumeNumber && item.volumeNumber !== '0'
@@ -174,23 +133,14 @@ function mapBookmark(b: KavitaBookmarkDto): Bookmark {
 
 export class KavitaProvider implements ILibraryProvider {
   readonly name = 'Kavita';
+  private readonly client: KavitaClient;
 
-  async login(serverUrl: string, username: string, password: string): Promise<AuthResult> {
-    const user = await kavitaLogin(serverUrl, { username, password });
-    return { token: user.token, username: user.username, apiKey: user.apiKey };
+  constructor(serverUrl: string, token: string, apiKey: string) {
+    this.client = new KavitaClient(serverUrl, token, apiKey);
   }
 
-  async validateToken(serverUrl: string, token: string): Promise<boolean> {
-    try {
-      await kavitaGetCurrentUser(serverUrl, token);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  async getLibraries(serverUrl: string, token: string): Promise<Library[]> {
-    const libs = await kavitaGetLibraries(serverUrl, token);
+  async getLibraries(): Promise<Library[]> {
+    const libs = await this.client.getLibraries();
     return libs.map((l) => ({
       id: String(l.id),
       name: l.name,
@@ -199,32 +149,32 @@ export class KavitaProvider implements ILibraryProvider {
     }));
   }
 
-  getLibraryCoverUrl(serverUrl: string, libraryId: string, apiKey: string): string {
-    return kavitaLibraryCoverUrl(serverUrl, Number(libraryId), apiKey);
+  getLibraryCoverUrl(libraryId: string): string {
+    return this.client.libraryCoverUrl(Number(libraryId));
   }
 
-  async getSeries(serverUrl: string, token: string, libraryId: string | undefined, page: number, pageSize: number): Promise<Book[]> {
+  async getSeries(libraryId: string | undefined, page: number, pageSize: number): Promise<Book[]> {
     const libId = libraryId ? Number(libraryId) : undefined;
-    const series = await kavitaGetSeries(serverUrl, token, libId, page, pageSize);
+    const series = await this.client.getSeries(libId, page, pageSize);
     return series.map(mapSeries);
   }
 
-  async getSeriesDetail(serverUrl: string, token: string, seriesId: string): Promise<Book> {
-    const s = await kavitaGetSeriesDetail(serverUrl, token, Number(seriesId));
+  async getSeriesDetail(seriesId: string): Promise<Book> {
+    const s = await this.client.getSeriesDetail(Number(seriesId));
     return mapSeries(s);
   }
 
-  async getVolumes(serverUrl: string, token: string, seriesId: string): Promise<Volume[]> {
-    const volumes = await kavitaGetVolumes(serverUrl, token, Number(seriesId));
+  async getVolumes(seriesId: string): Promise<Volume[]> {
+    const volumes = await this.client.getVolumes(Number(seriesId));
     return mapVolumes(volumes);
   }
 
-  getEpubUrl(serverUrl: string, token: string, chapterId: string): string {
-    return kavitaEpubUrl(serverUrl, token, Number(chapterId));
+  getEpubUrl(chapterId: string): string {
+    return this.client.epubUrl(Number(chapterId));
   }
 
-  async getProgress(serverUrl: string, token: string, chapterId: string): Promise<ReadingProgress | null> {
-    const p = await kavitaGetProgress(serverUrl, token, Number(chapterId));
+  async getProgress(chapterId: string): Promise<ReadingProgress | null> {
+    const p = await this.client.getProgress(Number(chapterId));
     if (!p) return null;
     return {
       chapterId,
@@ -234,8 +184,8 @@ export class KavitaProvider implements ILibraryProvider {
     };
   }
 
-  async saveProgress(serverUrl: string, token: string, progress: ReadingProgress): Promise<void> {
-    await kavitaSaveProgress(serverUrl, token, {
+  async saveProgress(progress: ReadingProgress): Promise<void> {
+    await this.client.saveProgress({
       chapterId: Number(progress.chapterId),
       volumeId: 0,
       seriesId: 0,
@@ -245,45 +195,36 @@ export class KavitaProvider implements ILibraryProvider {
     });
   }
 
-  getCoverUrl(serverUrl: string, seriesId: string, apiKey: string): string {
-    return kavitaCoverUrl(serverUrl, Number(seriesId), apiKey);
+  getCoverUrl(seriesId: string): string {
+    return this.client.coverUrl(Number(seriesId));
   }
 
-  getVolumeCoverUrl(serverUrl: string, volumeId: string, apiKey: string): string {
-    return kavitaVolumeCoverUrl(serverUrl, Number(volumeId), apiKey);
+  getVolumeCoverUrl(volumeId: string): string {
+    return this.client.volumeCoverUrl(Number(volumeId));
   }
 
-  async getAuthors(
-    serverUrl: string,
-    token: string,
-    _page: number,
-    _pageSize: number,
-    search?: string,
-  ): Promise<Author[]> {
-    const persons = await kavitaGetPersons(serverUrl, token, search ? { name: search } : {});
-    // Extract apiKey from token (for cover URLs, Kavita needs apiKey not JWT; we store apiKey separately)
-    // Cover URLs are built lazily by the UI using auth.apiKey
-    return persons.map((p) => mapPerson(p, serverUrl, ''));
+  async getAuthors(_page: number, _pageSize: number, search?: string): Promise<Author[]> {
+    const persons = await this.client.getPersons(search ? { name: search } : {});
+    return persons.map((p): Author => ({
+      id: String(p.id),
+      name: p.name ?? '',
+      role: mapRole(p.roles),
+      coverUrl: p.coverImage ? this.client.personCoverUrl(p.id) : null,
+      seriesCount: p.seriesCount,
+    }));
   }
 
-  async getSeriesByAuthor(
-    serverUrl: string,
-    token: string,
-    authorId: string,
-    _page: number,
-    _pageSize: number,
-  ): Promise<Book[]> {
-    const series = await kavitaGetSeriesByPerson(serverUrl, token, Number(authorId));
+  async getSeriesByAuthor(authorId: string, _page: number, _pageSize: number): Promise<Book[]> {
+    const series = await this.client.getSeriesByPerson(Number(authorId));
     return series.map(mapSeries);
   }
 
-  getAuthorCoverUrl(serverUrl: string, authorId: string, apiKey: string): string {
-    return kavitaPersonCoverUrl(serverUrl, Number(authorId), apiKey);
+  getAuthorCoverUrl(authorId: string): string {
+    return this.client.personCoverUrl(Number(authorId));
   }
 
-
-  async getCollections(serverUrl: string, token: string): Promise<Collection[]> {
-    const cols = await kavitaGetCollections(serverUrl, token);
+  async getCollections(): Promise<Collection[]> {
+    const cols = await this.client.getCollections();
     return cols.map((c) => ({
       id: String(c.id),
       name: c.title,
@@ -291,28 +232,21 @@ export class KavitaProvider implements ILibraryProvider {
     }));
   }
 
-  async getCollectionSeries(
-    serverUrl: string,
-    token: string,
-    collectionId: string,
-    page: number,
-    pageSize: number,
-  ): Promise<Book[]> {
-    const series = await kavitaGetCollectionSeries(serverUrl, token, Number(collectionId), page, pageSize);
+  async getCollectionSeries(collectionId: string, page: number, pageSize: number): Promise<Book[]> {
+    const series = await this.client.getCollectionSeries(Number(collectionId), page, pageSize);
     return series.map(mapSeries);
   }
 
-  getCollectionCoverUrl(serverUrl: string, collectionId: string, apiKey: string): string {
-    return kavitaCollectionCoverUrl(serverUrl, Number(collectionId), apiKey);
+  getCollectionCoverUrl(collectionId: string): string {
+    return this.client.collectionCoverUrl(Number(collectionId));
   }
 
-
-  getReadListCoverUrl(serverUrl: string, readListId: string, apiKey: string): string {
-    return kavitaReadingListCoverUrl(serverUrl, Number(readListId), apiKey);
+  getReadListCoverUrl(readListId: string): string {
+    return this.client.readingListCoverUrl(Number(readListId));
   }
 
-  async getReadLists(serverUrl: string, token: string): Promise<ReadList[]> {
-    const lists = await kavitaGetReadingLists(serverUrl, token);
+  async getReadLists(): Promise<ReadList[]> {
+    const lists = await this.client.getReadingLists();
     return lists.map((l) => ({
       id: String(l.id),
       name: l.title,
@@ -320,25 +254,18 @@ export class KavitaProvider implements ILibraryProvider {
     }));
   }
 
-  async getReadListBooks(
-    serverUrl: string,
-    token: string,
-    readListId: string,
-    _page: number,
-    _pageSize: number,
-  ): Promise<Book[]> {
-    const items = await kavitaGetReadingListItems(serverUrl, token, Number(readListId));
+  async getReadListBooks(readListId: string, _page: number, _pageSize: number): Promise<Book[]> {
+    const items = await this.client.getReadingListItems(Number(readListId));
     return items.map(mapReadingListItem);
   }
 
-
-  async getBookmarks(serverUrl: string, token: string, seriesId: string): Promise<Bookmark[]> {
-    const bms = await kavitaGetSeriesBookmarks(serverUrl, token, Number(seriesId));
+  async getBookmarks(seriesId: string): Promise<Bookmark[]> {
+    const bms = await this.client.getSeriesBookmarks(Number(seriesId));
     return bms.map(mapBookmark);
   }
 
-  async addBookmark(serverUrl: string, token: string, bookmark: Omit<Bookmark, 'id'>): Promise<Bookmark> {
-    await kavitaAddBookmark(serverUrl, token, {
+  async addBookmark(bookmark: Omit<Bookmark, 'id'>): Promise<Bookmark> {
+    await this.client.addBookmark({
       chapterId: Number(bookmark.bookId),
       volumeId: 0,
       seriesId: Number(bookmark.seriesId),
@@ -346,15 +273,15 @@ export class KavitaProvider implements ILibraryProvider {
       xPath: bookmark.xPath ?? undefined,
     });
     // Kavita doesn't return the created bookmark — re-fetch to get the id
-    const all = await kavitaGetSeriesBookmarks(serverUrl, token, Number(bookmark.seriesId));
+    const all = await this.client.getSeriesBookmarks(Number(bookmark.seriesId));
     const created = all.find(
       (b) => b.chapterId === Number(bookmark.bookId) && b.page === bookmark.page,
     );
     return created ? mapBookmark(created) : { id: '0', ...bookmark };
   }
 
-  async removeBookmark(serverUrl: string, token: string, bookmark: Bookmark): Promise<void> {
-    await kavitaRemoveBookmark(serverUrl, token, {
+  async removeBookmark(bookmark: Bookmark): Promise<void> {
+    await this.client.removeBookmark({
       chapterId: Number(bookmark.bookId),
       volumeId: 0,
       seriesId: Number(bookmark.seriesId),
@@ -362,18 +289,18 @@ export class KavitaProvider implements ILibraryProvider {
     });
   }
 
-  async getWantToRead(serverUrl: string, token: string, page: number, pageSize: number): Promise<Book[]> {
-    const series = await kavitaGetWantToRead(serverUrl, token, page, pageSize);
+  async getWantToRead(page: number, pageSize: number): Promise<Book[]> {
+    const series = await this.client.getWantToRead(page, pageSize);
     return series.map(mapSeries);
   }
 
-  async getRecentlyAdded(serverUrl: string, token: string, pageSize: number): Promise<Book[]> {
-    const series = await kavitaGetRecentlyAdded(serverUrl, token, pageSize);
+  async getRecentlyAdded(pageSize: number): Promise<Book[]> {
+    const series = await this.client.getRecentlyAdded(pageSize);
     return series.map(mapSeries);
   }
 
-  async getContinueReading(serverUrl: string, token: string, pageSize: number): Promise<Book[]> {
-    const series = await kavitaGetContinueReading(serverUrl, token, pageSize);
+  async getContinueReading(pageSize: number): Promise<Book[]> {
+    const series = await this.client.getContinueReading(pageSize);
     return series.map(mapSeries);
   }
 }

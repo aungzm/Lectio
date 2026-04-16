@@ -2,31 +2,26 @@ import React, { useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useBrowseStore } from '@/store/browseStore';
-import { createProvider } from '@/store/authStore';
 import { BookGrid } from '@/components/BookGrid';
 import type { CollectionDetailScreenProps } from '@/navigation/types';
 import type { Book } from '@/providers';
 
 export default function CollectionDetailScreen({ route, navigation }: CollectionDetailScreenProps) {
   const { collectionId } = route.params;
-  const { serverConfig, auth } = useAuthStore();
+  const { provider } = useAuthStore();
   const { seriesByCollection, isLoading, fetchCollectionSeries } = useBrowseStore();
 
   const series = seriesByCollection[collectionId] ?? [];
 
   useEffect(() => {
-    if (serverConfig && auth) {
-      fetchCollectionSeries(serverConfig, auth.token, collectionId);
+    if (provider) {
+      fetchCollectionSeries(provider, collectionId);
     }
-  }, [collectionId, serverConfig, auth]);
+  }, [collectionId, provider]);
 
   function getCoverUri(book: Book): string | null {
-    if (!serverConfig || !auth) return null;
-    return createProvider(serverConfig.providerType).getCoverUrl(
-      serverConfig.serverUrl,
-      book.id,
-      auth.apiKey,
-    );
+    if (!provider) return null;
+    return provider.getCoverUrl(book.id);
   }
 
   if (isLoading && series.length === 0) {
