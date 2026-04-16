@@ -3,7 +3,6 @@ import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'rea
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuthStore } from '@/store/authStore';
 import { useLibraryStore } from '@/store/libraryStore';
-import { createProvider } from '@/store/authStore';
 import { CoverImage } from '@/components/CoverImage';
 import type { Volume } from '@/providers';
 
@@ -40,37 +39,35 @@ export default function SeriesDetailScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { seriesId } = route.params as { seriesId: string; title: string };
-  const { serverConfig, auth } = useAuthStore();
-  const { volumes, isLoading, fetchVolumes } = useLibraryStore();
+  const { provider } = useAuthStore();
+  const { volumes, loadingVolumes, fetchVolumes } = useLibraryStore();
 
   const bookVolumes = volumes[seriesId] ?? [];
 
   useEffect(() => {
-    if (serverConfig && auth) {
-      fetchVolumes(serverConfig, auth.token, seriesId);
+    if (provider) {
+      fetchVolumes(provider, seriesId);
     }
-  }, [seriesId, serverConfig, auth]);
-
-  const provider = serverConfig ? createProvider(serverConfig.providerType) : null;
+  }, [seriesId, provider]);
 
   function getSeriesCoverUri(): string | null {
-    if (!provider || !serverConfig || !auth) return null;
-    return provider.getCoverUrl(serverConfig.serverUrl, seriesId, auth.apiKey);
+    if (!provider) return null;
+    return provider.getCoverUrl(seriesId);
   }
 
   function getVolumeCoverUri(volumeId: string): string | null {
-    if (!provider || !serverConfig || !auth) return null;
-    return provider.getVolumeCoverUrl?.(serverConfig.serverUrl, volumeId, auth.apiKey)
-      ?? provider.getCoverUrl(serverConfig.serverUrl, seriesId, auth.apiKey);
+    if (!provider) return null;
+    return provider.getVolumeCoverUrl?.(volumeId)
+      ?? provider.getCoverUrl(seriesId);
   }
 
   function handleReadChapter(chapterId: string, title: string) {
-    if (!serverConfig || !auth || !provider) return;
-    const epubUrl = provider.getEpubUrl(serverConfig.serverUrl, auth.token, chapterId);
+    if (!provider) return;
+    const epubUrl = provider.getEpubUrl(chapterId);
     navigation.navigate('Reader', { chapterId, title, epubUrl });
   }
 
-  if (isLoading && bookVolumes.length === 0) {
+  if (loadingVolumes && bookVolumes.length === 0) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
         <ActivityIndicator size="large" />

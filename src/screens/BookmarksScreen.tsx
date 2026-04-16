@@ -3,14 +3,13 @@ import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Alert } from
 import { useAuthStore } from '@/store/authStore';
 import { useBookmarkStore } from '@/store/bookmarkStore';
 import { useLibraryStore } from '@/store/libraryStore';
-import { createProvider } from '@/store/authStore';
 import type { BookmarksListScreenProps } from '@/navigation/types';
 import type { Bookmark } from '@/providers';
 
 export default function BookmarksScreen({ navigation }: BookmarksListScreenProps) {
-  const { serverConfig, auth } = useAuthStore();
+  const { provider } = useAuthStore();
   const { bookmarksBySeriesId, isLoading, fetchBookmarks, removeBookmark } = useBookmarkStore();
-  const { libraries, seriesByLibrary } = useLibraryStore();
+  const { seriesByLibrary } = useLibraryStore();
 
   // Collect all series IDs we know about to fetch their bookmarks
   const knownSeriesIds = Object.values(seriesByLibrary)
@@ -18,23 +17,18 @@ export default function BookmarksScreen({ navigation }: BookmarksListScreenProps
     .map((b) => b.id);
 
   useEffect(() => {
-    if (!serverConfig || !auth || knownSeriesIds.length === 0) return;
-    // Fetch bookmarks for each known series
+    if (!provider || knownSeriesIds.length === 0) return;
     for (const seriesId of knownSeriesIds) {
-      fetchBookmarks(serverConfig, auth.token, seriesId);
+      fetchBookmarks(provider, seriesId);
     }
-  }, [serverConfig, auth, knownSeriesIds.join(',')]);
+  }, [provider, knownSeriesIds.join(',')]);
 
   // Flatten all bookmarks into one list
   const allBookmarks: Bookmark[] = Object.values(bookmarksBySeriesId).flat();
 
   function handleRead(bookmark: Bookmark) {
-    if (!serverConfig || !auth) return;
-    const epubUrl = createProvider(serverConfig.providerType).getEpubUrl(
-      serverConfig.serverUrl,
-      auth.token,
-      bookmark.bookId,
-    );
+    if (!provider) return;
+    const epubUrl = provider.getEpubUrl(bookmark.bookId);
     navigation.navigate('Reader', {
       chapterId: bookmark.bookId,
       title: bookmark.chapterTitle ?? 'Bookmarked chapter',
@@ -43,13 +37,13 @@ export default function BookmarksScreen({ navigation }: BookmarksListScreenProps
   }
 
   function handleDelete(bookmark: Bookmark) {
-    if (!serverConfig || !auth) return;
+    if (!provider) return;
     Alert.alert('Remove bookmark', 'Remove this bookmark?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Remove',
         style: 'destructive',
-        onPress: () => removeBookmark(serverConfig, auth.token, bookmark),
+        onPress: () => removeBookmark(provider, bookmark),
       },
     ]);
   }

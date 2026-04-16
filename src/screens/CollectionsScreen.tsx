@@ -2,28 +2,26 @@ import React, { useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useBrowseStore } from '@/store/browseStore';
-import { createProvider } from '@/store/authStore';
 import { BookGrid } from '@/components/BookGrid';
 import type { CollectionsScreenProps } from '@/navigation/types';
 import type { Collection } from '@/providers';
 
 export default function CollectionsScreen({ navigation }: CollectionsScreenProps) {
-  const { serverConfig, auth } = useAuthStore();
-  const { collections, isLoading, fetchCollections } = useBrowseStore();
+  const { provider } = useAuthStore();
+  const { collections, loadingCollections, fetchCollections } = useBrowseStore();
 
   useEffect(() => {
-    if (serverConfig && auth) {
-      fetchCollections(serverConfig, auth.token);
+    if (provider) {
+      fetchCollections(provider);
     }
-  }, [serverConfig, auth]);
+  }, [provider]);
 
   function getCoverUri(collection: Collection): string | null {
-    if (!serverConfig || !auth) return null;
-    const provider = createProvider(serverConfig.providerType) as any;
-    return provider.getCollectionCoverUrl?.(serverConfig.serverUrl, collection.id, auth.apiKey) ?? null;
+    if (!provider) return null;
+    return provider.getCollectionCoverUrl?.(collection.id) ?? null;
   }
 
-  if (isLoading && collections.length === 0) {
+  if (loadingCollections && collections.length === 0) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
         <ActivityIndicator size="large" />

@@ -3,7 +3,6 @@ import { View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator, use
 import { BookOpen } from 'lucide-react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useLibraryStore } from '@/store/libraryStore';
-import { createProvider } from '@/store/authStore';
 import type { LibrariesScreenProps } from '@/navigation/types';
 import type { Library } from '@/providers';
 
@@ -27,25 +26,24 @@ function LibraryCover({ uri }: { uri: string | null }) {
 }
 
 export default function LibrariesScreen({ navigation }: LibrariesScreenProps) {
-  const { serverConfig, auth } = useAuthStore();
-  const { libraries, isLoading, fetchLibraries } = useLibraryStore();
+  const { provider } = useAuthStore();
+  const { libraries, loadingLibraries, fetchLibraries } = useLibraryStore();
   const { width } = useWindowDimensions();
   const numCols = width >= 600 ? 4 : 3;
   const itemWidth = `${100 / numCols}%` as `${number}%`;
 
   useEffect(() => {
-    if (serverConfig && auth) {
-      fetchLibraries(serverConfig, auth.token);
+    if (provider) {
+      fetchLibraries(provider);
     }
-  }, [serverConfig, auth]);
+  }, [provider]);
 
   function getCoverUri(library: Library): string | null {
-    if (!serverConfig || !auth) return null;
-    const provider = createProvider(serverConfig.providerType) as any;
-    return provider.getLibraryCoverUrl?.(serverConfig.serverUrl, library.id, auth.apiKey) ?? null;
+    if (!provider) return null;
+    return provider.getLibraryCoverUrl?.(library.id) ?? null;
   }
 
-  if (isLoading && libraries.length === 0) {
+  if (loadingLibraries && libraries.length === 0) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
         <ActivityIndicator size="large" />
@@ -66,7 +64,7 @@ export default function LibrariesScreen({ navigation }: LibrariesScreenProps) {
                 style={{ width: itemWidth }}
                 className="items-center px-1 mb-3"
                 onPress={() => {
-                  const screen = serverConfig?.providerType === 'komga' ? 'BookList' : 'SeriesList';
+                  const screen = provider?.name === 'Komga' ? 'BookList' : 'SeriesList';
                   navigation.navigate(screen, {
                     libraryId: library.id,
                     libraryName: library.name,
