@@ -28,11 +28,10 @@ export default function BookmarksScreen({ navigation }: BookmarksListScreenProps
 
   function handleRead(bookmark: Bookmark) {
     if (!provider) return;
-    const epubUrl = provider.getEpubUrl(bookmark.bookId);
-    navigation.navigate('Reader', {
+    navigation.navigate('BookDetail', {
       chapterId: bookmark.bookId,
+      seriesId: bookmark.seriesId,
       title: bookmark.chapterTitle ?? 'Bookmarked chapter',
-      epubUrl,
     });
   }
 

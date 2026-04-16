@@ -15,6 +15,7 @@ import type {
   KavitaReadingListItemDto,
   KavitaBookmarkDto,
   KavitaBookmarkUpdateDto,
+  KavitaSeriesMetadataFullDto,
 } from './types';
 import { normalizeUrl } from '../base/url';
 
@@ -95,6 +96,11 @@ export class KavitaClient {
 
   async getChapterInfo(chapterId: number): Promise<KavitaChapterInfoDto> {
     const { data } = await this.http.get<KavitaChapterInfoDto>('/api/Reader/chapter-info', { params: { chapterId } });
+    return data;
+  }
+
+  async getSeriesMetadata(seriesId: number): Promise<KavitaSeriesMetadataFullDto> {
+    const { data } = await this.http.get<KavitaSeriesMetadataFullDto>('/api/Series/metadata', { params: { seriesId } });
     return data;
   }
 
@@ -226,5 +232,13 @@ export class KavitaClient {
 
   collectionCoverUrl(collectionId: number): string {
     return `${this.baseUrl}/api/Image/collection-cover?collectionTagId=${collectionId}&apiKey=${this.apiKey}`;
+  }
+
+  chapterCoverUrl(chapterId: number): string {
+    return `${this.baseUrl}/api/Image/chapter-cover?chapterId=${chapterId}&apiKey=${this.apiKey}`;
+  }
+
+  downloadChapterUrl(chapterId: number): string {
+    return `${this.baseUrl}/api/Download/chapter?chapterId=${chapterId}&apiKey=${this.apiKey}`;
   }
 }

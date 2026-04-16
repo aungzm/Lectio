@@ -7,6 +7,8 @@ export type {
   Library,
   Book,
   BookMetadata,
+  PersonInfo,
+  DetailedMetadata,
   Volume,
   Chapter,
   ReadingProgress,

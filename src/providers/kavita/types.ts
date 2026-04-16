@@ -239,6 +239,48 @@ export interface KavitaReadingListItemDto {
   order: number;
 }
 
+// --- Full Series Metadata (from /api/Series/metadata) ---
+
+export interface KavitaPersonDto {
+  id: number;
+  name: string;
+  coverImageLocked: boolean;
+  primaryColor: string | null;
+  secondaryColor: string | null;
+  coverImage: string | null;
+  aliases: string[];
+  description: string | null;
+  roles: number[];
+}
+
+export interface KavitaSeriesMetadataFullDto {
+  id: number;
+  summary: string | null;
+  genres: { id: number; title: string }[];
+  tags: { id: number; title: string }[];
+  writers: KavitaPersonDto[];
+  coverArtists: KavitaPersonDto[];
+  publishers: KavitaPersonDto[];
+  characters: KavitaPersonDto[];
+  pencillers: KavitaPersonDto[];
+  inkers: KavitaPersonDto[];
+  imprints: KavitaPersonDto[];
+  colorists: KavitaPersonDto[];
+  letterers: KavitaPersonDto[];
+  editors: KavitaPersonDto[];
+  translators: KavitaPersonDto[];
+  teams: KavitaPersonDto[];
+  locations: KavitaPersonDto[];
+  ageRating: number;
+  releaseYear: number;
+  language: string | null;
+  maxCount: number;
+  totalCount: number;
+  publicationStatus: number;
+  webLinks: string;
+  seriesId: number;
+}
+
 // --- Bookmarks ---
 
 export interface KavitaBookmarkDto {
