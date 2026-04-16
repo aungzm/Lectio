@@ -20,7 +20,7 @@ export type MainDrawerParamList = {
 };
 
 export type HomeStackParamList = {
-  Home: undefined;
+  HomeScreen: undefined;
 };
 
 // Library stack — Libraries → SeriesList → SeriesDetail → Reader
@@ -40,7 +40,7 @@ export type AllSeriesStackParamList = {
 
 // Authors stack
 export type AuthorsStackParamList = {
-  Authors: undefined;
+  AuthorsList: undefined;
   AuthorDetail: { authorId: string; authorName: string };
   SeriesDetail: { seriesId: string; title: string };
   Reader: { chapterId: string; title: string; epubUrl: string };
@@ -48,7 +48,7 @@ export type AuthorsStackParamList = {
 
 // Collections stack
 export type CollectionsStackParamList = {
-  Collections: undefined;
+  CollectionsList: undefined;
   CollectionDetail: { collectionId: string; collectionName: string };
   SeriesDetail: { seriesId: string; title: string };
   Reader: { chapterId: string; title: string; epubUrl: string };
@@ -63,7 +63,9 @@ export type ReadListsStackParamList = {
 
 // Want to Read stack (Kavita only)
 export type WantToReadStackParamList = {
-  WantToRead: undefined;
+  WantToReadList: undefined;
+  SeriesDetail: { seriesId: string; title: string };
+  Reader: { chapterId: string; title: string; epubUrl: string };
 };
 
 // Bookmarks stack
@@ -80,15 +82,17 @@ export type SeriesDetailScreenProps = NativeStackScreenProps<LibraryStackParamLi
 export type ReaderScreenProps = NativeStackScreenProps<LibraryStackParamList, 'Reader'>;
 export type SettingsScreenProps = DrawerScreenProps<MainDrawerParamList, 'Settings'>;
 
-export type AuthorsScreenProps = NativeStackScreenProps<AuthorsStackParamList, 'Authors'>;
+export type AuthorsScreenProps = NativeStackScreenProps<AuthorsStackParamList, 'AuthorsList'>;
 export type AuthorDetailScreenProps = NativeStackScreenProps<AuthorsStackParamList, 'AuthorDetail'>;
 
-export type CollectionsScreenProps = NativeStackScreenProps<CollectionsStackParamList, 'Collections'>;
+export type CollectionsScreenProps = NativeStackScreenProps<CollectionsStackParamList, 'CollectionsList'>;
 export type CollectionDetailScreenProps = NativeStackScreenProps<CollectionsStackParamList, 'CollectionDetail'>;
 
 export type AllSeriesScreenProps = NativeStackScreenProps<AllSeriesStackParamList, 'AllSeries'>;
 
 export type ReadListsScreenProps = NativeStackScreenProps<ReadListsStackParamList, 'ReadLists'>;
 export type ReadListDetailScreenProps = NativeStackScreenProps<ReadListsStackParamList, 'ReadListDetail'>;
+
+export type WantToReadScreenProps = NativeStackScreenProps<WantToReadStackParamList, 'WantToReadList'>;
 
 export type BookmarksListScreenProps = NativeStackScreenProps<BookmarksStackParamList, 'BookmarksList'>;

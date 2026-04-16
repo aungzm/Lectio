@@ -10,6 +10,8 @@ export interface Book {
   pagesRead: number;
   format: BookFormat;
   libraryId: string;
+  seriesId?: string; // populated for reading list items so cover URLs use the correct series
+  volumeId?: string; // populated for reading list items so cover URLs use volume-specific images
   metadata: BookMetadata;
 }
 

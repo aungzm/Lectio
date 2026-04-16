@@ -1,7 +1,9 @@
 import React, { useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useBrowseStore } from '@/store/browseStore';
+import { createProvider } from '@/store/authStore';
+import { BookGrid } from '@/components/BookGrid';
 import type { CollectionsScreenProps } from '@/navigation/types';
 import type { Collection } from '@/providers';
 
@@ -15,11 +17,10 @@ export default function CollectionsScreen({ navigation }: CollectionsScreenProps
     }
   }, [serverConfig, auth]);
 
-  function handlePress(collection: Collection) {
-    navigation.navigate('CollectionDetail', {
-      collectionId: collection.id,
-      collectionName: collection.name,
-    });
+  function getCoverUri(collection: Collection): string | null {
+    if (!serverConfig || !auth) return null;
+    const provider = createProvider(serverConfig.providerType) as any;
+    return provider.getCollectionCoverUrl?.(serverConfig.serverUrl, collection.id, auth.apiKey) ?? null;
   }
 
   if (isLoading && collections.length === 0) {
@@ -32,29 +33,17 @@ export default function CollectionsScreen({ navigation }: CollectionsScreenProps
 
   return (
     <View className="flex-1 bg-white">
-      <FlatList
-        data={collections}
-        keyExtractor={(item) => item.id}
-        contentContainerClassName="px-4 py-4 gap-3"
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            className="bg-gray-100 rounded-xl px-5 py-4 flex-row items-center justify-between"
-            onPress={() => handlePress(item)}
-          >
-            <View className="flex-1 mr-4">
-              <Text className="text-base font-semibold text-gray-900">{item.name}</Text>
-              {item.summary ? (
-                <Text className="text-sm text-gray-500 mt-0.5" numberOfLines={1}>
-                  {item.summary}
-                </Text>
-              ) : null}
-            </View>
-            <Text className="text-gray-400 text-lg">›</Text>
-          </TouchableOpacity>
-        )}
-        ListEmptyComponent={
-          <Text className="text-center text-gray-400 mt-20">No collections found.</Text>
+      <BookGrid
+        items={collections}
+        getCoverUri={getCoverUri}
+        getTitle={(collection) => collection.name}
+        onPress={(collection) =>
+          navigation.navigate('CollectionDetail', {
+            collectionId: collection.id,
+            collectionName: collection.name,
+          })
         }
+        emptyText="No collections found."
       />
     </View>
   );
