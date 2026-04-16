@@ -1,6 +1,5 @@
 import type {
   ILibraryProvider,
-  AuthResult,
   Library,
   Book,
   Volume,
@@ -12,27 +11,7 @@ import type {
   Bookmark,
 } from '../base/ILibraryProvider';
 import { BookFormat, BookMetadata } from '../base/ILibraryProvider';
-import {
-  komgaLogin,
-  komgaGetCurrentUser,
-  komgaGetLibraries,
-  komgaGetSeries,
-  komgaGetSeriesDetail,
-  komgaGetSeriesBooks,
-  komgaGetSeriesByAuthor,
-  komgaGetAuthors,
-  komgaGetCollections,
-  komgaGetCollectionSeries,
-  komgaGetReadLists,
-  komgaGetReadListBooks,
-  komgaGetBookProgress,
-  komgaSaveBookProgress,
-  komgaGetBookmarks,
-  komgaAddBookmark,
-  komgaRemoveBookmark,
-  komgaSeriesCoverUrl,
-  komgaBookFileUrl,
-} from './client';
+import { KomgaClient } from './client';
 import type { KomgaSeriesDto, KomgaBookDto, KomgaAuthorDto } from './types';
 
 // ── Mappers ───────────────────────────────────────────────────────────────────
@@ -95,8 +74,8 @@ function mapAuthor(a: KomgaAuthorDto): Author {
     id: `${a.name}|${a.role}`,
     name: a.name,
     role: a.role,
-    coverUrl: null,    // Komga has no author cover images
-    seriesCount: 0,    // not returned by /api/v2/authors
+    coverUrl: null,
+    seriesCount: 0,
   };
 }
 
@@ -104,61 +83,41 @@ function mapAuthor(a: KomgaAuthorDto): Author {
 
 export class KomgaProvider implements ILibraryProvider {
   readonly name = 'Komga';
+  private readonly client: KomgaClient;
 
-  async login(serverUrl: string, username: string, password: string): Promise<AuthResult> {
-    const { user, sessionToken, basicAuth } = await komgaLogin(serverUrl, username, password);
-    return {
-      token: sessionToken,
-      username: user.email,
-      apiKey: basicAuth,  // stored for use in image Authorization headers
-    };
+  constructor(serverUrl: string, token: string) {
+    this.client = new KomgaClient(serverUrl, token);
   }
 
-  async validateToken(serverUrl: string, token: string): Promise<boolean> {
-    try {
-      await komgaGetCurrentUser(serverUrl, token);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  async getLibraries(serverUrl: string, token: string): Promise<Library[]> {
-    const libs = await komgaGetLibraries(serverUrl, token);
+  async getLibraries(): Promise<Library[]> {
+    const libs = await this.client.getLibraries();
     return libs.map((l) => ({
       id: l.id,
       name: l.name,
-      bookCount: 0,    // LibraryDto doesn't include count; filled in lazily
+      bookCount: 0,
       coverUrl: null,
     }));
   }
 
-  async getSeries(
-    serverUrl: string,
-    token: string,
-    libraryId: string | undefined,
-    page: number,
-    pageSize: number,
-  ): Promise<Book[]> {
-    const result = await komgaGetSeries(serverUrl, token, libraryId || undefined, page, pageSize);
+  async getSeries(libraryId: string | undefined, page: number, pageSize: number): Promise<Book[]> {
+    const result = await this.client.getSeries(libraryId || undefined, page, pageSize);
     return result.content.map(mapSeries);
   }
 
-  async getSeriesDetail(serverUrl: string, token: string, seriesId: string): Promise<Book> {
-    const s = await komgaGetSeriesDetail(serverUrl, token, seriesId);
+  async getSeriesDetail(seriesId: string): Promise<Book> {
+    const s = await this.client.getSeriesDetail(seriesId);
     return mapSeries(s);
   }
 
-  /** Komga: each book in a series becomes one Volume containing one Chapter. */
-  async getVolumes(serverUrl: string, token: string, seriesId: string): Promise<Volume[]> {
-    const result = await komgaGetSeriesBooks(serverUrl, token, seriesId, 0, 50);
+  async getVolumes(seriesId: string): Promise<Volume[]> {
+    const result = await this.client.getSeriesBooks(seriesId, 0, 50);
     return result.content.map((book: KomgaBookDto): Volume => ({
       id: book.id,
       number: book.number,
       name: book.metadata?.title || book.name,
       chapters: [
         {
-          id: book.id,   // bookId used as chapterId throughout the app
+          id: book.id,
           title: book.metadata?.title || book.name,
           number: book.metadata?.number || String(book.number),
           pagesTotal: book.media?.pagesCount ?? 0,
@@ -168,13 +127,12 @@ export class KomgaProvider implements ILibraryProvider {
     }));
   }
 
-  getEpubUrl(serverUrl: string, _token: string, bookId: string): string {
-    // Komga file URL requires auth via header (handled by the reader component).
-    return komgaBookFileUrl(serverUrl, bookId);
+  getEpubUrl(bookId: string): string {
+    return this.client.bookFileUrl(bookId);
   }
 
-  async getProgress(serverUrl: string, token: string, chapterId: string): Promise<ReadingProgress | null> {
-    const p = await komgaGetBookProgress(serverUrl, token, chapterId);
+  async getProgress(chapterId: string): Promise<ReadingProgress | null> {
+    const p = await this.client.getBookProgress(chapterId);
     if (!p) return null;
     return {
       chapterId,
@@ -184,47 +142,33 @@ export class KomgaProvider implements ILibraryProvider {
     };
   }
 
-  async saveProgress(serverUrl: string, token: string, progress: ReadingProgress): Promise<void> {
-    await komgaSaveBookProgress(serverUrl, token, progress.chapterId, {
+  async saveProgress(progress: ReadingProgress): Promise<void> {
+    await this.client.saveBookProgress(progress.chapterId, {
       page: progress.page,
     });
   }
 
-  /** Returns the series thumbnail URL. Auth header added by CoverImage component. */
-  getCoverUrl(serverUrl: string, seriesId: string, _token: string): string {
-    return komgaSeriesCoverUrl(serverUrl, seriesId);
+  getCoverUrl(seriesId: string): string {
+    return this.client.seriesCoverUrl(seriesId);
   }
 
   // ── Authors ─────────────────────────────────────────────────────────────────
 
-  async getAuthors(
-    serverUrl: string,
-    token: string,
-    page: number,
-    pageSize: number,
-    search?: string,
-  ): Promise<Author[]> {
-    const result = await komgaGetAuthors(serverUrl, token, page, pageSize, search);
+  async getAuthors(page: number, pageSize: number, search?: string): Promise<Author[]> {
+    const result = await this.client.getAuthors(page, pageSize, search);
     return result.content.map(mapAuthor);
   }
 
-  async getSeriesByAuthor(
-    serverUrl: string,
-    token: string,
-    authorId: string,
-    page: number,
-    pageSize: number,
-  ): Promise<Book[]> {
-    // authorId is "name|role" composite
+  async getSeriesByAuthor(authorId: string, page: number, pageSize: number): Promise<Book[]> {
     const [name, role = 'writer'] = authorId.split('|');
-    const result = await komgaGetSeriesByAuthor(serverUrl, token, name, role, page, pageSize);
+    const result = await this.client.getSeriesByAuthor(name, role, page, pageSize);
     return result.content.map(mapSeries);
   }
 
   // ── Collections ───────────────────────────────────────────────────────────────
 
-  async getCollections(serverUrl: string, token: string): Promise<Collection[]> {
-    const result = await komgaGetCollections(serverUrl, token);
+  async getCollections(): Promise<Collection[]> {
+    const result = await this.client.getCollections();
     return result.content.map((c) => ({
       id: c.id,
       name: c.name,
@@ -232,21 +176,15 @@ export class KomgaProvider implements ILibraryProvider {
     }));
   }
 
-  async getCollectionSeries(
-    serverUrl: string,
-    token: string,
-    collectionId: string,
-    page: number,
-    pageSize: number,
-  ): Promise<Book[]> {
-    const result = await komgaGetCollectionSeries(serverUrl, token, collectionId, page, pageSize);
+  async getCollectionSeries(collectionId: string, page: number, pageSize: number): Promise<Book[]> {
+    const result = await this.client.getCollectionSeries(collectionId, page, pageSize);
     return result.content.map(mapSeries);
   }
 
   // ── ReadLists ─────────────────────────────────────────────────────────────────
 
-  async getReadLists(serverUrl: string, token: string): Promise<ReadList[]> {
-    const result = await komgaGetReadLists(serverUrl, token);
+  async getReadLists(): Promise<ReadList[]> {
+    const result = await this.client.getReadLists();
     return result.content.map((l) => ({
       id: l.id,
       name: l.name,
@@ -254,21 +192,15 @@ export class KomgaProvider implements ILibraryProvider {
     }));
   }
 
-  async getReadListBooks(
-    serverUrl: string,
-    token: string,
-    readListId: string,
-    page: number,
-    pageSize: number,
-  ): Promise<Book[]> {
-    const result = await komgaGetReadListBooks(serverUrl, token, readListId, page, pageSize);
+  async getReadListBooks(readListId: string, page: number, pageSize: number): Promise<Book[]> {
+    const result = await this.client.getReadListBooks(readListId, page, pageSize);
     return result.content.map(mapBook);
   }
 
-  // ── Bookmarks (via Komga client-settings) ─────────────────────────────────────
+  // ── Bookmarks ─────────────────────────────────────────────────────────────────
 
-  async getBookmarks(serverUrl: string, token: string, seriesId: string): Promise<Bookmark[]> {
-    const stored = await komgaGetBookmarks(serverUrl, token, seriesId);
+  async getBookmarks(seriesId: string): Promise<Bookmark[]> {
+    const stored = await this.client.getBookmarks(seriesId);
     return stored.map((b) => ({
       id: b.id,
       seriesId: b.seriesId,
@@ -279,18 +211,14 @@ export class KomgaProvider implements ILibraryProvider {
     }));
   }
 
-  async addBookmark(
-    serverUrl: string,
-    token: string,
-    bookmark: Omit<Bookmark, 'id'>,
-  ): Promise<Bookmark> {
+  async addBookmark(bookmark: Omit<Bookmark, 'id'>): Promise<Bookmark> {
     const id = String(Date.now());
     const stored = { id, ...bookmark };
-    await komgaAddBookmark(serverUrl, token, stored);
+    await this.client.addBookmark(stored);
     return stored;
   }
 
-  async removeBookmark(serverUrl: string, token: string, bookmark: Bookmark): Promise<void> {
-    await komgaRemoveBookmark(serverUrl, token, bookmark);
+  async removeBookmark(bookmark: Bookmark): Promise<void> {
+    await this.client.removeBookmark(bookmark);
   }
 }

@@ -3,7 +3,6 @@ import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, TextInput,
 import { User } from 'lucide-react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useBrowseStore } from '@/store/browseStore';
-import { createProvider } from '@/store/authStore';
 import type { AuthorsScreenProps } from '@/navigation/types';
 import type { Author } from '@/providers';
 
@@ -25,30 +24,29 @@ function AuthorAvatar({ uri }: { uri: string | null }) {
 }
 
 export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
-  const { serverConfig, auth } = useAuthStore();
-  const { authors, isLoading, fetchAuthors } = useBrowseStore();
+  const { provider } = useAuthStore();
+  const { authors, loadingAuthors, fetchAuthors } = useBrowseStore();
   const [search, setSearch] = useState('');
   const { width } = useWindowDimensions();
   const numCols = width >= 600 ? 4 : 3;
   const itemWidth = `${100 / numCols}%` as `${number}%`;
 
   useEffect(() => {
-    if (serverConfig && auth) {
-      fetchAuthors(serverConfig, auth.token, 0, search || undefined);
+    if (provider) {
+      fetchAuthors(provider, 0, search || undefined);
     }
-  }, [serverConfig, auth]);
+  }, [provider]);
 
   function handleSearch(text: string) {
     setSearch(text);
-    if (serverConfig && auth) {
-      fetchAuthors(serverConfig, auth.token, 0, text || undefined);
+    if (provider) {
+      fetchAuthors(provider, 0, text || undefined);
     }
   }
 
   function getAuthorCoverUri(author: Author): string | null {
-    if (!serverConfig || !auth) return null;
-    const provider = createProvider(serverConfig.providerType) as any;
-    return provider.getAuthorCoverUrl?.(serverConfig.serverUrl, author.id, auth.apiKey) ?? null;
+    if (!provider) return null;
+    return provider.getAuthorCoverUrl?.(author.id) ?? null;
   }
 
   return (
@@ -64,7 +62,7 @@ export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
         />
       </View>
 
-      {isLoading && authors.length === 0 ? (
+      {loadingAuthors && authors.length === 0 ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" />
         </View>

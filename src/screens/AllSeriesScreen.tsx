@@ -2,31 +2,26 @@ import React, { useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useLibraryStore } from '@/store/libraryStore';
-import { createProvider } from '@/store/authStore';
 import { BookGrid } from '@/components/BookGrid';
 import type { AllSeriesScreenProps } from '@/navigation/types';
 import type { Book } from '@/providers';
 
 export default function AllSeriesScreen({ navigation }: AllSeriesScreenProps) {
-  const { serverConfig, auth } = useAuthStore();
-  const { allSeries, isLoading, fetchAllSeries } = useLibraryStore();
+  const { provider } = useAuthStore();
+  const { allSeries, loadingSeries, fetchAllSeries } = useLibraryStore();
 
   useEffect(() => {
-    if (serverConfig && auth) {
-      fetchAllSeries(serverConfig, auth.token, 0);
+    if (provider) {
+      fetchAllSeries(provider, 0);
     }
-  }, [serverConfig, auth]);
+  }, [provider]);
 
   function getCoverUri(book: Book): string | null {
-    if (!serverConfig || !auth) return null;
-    return createProvider(serverConfig.providerType).getCoverUrl(
-      serverConfig.serverUrl,
-      book.id,
-      auth.apiKey,
-    );
+    if (!provider) return null;
+    return provider.getCoverUrl(book.id);
   }
 
-  if (isLoading && allSeries.length === 0) {
+  if (loadingSeries && allSeries.length === 0) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
         <ActivityIndicator size="large" />
