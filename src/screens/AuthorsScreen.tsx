@@ -1,35 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, Image, useWindowDimensions } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, TextInput } from 'react-native';
 import { User } from 'lucide-react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useBrowseStore } from '@/store/browseStore';
+import { ImageWithFallback } from '@/components/ImageWithFallback';
+import { useResponsiveGrid } from '@/hooks/useResponsiveGrid';
 import type { AuthorsScreenProps } from '@/navigation/types';
 import type { Author } from '@/providers';
-
-function AuthorAvatar({ uri }: { uri: string | null }) {
-  const [errored, setErrored] = useState(false);
-
-  if (!uri || errored) {
-    return <User size={36} color="#9ca3af" />;
-  }
-
-  return (
-    <Image
-      source={{ uri }}
-      style={{ width: '100%', height: '100%' }}
-      resizeMode="cover"
-      onError={() => setErrored(true)}
-    />
-  );
-}
 
 export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
   const { provider } = useAuthStore();
   const { authors, loadingAuthors, fetchAuthors } = useBrowseStore();
   const [search, setSearch] = useState('');
-  const { width } = useWindowDimensions();
-  const numCols = width >= 600 ? 4 : 3;
-  const itemWidth = `${100 / numCols}%` as `${number}%`;
+  const { itemWidth } = useResponsiveGrid();
 
   useEffect(() => {
     if (provider) {
@@ -80,7 +63,10 @@ export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
                   onPress={() => navigation.navigate('AuthorDetail', { authorId: item.id, authorName: item.name })}
                 >
                   <View className="w-full aspect-square rounded-full bg-gray-100 overflow-hidden items-center justify-center mb-2">
-                    <AuthorAvatar uri={getAuthorCoverUri(item)} />
+                    <ImageWithFallback
+                      uri={getAuthorCoverUri(item)}
+                      fallback={<User size={36} color="#9ca3af" />}
+                    />
                   </View>
                   <Text className="text-sm text-gray-900 font-medium text-center" numberOfLines={2}>
                     {item.name}

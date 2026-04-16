@@ -1,14 +1,16 @@
 import React, { useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View } from 'react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useBrowseStore } from '@/store/browseStore';
 import { BookGrid } from '@/components/BookGrid';
+import { LoadingScreen } from '@/components/LoadingScreen';
+import { useCoverUri } from '@/hooks/useCoverUri';
 import type { ReadListsScreenProps } from '@/navigation/types';
-import type { ReadList } from '@/providers';
 
 export default function ReadListsScreen({ navigation }: ReadListsScreenProps) {
   const { provider } = useAuthStore();
   const { readLists, loadingReadLists, fetchReadLists } = useBrowseStore();
+  const getCoverUri = useCoverUri('getReadListCoverUrl');
 
   useEffect(() => {
     if (provider) {
@@ -16,24 +18,15 @@ export default function ReadListsScreen({ navigation }: ReadListsScreenProps) {
     }
   }, [provider]);
 
-  function getCoverUri(list: ReadList): string | null {
-    if (!provider) return null;
-    return provider.getReadListCoverUrl?.(list.id) ?? null;
-  }
-
   if (loadingReadLists && readLists.length === 0) {
-    return (
-      <View className="flex-1 items-center justify-center bg-white">
-        <ActivityIndicator size="large" />
-      </View>
-    );
+    return <LoadingScreen />;
   }
 
   return (
     <View className="flex-1 bg-white">
       <BookGrid
         items={readLists}
-        getCoverUri={getCoverUri}
+        getCoverUri={(list) => getCoverUri(list.id)}
         getTitle={(list) => list.name}
         onPress={(list) =>
           navigation.navigate('ReadListDetail', { readListId: list.id, readListName: list.name })

@@ -4,13 +4,13 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
   Alert,
   Linking,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuthStore } from '@/store/authStore';
 import { CoverImage } from '@/components/CoverImage';
+import { LoadingScreen } from '@/components/LoadingScreen';
 import type { DetailedMetadata, PersonInfo } from '@/providers';
 
 const AGE_RATING_LABELS: Record<number, string> = {
@@ -100,11 +100,7 @@ export default function BookDetailScreen() {
   }
 
   if (loading) {
-    return (
-      <View className="flex-1 items-center justify-center bg-white">
-        <ActivityIndicator size="large" />
-      </View>
-    );
+    return <LoadingScreen />;
   }
 
   const ageLabel = metadata ? AGE_RATING_LABELS[metadata.ageRating] ?? null : null;

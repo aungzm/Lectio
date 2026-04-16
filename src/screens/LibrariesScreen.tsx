@@ -1,36 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator, useWindowDimensions } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { BookOpen } from 'lucide-react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useLibraryStore } from '@/store/libraryStore';
+import { ImageWithFallback } from '@/components/ImageWithFallback';
+import { LoadingScreen } from '@/components/LoadingScreen';
+import { useResponsiveGrid } from '@/hooks/useResponsiveGrid';
 import type { LibrariesScreenProps } from '@/navigation/types';
 import type { Library } from '@/providers';
-
-function LibraryCover({ uri }: { uri: string | null }) {
-  const [errored, setErrored] = useState(false);
-  if (!uri || errored) {
-    return (
-      <View className="flex-1 items-center justify-center">
-        <BookOpen size={40} color="#9ca3af" />
-      </View>
-    );
-  }
-  return (
-    <Image
-      source={{ uri }}
-      style={{ width: '100%', height: '100%' }}
-      resizeMode="cover"
-      onError={() => setErrored(true)}
-    />
-  );
-}
 
 export default function LibrariesScreen({ navigation }: LibrariesScreenProps) {
   const { provider } = useAuthStore();
   const { libraries, loadingLibraries, fetchLibraries } = useLibraryStore();
-  const { width } = useWindowDimensions();
-  const numCols = width >= 600 ? 4 : 3;
-  const itemWidth = `${100 / numCols}%` as `${number}%`;
+  const { itemWidth } = useResponsiveGrid();
 
   useEffect(() => {
     if (provider) {
@@ -44,11 +26,7 @@ export default function LibrariesScreen({ navigation }: LibrariesScreenProps) {
   }
 
   if (loadingLibraries && libraries.length === 0) {
-    return (
-      <View className="flex-1 items-center justify-center bg-white">
-        <ActivityIndicator size="large" />
-      </View>
-    );
+    return <LoadingScreen />;
   }
 
   return (
@@ -72,7 +50,14 @@ export default function LibrariesScreen({ navigation }: LibrariesScreenProps) {
                 }}
               >
                 <View className="w-full aspect-[2/3] bg-gray-100 rounded-lg overflow-hidden mb-1">
-                  <LibraryCover uri={getCoverUri(library)} />
+                  <ImageWithFallback
+                    uri={getCoverUri(library)}
+                    fallback={
+                      <View className="flex-1 items-center justify-center">
+                        <BookOpen size={40} color="#9ca3af" />
+                      </View>
+                    }
+                  />
                 </View>
                 <Text className="text-xs text-gray-700 text-center font-medium" numberOfLines={2}>
                   {library.name}

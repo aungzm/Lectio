@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View } from 'react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useBrowseStore } from '@/store/browseStore';
 import { BookGrid } from '@/components/BookGrid';
+import { LoadingScreen } from '@/components/LoadingScreen';
 import type { ReadListDetailScreenProps } from '@/navigation/types';
 import type { Book } from '@/providers';
 
@@ -39,11 +40,7 @@ export default function ReadListDetailScreen({ route, navigation }: ReadListDeta
   }
 
   if (loadingReadListBooks && books.length === 0) {
-    return (
-      <View className="flex-1 items-center justify-center bg-white">
-        <ActivityIndicator size="large" />
-      </View>
-    );
+    return <LoadingScreen />;
   }
 
   return (

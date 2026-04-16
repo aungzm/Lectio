@@ -5,23 +5,24 @@ import {
   ScrollView,
   FlatList,
   TouchableOpacity,
-  ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuthStore } from '@/store/authStore';
 import { useHomeStore } from '@/store/homeStore';
 import { CoverImage } from '@/components/CoverImage';
+import { LoadingScreen } from '@/components/LoadingScreen';
+import { useCoverUri } from '@/hooks/useCoverUri';
 import type { Book } from '@/providers';
 
 function SeriesCard({ book, onPress, getCoverUri }: {
   book: Book;
   onPress: () => void;
-  getCoverUri: (b: Book) => string | null;
+  getCoverUri: (id: string) => string | null;
 }) {
   return (
     <TouchableOpacity className="w-28 mr-3" onPress={onPress}>
       <View className="w-28 h-40 bg-gray-200 rounded-lg overflow-hidden mb-1">
-        <CoverImage uri={getCoverUri(book)} className="w-full h-full" resizeMode="cover" />
+        <CoverImage uri={getCoverUri(book.id)} className="w-full h-full" resizeMode="cover" />
       </View>
       <Text className="text-xs text-gray-700" numberOfLines={2}>{book.title}</Text>
     </TouchableOpacity>
@@ -32,7 +33,7 @@ function Section({ title, data, onPress, getCoverUri, emptyText }: {
   title: string;
   data: Book[];
   onPress: (b: Book) => void;
-  getCoverUri: (b: Book) => string | null;
+  getCoverUri: (id: string) => string | null;
   emptyText?: string;
 }) {
   if (data.length === 0 && emptyText) return null;
@@ -62,17 +63,13 @@ export default function HomeScreen() {
   const drawerNav = useNavigation<any>();
   const { provider } = useAuthStore();
   const { recentlyAdded, continueReading, loadingHome, fetchHomeData } = useHomeStore();
+  const getCoverUri = useCoverUri();
 
   useEffect(() => {
     if (provider) {
       fetchHomeData(provider);
     }
   }, [provider]);
-
-  function getCoverUri(book: Book): string | null {
-    if (!provider) return null;
-    return provider.getCoverUrl(book.id);
-  }
 
   function handlePress(book: Book) {
     drawerNav.navigate('Library', {
@@ -82,11 +79,7 @@ export default function HomeScreen() {
   }
 
   if (loadingHome && recentlyAdded.length === 0 && continueReading.length === 0) {
-    return (
-      <View className="flex-1 items-center justify-center bg-white">
-        <ActivityIndicator size="large" />
-      </View>
-    );
+    return <LoadingScreen />;
   }
 
   return (
