@@ -17,6 +17,7 @@ import {
   komgaGetCurrentUser,
   komgaGetLibraries,
   komgaGetSeries,
+  komgaGetBooks,
   komgaGetSeriesDetail,
   komgaGetSeriesBooks,
   komgaGetSeriesByAuthor,
@@ -31,6 +32,7 @@ import {
   komgaAddBookmark,
   komgaRemoveBookmark,
   komgaSeriesCoverUrl,
+  komgaBookCoverUrl,
   komgaBookFileUrl,
 } from './client';
 import type { KomgaSeriesDto, KomgaBookDto, KomgaAuthorDto } from './types';
@@ -144,6 +146,17 @@ export class KomgaProvider implements ILibraryProvider {
     return result.content.map(mapSeries);
   }
 
+  async getLibraryBooks(
+    serverUrl: string,
+    token: string,
+    libraryId: string,
+    page: number,
+    pageSize: number,
+  ): Promise<Book[]> {
+    const result = await komgaGetBooks(serverUrl, token, libraryId, page, pageSize);
+    return result.content.map(mapBook);
+  }
+
   async getSeriesDetail(serverUrl: string, token: string, seriesId: string): Promise<Book> {
     const s = await komgaGetSeriesDetail(serverUrl, token, seriesId);
     return mapSeries(s);
@@ -193,6 +206,10 @@ export class KomgaProvider implements ILibraryProvider {
   /** Returns the series thumbnail URL. Auth header added by CoverImage component. */
   getCoverUrl(serverUrl: string, seriesId: string, _token: string): string {
     return komgaSeriesCoverUrl(serverUrl, seriesId);
+  }
+
+  getBookCoverUrl(serverUrl: string, bookId: string): string {
+    return komgaBookCoverUrl(serverUrl, bookId);
   }
 
   // ── Authors ─────────────────────────────────────────────────────────────────

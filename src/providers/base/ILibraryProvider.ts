@@ -127,6 +127,9 @@ export interface ILibraryProvider {
   /** Build a cover image URL for a series. */
   getCoverUrl(serverUrl: string, seriesId: string, token: string): string;
 
+  /** Build a cover image URL for an individual book (Komga only). */
+  getBookCoverUrl?(serverUrl: string, bookId: string): string;
+
   /** Build a cover image URL for a volume (optional — falls back to series cover if not implemented). */
   getVolumeCoverUrl?(serverUrl: string, volumeId: string, apiKey: string): string;
 
@@ -158,6 +161,9 @@ export interface ILibraryProvider {
 
   /** Remove a bookmark. */
   removeBookmark?(serverUrl: string, token: string, bookmark: Bookmark): Promise<void>;
+
+  /** List all books in a library (Komga: individual books, not series). */
+  getLibraryBooks?(serverUrl: string, token: string, libraryId: string, page: number, pageSize: number): Promise<Book[]>;
 
   /** Get the user's Want to Read list (Kavita only). */
   getWantToRead?(serverUrl: string, token: string, page: number, pageSize: number): Promise<Book[]>;

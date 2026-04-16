@@ -110,6 +110,20 @@ export async function komgaGetSeriesBooks(
   return data;
 }
 
+export async function komgaGetBooks(
+  serverUrl: string,
+  token: string,
+  libraryId?: string,
+  page = 0,
+  size = 30,
+): Promise<KomgaPageResultDto<KomgaBookDto>> {
+  const client = buildClient(serverUrl, token);
+  const params: Record<string, any> = { page, size, sort: 'metadata.titleSort,asc' };
+  if (libraryId) params['library_id'] = libraryId;
+  const { data } = await client.get<KomgaPageResultDto<KomgaBookDto>>('/api/v1/books', { params });
+  return data;
+}
+
 export async function komgaGetSeriesByAuthor(
   serverUrl: string,
   token: string,

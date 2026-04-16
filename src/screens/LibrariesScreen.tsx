@@ -65,12 +65,13 @@ export default function LibrariesScreen({ navigation }: LibrariesScreenProps) {
                 key={library.id}
                 style={{ width: itemWidth }}
                 className="items-center px-1 mb-3"
-                onPress={() =>
-                  navigation.navigate('SeriesList', {
+                onPress={() => {
+                  const screen = serverConfig?.providerType === 'komga' ? 'BookList' : 'SeriesList';
+                  navigation.navigate(screen, {
                     libraryId: library.id,
                     libraryName: library.name,
-                  })
-                }
+                  });
+                }}
               >
                 <View className="w-full aspect-[2/3] bg-gray-100 rounded-lg overflow-hidden mb-1">
                   <LibraryCover uri={getCoverUri(library)} />

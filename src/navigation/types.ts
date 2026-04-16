@@ -23,10 +23,11 @@ export type HomeStackParamList = {
   HomeScreen: undefined;
 };
 
-// Library stack — Libraries → SeriesList → SeriesDetail → Reader
+// Library stack — Libraries → SeriesList / BookList → SeriesDetail → Reader
 export type LibraryStackParamList = {
   Libraries: undefined;
   SeriesList: { libraryId: string; libraryName: string };
+  BookList: { libraryId: string; libraryName: string }; // Komga: individual books
   SeriesDetail: { seriesId: string; title: string };
   Reader: { chapterId: string; title: string; epubUrl: string };
 };
@@ -78,6 +79,7 @@ export type BookmarksStackParamList = {
 export type LoginScreenProps = NativeStackScreenProps<RootStackParamList, 'Login'>;
 export type LibrariesScreenProps = NativeStackScreenProps<LibraryStackParamList, 'Libraries'>;
 export type SeriesListScreenProps = NativeStackScreenProps<LibraryStackParamList, 'SeriesList'>;
+export type BookListScreenProps = NativeStackScreenProps<LibraryStackParamList, 'BookList'>;
 export type SeriesDetailScreenProps = NativeStackScreenProps<LibraryStackParamList, 'SeriesDetail'>;
 export type ReaderScreenProps = NativeStackScreenProps<LibraryStackParamList, 'Reader'>;
 export type SettingsScreenProps = DrawerScreenProps<MainDrawerParamList, 'Settings'>;
