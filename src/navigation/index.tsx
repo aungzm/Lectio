@@ -31,6 +31,7 @@ import CollectionDetailScreen from '@/screens/CollectionDetailScreen';
 import ReadListsScreen from '@/screens/ReadListsScreen';
 import ReadListDetailScreen from '@/screens/ReadListDetailScreen';
 import WantToReadScreen from '@/screens/WantToReadScreen';
+import BookDetailScreen from '@/screens/BookDetailScreen';
 
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 const Drawer = createDrawerNavigator<MainDrawerParamList>();
@@ -50,6 +51,8 @@ function HomeNavigator() {
         component={HomeScreen}
         options={{ title: 'Home', headerLeft: () => <DrawerToggleButton tintColor="black" /> }}
       />
+      <HomeStack.Screen name="BookDetail" component={BookDetailScreen} options={({ route }) => ({ title: route.params.title })} />
+      <HomeStack.Screen name="Reader" component={ReaderScreen} options={{ headerShown: false }} />
     </HomeStack.Navigator>
   );
 }
@@ -73,6 +76,7 @@ function LibraryNavigator() {
         component={SeriesDetailScreen}
         options={({ route }) => ({ title: route.params.title })}
       />
+      <LibraryStack.Screen name="BookDetail" component={BookDetailScreen} options={({ route }) => ({ title: route.params.title })} />
       <LibraryStack.Screen name="Reader" component={ReaderScreen} options={{ headerShown: false }} />
     </LibraryStack.Navigator>
   );
@@ -83,6 +87,7 @@ function AllSeriesNavigator() {
     <AllSeriesStack.Navigator>
       <AllSeriesStack.Screen name="AllSeries" component={AllSeriesScreen} options={{ title: 'Series', headerLeft: () => <DrawerToggleButton tintColor="black" /> }} />
       <AllSeriesStack.Screen name="SeriesDetail" component={SeriesDetailScreen} options={({ route }) => ({ title: route.params.title })} />
+      <AllSeriesStack.Screen name="BookDetail" component={BookDetailScreen} options={({ route }) => ({ title: route.params.title })} />
       <AllSeriesStack.Screen name="Reader" component={ReaderScreen} options={{ headerShown: false }} />
     </AllSeriesStack.Navigator>
   );
@@ -98,6 +103,7 @@ function AuthorsNavigator() {
         options={({ route }) => ({ title: route.params.authorName })}
       />
       <AuthorsStack.Screen name="SeriesDetail" component={SeriesDetailScreen} options={({ route }) => ({ title: route.params.title })} />
+      <AuthorsStack.Screen name="BookDetail" component={BookDetailScreen} options={({ route }) => ({ title: route.params.title })} />
       <AuthorsStack.Screen name="Reader" component={ReaderScreen} options={{ headerShown: false }} />
     </AuthorsStack.Navigator>
   );
@@ -113,6 +119,7 @@ function CollectionsNavigator() {
         options={({ route }) => ({ title: route.params.collectionName })}
       />
       <CollectionsStack.Screen name="SeriesDetail" component={SeriesDetailScreen} options={({ route }) => ({ title: route.params.title })} />
+      <CollectionsStack.Screen name="BookDetail" component={BookDetailScreen} options={({ route }) => ({ title: route.params.title })} />
       <CollectionsStack.Screen name="Reader" component={ReaderScreen} options={{ headerShown: false }} />
     </CollectionsStack.Navigator>
   );
@@ -127,6 +134,7 @@ function ReadListsNavigator() {
         component={ReadListDetailScreen}
         options={({ route }) => ({ title: route.params.readListName })}
       />
+      <ReadListsStack.Screen name="BookDetail" component={BookDetailScreen} options={({ route }) => ({ title: route.params.title })} />
       <ReadListsStack.Screen name="Reader" component={ReaderScreen} options={{ headerShown: false }} />
     </ReadListsStack.Navigator>
   );
@@ -137,6 +145,7 @@ function WantToReadNavigator() {
     <WantToReadStack.Navigator>
       <WantToReadStack.Screen name="WantToReadList" component={WantToReadScreen} options={{ title: 'Want to Read', headerLeft: () => <DrawerToggleButton tintColor="black" /> }} />
       <WantToReadStack.Screen name="SeriesDetail" component={SeriesDetailScreen} options={({ route }) => ({ title: route.params.title })} />
+      <WantToReadStack.Screen name="BookDetail" component={BookDetailScreen} options={({ route }) => ({ title: route.params.title })} />
       <WantToReadStack.Screen name="Reader" component={ReaderScreen} options={{ headerShown: false }} />
     </WantToReadStack.Navigator>
   );
