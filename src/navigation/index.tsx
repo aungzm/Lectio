@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createDrawerNavigator, DrawerToggleButton } from '@react-navigation/drawer';
 import { useAuthStore } from '@/store/authStore';
+import DrawerContent from '@/components/DrawerContent';
 import { commonScreens } from './commonScreens';
 import type {
   RootStackParamList,
@@ -138,7 +139,10 @@ function MainDrawer() {
   const isKavita = providerType === 'kavita';
 
   return (
-    <Drawer.Navigator screenOptions={{ headerShown: false, drawerType: 'slide' }}>
+    <Drawer.Navigator
+      drawerContent={(props) => <DrawerContent {...props} />}
+      screenOptions={{ headerShown: false, drawerType: 'slide', drawerStyle: { width: 280 } }}
+    >
       <Drawer.Screen name="Home" component={HomeNavigator} options={{ title: 'Home' }} />
       <Drawer.Screen name="Library" component={LibraryNavigator} options={{ title: 'Library' }} />
       <Drawer.Screen name="Series" component={AllSeriesNavigator} options={{ title: 'Series' }} />
