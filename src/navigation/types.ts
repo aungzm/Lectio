@@ -27,6 +27,7 @@ export type BookDetailParams = {
 
 export type HomeStackParamList = {
   HomeScreen: undefined;
+  SeriesDetail: { seriesId: string; title: string };
   BookDetail: BookDetailParams;
   Reader: { chapterId: string; title: string; epubUrl: string };
 };

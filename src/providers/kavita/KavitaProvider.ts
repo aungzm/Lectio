@@ -307,6 +307,32 @@ export class KavitaProvider implements ILibraryProvider {
     return series.map(mapSeries);
   }
 
+  async getRecentlyUpdatedSeries(pageSize: number): Promise<Book[]> {
+    const grouped = await this.client.getRecentlyUpdatedSeries(pageSize);
+    return grouped.map((g): Book => ({
+      id: String(g.seriesId),
+      title: g.seriesName,
+      sortTitle: g.seriesName,
+      coverUrl: null,
+      pagesTotal: 0,
+      pagesRead: 0,
+      format: toBookFormat(g.format),
+      libraryId: String(g.libraryId),
+      metadata: { summary: null, authors: [], genres: [], tags: [], language: null, year: null },
+    }));
+  }
+
+  async getContinuePoint(seriesId: string): Promise<{ chapterId: string; title: string } | null> {
+    try {
+      const chapter = await this.client.getContinuePoint(Number(seriesId));
+      if (!chapter) return null;
+      const title = chapter.titleName || chapter.title || `Chapter ${chapter.number}`;
+      return { chapterId: String(chapter.id), title };
+    } catch {
+      return null;
+    }
+  }
+
   async getDetailedMetadata(seriesId: string): Promise<DetailedMetadata> {
     const meta = await this.client.getSeriesMetadata(Number(seriesId));
     const mapPersons = (persons: KavitaPersonDto[] | null): PersonInfo[] =>
