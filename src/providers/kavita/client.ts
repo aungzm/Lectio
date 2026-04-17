@@ -5,6 +5,7 @@ import type {
   KavitaLibraryDto,
   KavitaSeriesDto,
   KavitaVolumeDto,
+  KavitaChapterDto,
   KavitaProgressDto,
   KavitaUpdateProgressDto,
   KavitaChapterInfoDto,
@@ -16,6 +17,7 @@ import type {
   KavitaBookmarkDto,
   KavitaBookmarkUpdateDto,
   KavitaSeriesMetadataFullDto,
+  KavitaGroupedSeriesDto,
 } from './types';
 import { normalizeUrl } from '../base/url';
 
@@ -185,6 +187,22 @@ export class KavitaClient {
       params: { PageNumber: 0, PageSize: pageSize, libraryId: 0 },
     });
     return data ?? [];
+  }
+
+  async getRecentlyUpdatedSeries(pageSize = 20): Promise<KavitaGroupedSeriesDto[]> {
+    const { data } = await this.http.post<KavitaGroupedSeriesDto[]>(
+      '/api/Series/recently-updated-series',
+      null,
+      { params: { PageNumber: 0, PageSize: pageSize } },
+    );
+    return data ?? [];
+  }
+
+  async getContinuePoint(seriesId: number): Promise<KavitaChapterDto> {
+    const { data } = await this.http.get<KavitaChapterDto>('/api/Reader/continue-point', {
+      params: { seriesId },
+    });
+    return data;
   }
 
   // ── Bookmarks ──────────────────────────────────────────────────────────────

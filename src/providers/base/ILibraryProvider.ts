@@ -213,4 +213,10 @@ export interface ILibraryProvider {
 
   /** Get series in progress / continue reading (Kavita only). */
   getContinueReading?(pageSize: number): Promise<Book[]>;
+
+  /** Get recently updated series (Kavita only). */
+  getRecentlyUpdatedSeries?(pageSize: number): Promise<Book[]>;
+
+  /** Get the chapter to continue reading for a series (Kavita only). */
+  getContinuePoint?(seriesId: string): Promise<{ chapterId: string; title: string } | null>;
 }
