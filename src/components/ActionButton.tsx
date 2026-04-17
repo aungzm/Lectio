@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, Text } from 'react-native';
+import { Pressable, Text } from 'react-native';
 
 interface ActionButtonProps {
   label: string;
@@ -8,15 +8,18 @@ interface ActionButtonProps {
 }
 
 export function ActionButton({ label, onPress, variant = 'primary' }: ActionButtonProps) {
-  const bg = variant === 'primary' ? 'bg-blue-600' : 'bg-gray-200';
-  const textColor = variant === 'primary' ? 'text-white' : 'text-gray-800';
+  const isPrimary = variant === 'primary';
 
   return (
-    <TouchableOpacity
-      className={`flex-1 ${bg} rounded-xl py-3 items-center`}
+    <Pressable
+      className={`flex-1 rounded-xl py-3.5 items-center active:opacity-80 ${
+        isPrimary ? 'bg-secondary' : 'bg-border'
+      }`}
       onPress={onPress}
     >
-      <Text className={`${textColor} font-semibold text-base`}>{label}</Text>
-    </TouchableOpacity>
+      <Text className={`font-semibold text-base ${
+        isPrimary ? 'text-primary' : 'text-secondary'
+      }`}>{label}</Text>
+    </Pressable>
   );
 }
