@@ -76,6 +76,7 @@ function mapBook(b: KomgaBookDto): Book {
     pagesRead: b.readProgress?.page ?? 0,
     format: mapMediaTypeToFormat(b.media?.mediaType ?? ''),
     libraryId: b.libraryId,
+    seriesId: b.seriesId,
     metadata,
   };
 }
@@ -240,6 +241,58 @@ export class KomgaProvider implements ILibraryProvider {
 
   async removeBookmark(bookmark: Bookmark): Promise<void> {
     await this.client.removeBookmark(bookmark);
+  }
+
+  // ── Home screen ──────────────────────────────────────────────────────────────
+
+  async getRecentlyAdded(pageSize: number): Promise<Book[]> {
+    const result = await this.client.getNewSeries(0, pageSize);
+    return result.content.map(mapSeries);
+  }
+
+  async getContinueReading(pageSize: number): Promise<Book[]> {
+    const result = await this.client.getInProgressSeries(0, pageSize);
+    return result.content.map(mapSeries);
+  }
+
+  async getRecentlyAddedBooks(pageSize: number): Promise<Book[]> {
+    const result = await this.client.getLatestBooks(0, pageSize);
+    return result.content.map(mapBook);
+  }
+
+  async getRecentlyUpdatedSeries(pageSize: number): Promise<Book[]> {
+    const result = await this.client.getLatestSeries(0, pageSize);
+    return result.content.map(mapSeries);
+  }
+
+  async getContinuePoint(seriesId: string): Promise<{ chapterId: string; title: string } | null> {
+    const result = await this.client.getSeriesBooks(seriesId, 0, 500);
+    const books = result.content;
+    // Find the first book that is in progress
+    const inProgress = books.find(
+      (b) => b.readProgress && !b.readProgress.completed && b.readProgress.page > 0,
+    );
+    if (inProgress) {
+      return {
+        chapterId: inProgress.id,
+        title: inProgress.metadata?.title || inProgress.name,
+      };
+    }
+    // Otherwise find the first unread book (after at least one read book)
+    let foundRead = false;
+    for (const b of books) {
+      if (b.readProgress?.completed) {
+        foundRead = true;
+        continue;
+      }
+      if (foundRead) {
+        return {
+          chapterId: b.id,
+          title: b.metadata?.title || b.name,
+        };
+      }
+    }
+    return null;
   }
 
   // ── Search / Filter ──────────────────────────────────────────────────────────
