@@ -91,7 +91,7 @@ export interface AuthResult {
 }
 
 export interface Author {
-  id: string;          // Kavita: numeric person id as string; Komga: "name|role" composite
+  id: string;
   name: string;
   role: string;        // e.g. 'writer', 'artist'
   coverUrl: string | null;
@@ -111,9 +111,9 @@ export interface ReadList {
 }
 
 export interface Bookmark {
-  id: string;              // Kavita: server numeric id as string; Komga: local timestamp id
+  id: string;
   seriesId: string;
-  bookId: string;          // chapterId for Kavita; bookId for Komga
+  bookId: string;
   page: number;
   xPath: string | null;    // epub CFI/xpath position
   chapterTitle: string | null;
@@ -196,9 +196,6 @@ export interface ILibraryProvider {
   /** List all books in a library (Komga: individual books, not series). */
   getLibraryBooks?(libraryId: string, page: number, pageSize: number): Promise<Book[]>;
 
-  /** Get the user's Want to Read list (Kavita only). */
-  getWantToRead?(page: number, pageSize: number): Promise<Book[]>;
-
   /** Get detailed metadata for a series (all people, genres, etc.). */
   getDetailedMetadata?(seriesId: string): Promise<DetailedMetadata>;
 
@@ -208,15 +205,15 @@ export interface ILibraryProvider {
   /** Build a download URL for a chapter (optional). */
   getDownloadUrl?(chapterId: string): string;
 
-  /** Get recently added series (Kavita only). */
+  /** Get recently added series (optional). */
   getRecentlyAdded?(pageSize: number): Promise<Book[]>;
 
-  /** Get series in progress / continue reading (Kavita only). */
+  /** Get series in progress / continue reading (optional). */
   getContinueReading?(pageSize: number): Promise<Book[]>;
 
-  /** Get recently updated series (Kavita only). */
+  /** Get recently updated series (optional). */
   getRecentlyUpdatedSeries?(pageSize: number): Promise<Book[]>;
 
-  /** Get the chapter to continue reading for a series (Kavita only). */
+  /** Get the chapter to continue reading for a series (optional). */
   getContinuePoint?(seriesId: string): Promise<{ chapterId: string; title: string } | null>;
 }

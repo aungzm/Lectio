@@ -15,7 +15,6 @@ export type MainDrawerParamList = {
   Authors: undefined;
   Collections: undefined;
   ReadList: undefined;
-  WantToRead: undefined; // Kavita only — hidden for Komga
   Settings: undefined;
 };
 
@@ -76,14 +75,6 @@ export type ReadListsStackParamList = {
   Reader: { chapterId: string; title: string; epubUrl: string };
 };
 
-// Want to Read stack (Kavita only)
-export type WantToReadStackParamList = {
-  WantToReadList: undefined;
-  SeriesDetail: { seriesId: string; title: string };
-  BookDetail: BookDetailParams;
-  Reader: { chapterId: string; title: string; epubUrl: string };
-};
-
 // Bookmarks stack
 export type BookmarksStackParamList = {
   BookmarksList: undefined;
@@ -111,7 +102,5 @@ export type AllSeriesScreenProps = NativeStackScreenProps<AllSeriesStackParamLis
 
 export type ReadListsScreenProps = NativeStackScreenProps<ReadListsStackParamList, 'ReadLists'>;
 export type ReadListDetailScreenProps = NativeStackScreenProps<ReadListsStackParamList, 'ReadListDetail'>;
-
-export type WantToReadScreenProps = NativeStackScreenProps<WantToReadStackParamList, 'WantToReadList'>;
 
 export type BookmarksListScreenProps = NativeStackScreenProps<BookmarksStackParamList, 'BookmarksList'>;

@@ -58,8 +58,7 @@ const SYNOPSIS_BASE_STYLES = {
   },
 };
 
-// Kavita uses -100000 (stored as the string "-100000") for the sentinel chapter
-// that represents an entire epub/pdf book within a volume.
+// A volume with a single chapter whose number is <= 0 represents a whole book (epub/pdf).
 function isBookVolume(volume: Volume): boolean {
   return volume.chapters.length === 1 && Number(volume.chapters[0].number) <= 0;
 }
