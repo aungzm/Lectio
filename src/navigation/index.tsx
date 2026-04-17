@@ -1,9 +1,11 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createDrawerNavigator, DrawerToggleButton } from '@react-navigation/drawer';
+import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
+import { createDrawerNavigator } from '@react-navigation/drawer';
 import { useAuthStore } from '@/store/authStore';
 import DrawerContent from '@/components/DrawerContent';
+import NavIconButton from '@/components/NavIconButton';
 import { commonScreens } from './commonScreens';
 import type {
   RootStackParamList,
@@ -42,14 +44,26 @@ const CollectionsStack = createNativeStackNavigator<CollectionsStackParamList>()
 const ReadListsStack = createNativeStackNavigator<ReadListsStackParamList>();
 const WantToReadStack = createNativeStackNavigator<WantToReadStackParamList>();
 
+const cleanHeader: NativeStackNavigationOptions = {
+  title: '',
+  headerShadowVisible: false,
+  headerStyle: { backgroundColor: '#f9fafb' },
+};
+
+const drawerRootScreen: NativeStackNavigationOptions = {
+  ...cleanHeader,
+  headerLeft: () => <NavIconButton type="drawer" />,
+};
+
+const subScreen: NativeStackNavigationOptions = {
+  ...cleanHeader,
+  headerLeft: () => <NavIconButton type="back" />,
+};
+
 function HomeNavigator() {
   return (
-    <HomeStack.Navigator>
-      <HomeStack.Screen
-        name="HomeScreen"
-        component={HomeScreen}
-        options={{ title: 'Home', headerLeft: () => <DrawerToggleButton tintColor="black" /> }}
-      />
+    <HomeStack.Navigator screenOptions={subScreen}>
+      <HomeStack.Screen name="HomeScreen" component={HomeScreen} options={drawerRootScreen} />
       {commonScreens(HomeStack)}
     </HomeStack.Navigator>
   );
@@ -57,18 +71,10 @@ function HomeNavigator() {
 
 function LibraryNavigator() {
   return (
-    <LibraryStack.Navigator>
-      <LibraryStack.Screen name="Libraries" component={LibrariesScreen} options={{ title: 'Libraries', headerLeft: () => <DrawerToggleButton tintColor="black" /> }} />
-      <LibraryStack.Screen
-        name="SeriesList"
-        component={SeriesListScreen}
-        options={({ route }) => ({ title: route.params.libraryName })}
-      />
-      <LibraryStack.Screen
-        name="BookList"
-        component={BookListScreen}
-        options={({ route }) => ({ title: route.params.libraryName })}
-      />
+    <LibraryStack.Navigator screenOptions={subScreen}>
+      <LibraryStack.Screen name="Libraries" component={LibrariesScreen} options={drawerRootScreen} />
+      <LibraryStack.Screen name="SeriesList" component={SeriesListScreen} />
+      <LibraryStack.Screen name="BookList" component={BookListScreen} />
       {commonScreens(LibraryStack)}
     </LibraryStack.Navigator>
   );
@@ -76,8 +82,8 @@ function LibraryNavigator() {
 
 function AllSeriesNavigator() {
   return (
-    <AllSeriesStack.Navigator>
-      <AllSeriesStack.Screen name="AllSeries" component={AllSeriesScreen} options={{ title: 'Series', headerLeft: () => <DrawerToggleButton tintColor="black" /> }} />
+    <AllSeriesStack.Navigator screenOptions={subScreen}>
+      <AllSeriesStack.Screen name="AllSeries" component={AllSeriesScreen} options={drawerRootScreen} />
       {commonScreens(AllSeriesStack)}
     </AllSeriesStack.Navigator>
   );
@@ -85,13 +91,9 @@ function AllSeriesNavigator() {
 
 function AuthorsNavigator() {
   return (
-    <AuthorsStack.Navigator>
-      <AuthorsStack.Screen name="AuthorsList" component={AuthorsScreen} options={{ title: 'Authors', headerLeft: () => <DrawerToggleButton tintColor="black" /> }} />
-      <AuthorsStack.Screen
-        name="AuthorDetail"
-        component={AuthorDetailScreen}
-        options={({ route }) => ({ title: route.params.authorName })}
-      />
+    <AuthorsStack.Navigator screenOptions={subScreen}>
+      <AuthorsStack.Screen name="AuthorsList" component={AuthorsScreen} options={drawerRootScreen} />
+      <AuthorsStack.Screen name="AuthorDetail" component={AuthorDetailScreen} />
       {commonScreens(AuthorsStack)}
     </AuthorsStack.Navigator>
   );
@@ -99,13 +101,9 @@ function AuthorsNavigator() {
 
 function CollectionsNavigator() {
   return (
-    <CollectionsStack.Navigator>
-      <CollectionsStack.Screen name="CollectionsList" component={CollectionsScreen} options={{ title: 'Collections', headerLeft: () => <DrawerToggleButton tintColor="black" /> }} />
-      <CollectionsStack.Screen
-        name="CollectionDetail"
-        component={CollectionDetailScreen}
-        options={({ route }) => ({ title: route.params.collectionName })}
-      />
+    <CollectionsStack.Navigator screenOptions={subScreen}>
+      <CollectionsStack.Screen name="CollectionsList" component={CollectionsScreen} options={drawerRootScreen} />
+      <CollectionsStack.Screen name="CollectionDetail" component={CollectionDetailScreen} />
       {commonScreens(CollectionsStack)}
     </CollectionsStack.Navigator>
   );
@@ -113,13 +111,9 @@ function CollectionsNavigator() {
 
 function ReadListsNavigator() {
   return (
-    <ReadListsStack.Navigator>
-      <ReadListsStack.Screen name="ReadLists" component={ReadListsScreen} options={{ title: 'Reading Lists', headerLeft: () => <DrawerToggleButton tintColor="black" /> }} />
-      <ReadListsStack.Screen
-        name="ReadListDetail"
-        component={ReadListDetailScreen}
-        options={({ route }) => ({ title: route.params.readListName })}
-      />
+    <ReadListsStack.Navigator screenOptions={subScreen}>
+      <ReadListsStack.Screen name="ReadLists" component={ReadListsScreen} options={drawerRootScreen} />
+      <ReadListsStack.Screen name="ReadListDetail" component={ReadListDetailScreen} />
       {commonScreens(ReadListsStack)}
     </ReadListsStack.Navigator>
   );
@@ -127,8 +121,8 @@ function ReadListsNavigator() {
 
 function WantToReadNavigator() {
   return (
-    <WantToReadStack.Navigator>
-      <WantToReadStack.Screen name="WantToReadList" component={WantToReadScreen} options={{ title: 'Want to Read', headerLeft: () => <DrawerToggleButton tintColor="black" /> }} />
+    <WantToReadStack.Navigator screenOptions={subScreen}>
+      <WantToReadStack.Screen name="WantToReadList" component={WantToReadScreen} options={drawerRootScreen} />
       {commonScreens(WantToReadStack)}
     </WantToReadStack.Navigator>
   );
@@ -143,16 +137,16 @@ function MainDrawer() {
       drawerContent={(props) => <DrawerContent {...props} />}
       screenOptions={{ headerShown: false, drawerType: 'slide', drawerStyle: { width: 280 } }}
     >
-      <Drawer.Screen name="Home" component={HomeNavigator} options={{ title: 'Home' }} />
-      <Drawer.Screen name="Library" component={LibraryNavigator} options={{ title: 'Library' }} />
-      <Drawer.Screen name="Series" component={AllSeriesNavigator} options={{ title: 'Series' }} />
-      <Drawer.Screen name="Authors" component={AuthorsNavigator} options={{ title: 'Authors' }} />
-      <Drawer.Screen name="Collections" component={CollectionsNavigator} options={{ title: 'Collections' }} />
-      <Drawer.Screen name="ReadList" component={ReadListsNavigator} options={{ title: 'Read List' }} />
+      <Drawer.Screen name="Home" component={HomeNavigator} />
+      <Drawer.Screen name="Library" component={LibraryNavigator} />
+      <Drawer.Screen name="Series" component={AllSeriesNavigator} />
+      <Drawer.Screen name="Authors" component={AuthorsNavigator} />
+      <Drawer.Screen name="Collections" component={CollectionsNavigator} />
+      <Drawer.Screen name="ReadList" component={ReadListsNavigator} />
       {isKavita && (
-        <Drawer.Screen name="WantToRead" component={WantToReadNavigator} options={{ title: 'Want to Read' }} />
+        <Drawer.Screen name="WantToRead" component={WantToReadNavigator} />
       )}
-      <Drawer.Screen name="Settings" component={SettingsScreen} options={{ title: 'Settings', headerShown: true, headerLeft: () => <DrawerToggleButton tintColor="black" /> }} />
+      <Drawer.Screen name="Settings" component={SettingsScreen} options={{ headerShown: true, title: '', headerShadowVisible: false, headerStyle: { backgroundColor: '#f9fafb' }, headerLeft: () => <NavIconButton type="drawer" /> }} />
     </Drawer.Navigator>
   );
 }
