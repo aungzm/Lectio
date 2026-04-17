@@ -5,6 +5,7 @@ import {
   ScrollView,
   Alert,
   Linking,
+  Pressable,
   useWindowDimensions,
 } from 'react-native';
 import RenderHtml from 'react-native-render-html';
@@ -70,6 +71,7 @@ export default function BookDetailScreen() {
   const [metadata, setMetadata] = useState<DetailedMetadata | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [synopsisExpanded, setSynopsisExpanded] = useState(false);
 
   useEffect(() => {
     if (!provider?.getDetailedMetadata) {
@@ -111,10 +113,17 @@ export default function BookDetailScreen() {
     if (!metadata?.summary) return null;
     const text = metadata.summary.trim();
     if (!text) return null;
-    // If it already contains HTML tags, use as-is; otherwise wrap in <p>
     if (/<[a-z][\s\S]*>/i.test(text)) return { html: text };
     return { html: `<p>${text}</p>` };
   }, [metadata?.summary]);
+
+  const synopsisPlain = useMemo(() => {
+    if (!metadata?.summary) return '';
+    return metadata.summary.replace(/<[^>]*>/g, '').trim();
+  }, [metadata?.summary]);
+
+  const SYNOPSIS_TRUNCATE_LENGTH = 150;
+  const synopsisNeedsTruncation = synopsisPlain.length > SYNOPSIS_TRUNCATE_LENGTH;
 
   if (loading) {
     return <LoadingScreen />;
@@ -168,11 +177,29 @@ export default function BookDetailScreen() {
           {/* Synopsis */}
           {synopsisHtml && (
             <MetadataSection label="Synopsis">
-              <RenderHtml
-                contentWidth={contentWidth}
-                source={synopsisHtml}
-                tagsStyles={SYNOPSIS_BASE_STYLES}
-              />
+              {synopsisExpanded ? (
+                <>
+                  <RenderHtml
+                    contentWidth={contentWidth}
+                    source={synopsisHtml}
+                    tagsStyles={SYNOPSIS_BASE_STYLES}
+                  />
+                  <Pressable onPress={() => setSynopsisExpanded(false)} className="mt-1">
+                    <Text className="text-accent text-sm font-medium">Show less</Text>
+                  </Pressable>
+                </>
+              ) : (
+                <>
+                  <Text className="text-sm text-secondary" numberOfLines={3}>
+                    {synopsisPlain}
+                  </Text>
+                  {synopsisNeedsTruncation && (
+                    <Pressable onPress={() => setSynopsisExpanded(true)} className="mt-1">
+                      <Text className="text-accent text-sm font-medium">Show more</Text>
+                    </Pressable>
+                  )}
+                </>
+              )}
             </MetadataSection>
           )}
 
