@@ -82,6 +82,7 @@ export default function HomeScreen() {
   const { recentlyAdded, continueReading, recentlyUpdatedSeries, loadingHome, fetchHomeData } = useHomeStore();
   const getCoverUri = useCoverUri();
   const provider = useAuthStore((s) => s.provider);
+  const isKavita = useAuthStore((s) => s.serverConfig?.providerType === 'kavita');
   const [loadingContinueId, setLoadingContinueId] = React.useState<string | null>(null);
 
   useProviderFetch((p) => fetchHomeData(p));
@@ -131,6 +132,16 @@ export default function HomeScreen() {
         emptyText="Nothing in progress yet."
         loadingId={loadingContinueId}
       />
+
+      {!isKavita && (
+        <Section
+          title="Recently Added Books"
+          data={[]}
+          onPress={handleSeriesPress}
+          getCoverUri={getCoverUri}
+          emptyText="No recently added books."
+        />
+      )}
       <Section
         title="Recently Added Series"
         data={recentlyAdded}
