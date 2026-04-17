@@ -47,6 +47,38 @@ function PeopleChips({ label, people }: { label: string; people: PersonInfo[] })
   );
 }
 
+function CollapsibleChipSection({
+  label,
+  items,
+  collapsedCount = 8,
+}: {
+  label: string;
+  items: string[];
+  collapsedCount?: number;
+}) {
+  const [expanded, setExpanded] = useState(false);
+
+  if (items.length === 0) return null;
+
+  const visibleItems = expanded ? items : items.slice(0, collapsedCount);
+  const hasHiddenItems = items.length > collapsedCount;
+
+  return (
+    <MetadataSection label={label}>
+      <View className="flex-row flex-wrap">
+        {visibleItems.map((item) => <Chip key={item} label={item} />)}
+      </View>
+      {hasHiddenItems && (
+        <Pressable onPress={() => setExpanded((value) => !value)} className="mt-1">
+          <Text className="text-accent text-sm font-medium">
+            {expanded ? 'Show less' : 'Show more'}
+          </Text>
+        </Pressable>
+      )}
+    </MetadataSection>
+  );
+}
+
 const SYNOPSIS_BASE_STYLES = {
   body: {
     color: '#374151',
@@ -205,13 +237,7 @@ export default function BookDetailScreen() {
           )}
 
           {/* Genres */}
-          {metadata.genres.length > 0 && (
-            <MetadataSection label="Genres">
-              <View className="flex-row flex-wrap">
-                {metadata.genres.map((g) => <Chip key={g} label={g} />)}
-              </View>
-            </MetadataSection>
-          )}
+          <CollapsibleChipSection label="Genres" items={metadata.genres} />
 
           {/* Tags */}
           {metadata.tags.length > 0 && (

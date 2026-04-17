@@ -46,6 +46,38 @@ function PeopleChips({ label, people }: { label: string; people: PersonInfo[] })
   );
 }
 
+function CollapsibleChipSection({
+  label,
+  items,
+  collapsedCount = 8,
+}: {
+  label: string;
+  items: string[];
+  collapsedCount?: number;
+}) {
+  const [expanded, setExpanded] = useState(false);
+
+  if (items.length === 0) return null;
+
+  const visibleItems = expanded ? items : items.slice(0, collapsedCount);
+  const hasHiddenItems = items.length > collapsedCount;
+
+  return (
+    <MetadataSection label={label}>
+      <View className="flex-row flex-wrap">
+        {visibleItems.map((item) => <Chip key={item} label={item} />)}
+      </View>
+      {hasHiddenItems && (
+        <Pressable onPress={() => setExpanded((value) => !value)} className="mt-1">
+          <Text className="text-accent text-sm font-medium">
+            {expanded ? 'Show less' : 'Show more'}
+          </Text>
+        </Pressable>
+      )}
+    </MetadataSection>
+  );
+}
+
 function isBookVolume(volume: Volume): boolean {
   return volume.chapters.length === 1;
 }
@@ -144,21 +176,16 @@ export default function SeriesDetailScreen() {
   const multiChapterVolumes = bookVolumes.filter((v) => !isBookVolume(v));
   const ageLabel = metadata ? AGE_RATING_LABELS[metadata.ageRating] ?? null : null;
   const statusLabel = formatSeriesStatus(metadata?.seriesStatus);
+  const bookCountLabel = `${bookVolumes.length} ${bookVolumes.length === 1 ? 'Book' : 'Books'}`;
   const numCols = width >= 600 ? 4 : 3;
   const bookRows = chunkArray(singleBooks, numCols);
-  const headerChips = [
-    ...(metadata?.writers ?? []).map((writer) => ({ key: `writer-${writer.id}`, label: writer.name })),
-    ...(metadata?.genres ?? []).map((genre) => ({ key: `genre-${genre}`, label: genre })),
-    ...(metadata?.publishers ?? []).map((publisher) => ({ key: `publisher-${publisher.id}`, label: publisher.name })),
-    ...(statusLabel ? [{ key: `status-${statusLabel}`, label: statusLabel }] : []),
-    ...(metadata?.language ? [{ key: `language-${metadata.language}`, label: metadata.language.toUpperCase() }] : []),
-    ...(ageLabel && ageLabel !== 'Unknown' ? [{ key: `age-${ageLabel}`, label: ageLabel }] : []),
-  ];
+  const genres = metadata?.genres ?? [];
+  const tags = metadata?.tags ?? [];
 
   return (
     <ScrollView className="flex-1 bg-background" contentContainerClassName="pb-12">
       <View className="px-4 pt-4 pb-6">
-        <View className="flex-row items-start gap-4">
+        <View className="flex-row items-start gap-4 mb-4">
           <View className="w-28 aspect-[2/3] bg-border rounded-2xl overflow-hidden shadow-lg shrink-0">
             <CoverImage uri={getSeriesCoverUri()} className="w-full h-full" resizeMode="cover" />
           </View>
@@ -166,63 +193,60 @@ export default function SeriesDetailScreen() {
             <Text className="text-2xl font-bold text-secondary" numberOfLines={3}>
               {title}
             </Text>
-            {metadata?.releaseYear && (
-              <Text className="text-sm text-tertiary mt-1">{metadata.releaseYear}</Text>
-            )}
-            {synopsisPlain.length > 0 && (
-              <>
-                <Text
-                  className="text-sm text-secondary mt-3 leading-6"
-                  numberOfLines={synopsisExpanded ? undefined : 6}
-                >
-                  {synopsisPlain}
-                </Text>
-                {synopsisPlain.length > 150 && (
-                  <Pressable onPress={() => setSynopsisExpanded((value) => !value)} className="mt-2">
-                    <Text className="text-accent text-sm font-medium">
-                      {synopsisExpanded ? 'Show less' : 'Show more'}
-                    </Text>
-                  </Pressable>
+            {(metadata?.releaseYear || statusLabel || metadata?.language) && (
+              <View className="flex-row flex-wrap items-center gap-2 mt-1">
+                {metadata?.releaseYear && (
+                  <Text className="text-sm text-tertiary">{metadata.releaseYear}</Text>
                 )}
-              </>
+                {statusLabel && <Chip label={statusLabel} />}
+                {metadata?.language && <Chip label={metadata.language.toUpperCase()} />}
+              </View>
             )}
+            <Text className="text-sm text-tertiary mt-2">{bookCountLabel}</Text>
           </View>
         </View>
 
-        {headerChips.length > 0 && (
-          <View className="flex-row flex-wrap mt-4">
-            {headerChips.map((chip) => (
-              <Chip key={chip.key} label={chip.label} />
-            ))}
-          </View>
+        {synopsisPlain.length > 0 && (
+          <MetadataSection label="Synopsis">
+            <Text
+              className="text-sm text-secondary leading-6"
+              numberOfLines={synopsisExpanded ? undefined : 6}
+            >
+              {synopsisPlain}
+            </Text>
+            {synopsisPlain.length > 150 && (
+              <Pressable onPress={() => setSynopsisExpanded((value) => !value)} className="mt-2">
+                <Text className="text-accent text-sm font-medium">
+                  {synopsisExpanded ? 'Show less' : 'Show more'}
+                </Text>
+              </Pressable>
+            )}
+          </MetadataSection>
         )}
+
+        <CollapsibleChipSection label="Tags" items={tags} />
+        <CollapsibleChipSection label="Genres" items={genres} />
       </View>
 
       {metadata && (
         <View className="px-4">
-          {metadata.tags.length > 0 && (
-            <MetadataSection label="Tags">
-              <View className="flex-row flex-wrap">
-                {metadata.tags.map((t) => <Chip key={t} label={t} />)}
-              </View>
-            </MetadataSection>
-          )}
-
-          <PeopleChips label="Penciller(s)" people={metadata.pencillers} />
-          <PeopleChips label="Inker(s)" people={metadata.inkers} />
-          <PeopleChips label="Colorist(s)" people={metadata.colorists} />
-          <PeopleChips label="Letterer(s)" people={metadata.letterers} />
-          <PeopleChips label="Cover Artist(s)" people={metadata.coverArtists} />
-          <PeopleChips label="Editor(s)" people={metadata.editors} />
-          <PeopleChips label="Translator(s)" people={metadata.translators} />
-          <PeopleChips label="Character(s)" people={metadata.characters} />
+          <PeopleChips label="Author" people={metadata.writers} />
+          <PeopleChips label="Penciller" people={metadata.pencillers} />
+          <PeopleChips label="Inker" people={metadata.inkers} />
+          <PeopleChips label="Colorist" people={metadata.colorists} />
+          <PeopleChips label="Letterer" people={metadata.letterers} />
+          <PeopleChips label="Cover Artist" people={metadata.coverArtists} />
+          <PeopleChips label="Editor" people={metadata.editors} />
+          <PeopleChips label="Publisher" people={metadata.publishers} />
+          <PeopleChips label="Translator" people={metadata.translators} />
+          <PeopleChips label="Character" people={metadata.characters} />
         </View>
       )}
 
       {singleBooks.length > 0 && (
-        <View>
+        <View className='px-4'>
           <MetadataSection label="Books">
-            <View className="px-3">
+            <View>
               {bookRows.map((row, rowIndex) => (
                 <View key={`row-${rowIndex}`} className="flex-row mb-4">
                   {row.map((volume) => {
