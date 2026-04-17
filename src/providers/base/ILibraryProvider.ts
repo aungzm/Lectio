@@ -47,6 +47,7 @@ export interface DetailedMetadata {
   language: string | null;
   releaseYear: number | null;
   ageRating: number;
+  seriesStatus?: string | null;
 }
 
 export enum BookFormat {
