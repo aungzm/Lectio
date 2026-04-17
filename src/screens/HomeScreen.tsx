@@ -6,9 +6,12 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
+  Pressable,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { DrawerActions } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { ChevronRight } from 'lucide-react-native';
 import { useHomeStore } from '@/store/homeStore';
 import { CoverImage } from '@/components/CoverImage';
 import { LoadingScreen } from '@/components/LoadingScreen';
@@ -28,34 +31,43 @@ function SeriesCard({ book, onPress, getCoverUri, loading }: {
 }) {
   return (
     <TouchableOpacity className="w-28 mr-3" onPress={onPress} disabled={loading}>
-      <View className="w-28 h-40 bg-gray-200 rounded-lg overflow-hidden mb-1">
+      <View className="w-28 h-40 bg-border rounded-xl overflow-hidden mb-1.5">
         <CoverImage uri={getCoverUri(book.id)} className="w-full h-full" resizeMode="cover" />
         {loading && (
-          <View className="absolute inset-0 bg-black/20 items-center justify-center">
+          <View className="absolute inset-0 bg-secondary/20 items-center justify-center">
             <ActivityIndicator color="#fff" />
           </View>
         )}
       </View>
-      <Text className="text-xs text-gray-700" numberOfLines={2}>{book.title}</Text>
+      <Text className="text-xs text-secondary font-medium" numberOfLines={2}>{book.title}</Text>
     </TouchableOpacity>
   );
 }
 
-function Section({ title, data, onPress, getCoverUri, emptyText, loadingId }: {
+function Section({ title, data, onPress, getCoverUri, emptyText, loadingId, onViewMore }: {
   title: string;
   data: Book[];
   onPress: (b: Book) => void;
   getCoverUri: (id: string) => string | null;
   emptyText?: string;
   loadingId?: string | null;
+  onViewMore?: () => void;
 }) {
   if (data.length === 0 && emptyText) return null;
 
   return (
-    <View className="mb-6">
-      <Text className="text-lg font-semibold text-gray-900 px-4 mb-3">{title}</Text>
+    <View className="mb-8">
+      <View className="flex-row items-center justify-between px-4 mb-3">
+        <Text className="text-lg font-bold text-secondary">{title}</Text>
+        {onViewMore && (
+          <Pressable onPress={onViewMore} className="flex-row items-center gap-0.5 active:opacity-60">
+            <Text className="text-sm font-medium text-tertiary">View more</Text>
+            <ChevronRight size={16} color="#6b7280" strokeWidth={2} />
+          </Pressable>
+        )}
+      </View>
       {data.length === 0 ? (
-        <Text className="text-gray-400 px-4 text-sm">{emptyText}</Text>
+        <Text className="text-muted px-4 text-sm">{emptyText}</Text>
       ) : (
         <FlatList
           horizontal
@@ -87,13 +99,16 @@ export default function HomeScreen() {
 
   useProviderFetch((p) => fetchHomeData(p));
 
+  const navigateDrawer = useCallback((screen: string) => {
+    nav.dispatch(DrawerActions.jumpTo(screen));
+  }, [nav]);
+
   const handleSeriesPress = useCallback((book: Book) => {
     nav.navigate('SeriesDetail', { seriesId: book.id, title: book.title });
   }, [nav]);
 
   const handleContinueReadingPress = useCallback(async (book: Book) => {
     if (!provider?.getContinuePoint) {
-      // Fallback to series page if provider doesn't support continue point
       nav.navigate('SeriesDetail', { seriesId: book.id, title: book.title });
       return;
     }
@@ -108,7 +123,6 @@ export default function HomeScreen() {
           title: point.title,
         });
       } else {
-        // No continue point found — go to series page
         nav.navigate('SeriesDetail', { seriesId: book.id, title: book.title });
       }
     } catch {
@@ -123,7 +137,7 @@ export default function HomeScreen() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-white" contentContainerClassName="py-4">
+    <ScrollView className="flex-1 bg-background" contentContainerClassName="pb-6">
       <Section
         title="Continue Reading"
         data={continueReading}
@@ -131,6 +145,7 @@ export default function HomeScreen() {
         getCoverUri={getCoverUri}
         emptyText="Nothing in progress yet."
         loadingId={loadingContinueId}
+        onViewMore={() => navigateDrawer('Library')}
       />
 
       {!isKavita && (
@@ -140,6 +155,7 @@ export default function HomeScreen() {
           onPress={handleSeriesPress}
           getCoverUri={getCoverUri}
           emptyText="No recently added books."
+          onViewMore={() => navigateDrawer('Library')}
         />
       )}
       <Section
@@ -148,6 +164,7 @@ export default function HomeScreen() {
         onPress={handleSeriesPress}
         getCoverUri={getCoverUri}
         emptyText="No recently added series."
+        onViewMore={() => navigateDrawer('Series')}
       />
       <Section
         title="Recently Updated Series"
@@ -155,6 +172,7 @@ export default function HomeScreen() {
         onPress={handleSeriesPress}
         getCoverUri={getCoverUri}
         emptyText="No recently updated series."
+        onViewMore={() => navigateDrawer('Series')}
       />
     </ScrollView>
   );
