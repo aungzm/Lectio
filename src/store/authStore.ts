@@ -32,7 +32,7 @@ interface AuthState {
 function createProvider(config: ServerConfig, auth: AuthResult): ILibraryProvider {
   switch (config.providerType) {
     case 'komga':
-      return new KomgaProvider(config.serverUrl, auth.token);
+      return new KomgaProvider(config.serverUrl, auth.apiKey);
   }
 }
 
