@@ -30,7 +30,7 @@ export default function BrowseScreen({ navigation }: BrowseHubScreenProps) {
   const serverConfig = useAuthStore((s) => s.serverConfig);
   const providerType = serverConfig?.providerType;
 
-  // Both Kavita and Komga support all browse features
+  // All browse features are supported
   const supportsAuthors = !!providerType;
   const supportsCollections = !!providerType;
   const supportsReadLists = !!providerType;

@@ -11,20 +11,18 @@ interface CoverImageProps {
 
 /**
  * Image component that automatically injects auth headers when required.
- * - Kavita: no headers needed (API key is embedded in the URL as a query param)
- * - Komga: requires `Authorization: Basic <base64>` header (stored in auth.apiKey)
+ * Komga requires an `Authorization: Basic <base64>` header (stored in auth.apiKey).
  */
 export function CoverImage({ uri, style, resizeMode = 'cover', className }: CoverImageProps) {
-  const serverConfig = useAuthStore((s) => s.serverConfig);
   const auth = useAuthStore((s) => s.auth);
 
   const source = useMemo(() => {
     if (!uri) return null;
-    if (serverConfig?.providerType === 'komga' && auth?.apiKey) {
+    if (auth?.apiKey) {
       return { uri, headers: { Authorization: `Basic ${auth.apiKey}` } };
     }
     return { uri };
-  }, [uri, serverConfig?.providerType, auth?.apiKey]);
+  }, [uri, auth?.apiKey]);
 
   if (!source) return null;
   return <Image source={source} style={style} resizeMode={resizeMode} className={className} />;

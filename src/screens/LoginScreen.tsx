@@ -13,14 +13,13 @@ import { useAuthStore } from '@/store/authStore';
 import type { ProviderType, ServerConfig } from '@/store/authStore';
 
 const PROVIDERS: { label: string; value: ProviderType; placeholder: string }[] = [
-  { label: 'Kavita', value: 'kavita', placeholder: 'http://192.168.1.100:5000' },
   { label: 'Komga',  value: 'komga',  placeholder: 'http://192.168.1.100:25600' },
 ];
 
 export default function LoginScreen() {
   const { login, isLoading, error } = useAuthStore();
 
-  const [providerType, setProviderType] = useState<ProviderType>('kavita');
+  const [providerType, setProviderType] = useState<ProviderType>('komga');
   const [serverUrl, setServerUrl] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');

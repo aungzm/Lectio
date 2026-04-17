@@ -1,16 +1,13 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
-  KavitaProvider,
-  kavitaLogin,
-  kavitaValidateToken,
   KomgaProvider,
   komgaLogin,
   komgaValidateToken,
 } from '@/providers';
 import type { ILibraryProvider, AuthResult } from '@/providers';
 
-export type ProviderType = 'kavita' | 'komga';
+export type ProviderType = 'komga';
 
 export interface ServerConfig {
   id: string;
@@ -34,8 +31,6 @@ interface AuthState {
 
 function createProvider(config: ServerConfig, auth: AuthResult): ILibraryProvider {
   switch (config.providerType) {
-    case 'kavita':
-      return new KavitaProvider(config.serverUrl, auth.token, auth.apiKey);
     case 'komga':
       return new KomgaProvider(config.serverUrl, auth.token);
   }
@@ -54,14 +49,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (config, username, password) => {
     set({ isLoading: true, error: null });
     try {
-      let auth: AuthResult;
-      if (config.providerType === 'kavita') {
-        const user = await kavitaLogin(config.serverUrl, { username, password });
-        auth = { token: user.token, username: user.username, apiKey: user.apiKey };
-      } else {
-        const { user, sessionToken, basicAuth } = await komgaLogin(config.serverUrl, username, password);
-        auth = { token: sessionToken, username: user.email, apiKey: basicAuth };
-      }
+      const { user, sessionToken, basicAuth } = await komgaLogin(config.serverUrl, username, password);
+      const auth: AuthResult = { token: sessionToken, username: user.email, apiKey: basicAuth };
       const provider = createProvider(config, auth);
       await AsyncStorage.setItem(SESSION_KEY, JSON.stringify({ config, auth }));
       set({ serverConfig: config, auth, provider, isAuthenticated: true, isLoading: false });
@@ -81,12 +70,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const raw = await AsyncStorage.getItem(SESSION_KEY);
       if (!raw) return;
       const { config, auth } = JSON.parse(raw) as { config: ServerConfig; auth: AuthResult };
-      let valid: boolean;
-      if (config.providerType === 'kavita') {
-        valid = await kavitaValidateToken(config.serverUrl, auth.token);
-      } else {
-        valid = await komgaValidateToken(config.serverUrl, auth.token);
-      }
+      const valid = await komgaValidateToken(config.serverUrl, auth.token);
       if (valid) {
         const provider = createProvider(config, auth);
         set({ serverConfig: config, auth, provider, isAuthenticated: true });
