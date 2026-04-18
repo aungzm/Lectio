@@ -1,14 +1,12 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Pressable } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, Pressable } from 'react-native';
 import { Search, User, X } from 'lucide-react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useBrowseStore } from '@/store/browseStore';
 import { BrowseHeaderTitle } from '@/components/BrowseHeaderTitle';
-import { ImageWithFallback } from '@/components/ImageWithFallback';
-import { EmptyState } from '@/components/EmptyState';
+import { BookGrid } from '@/components/BookGrid';
 import NavIconButton from '@/components/NavIconButton';
 import { SearchBar } from '@/components/SearchBar';
-import { useResponsiveGrid } from '@/hooks/useResponsiveGrid';
 import { useProviderFetch } from '@/hooks/useProviderFetch';
 import type { AuthorsScreenProps } from '@/navigation/types';
 import type { Author } from '@/providers';
@@ -18,7 +16,6 @@ export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
   const { authors, loadingAuthors, fetchAuthors } = useBrowseStore();
   const [search, setSearch] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
-  const { numCols, itemWidth } = useResponsiveGrid();
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useProviderFetch((p) => fetchAuthors(p, 0, search || undefined));
@@ -96,12 +93,14 @@ export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
         ) : null}
       </View>
 
-      <FlatList
-        key={`authors-grid-${numCols}`}
-        data={authors}
-        keyExtractor={(item) => item.id}
-        numColumns={numCols}
-        contentContainerStyle={{ padding: 12 }}
+      <BookGrid
+        items={authors}
+        getCoverUri={getAuthorCoverUri}
+        getTitle={(item) => item.name}
+        onPress={(item) => navigation.navigate('AuthorDetail', { authorId: item.id, authorName: item.name })}
+        renderEmptyCover={() => <User size={32} color="#9ca3af" />}
+        emptyText="No authors found."
+        cardVariant="author"
         ListHeaderComponent={
           <View className="px-4 pb-3 pt-2">
             <Text className="ml-1 text-xs font-semibold uppercase tracking-wide text-tertiary">
@@ -109,30 +108,6 @@ export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
             </Text>
           </View>
         }
-        ListEmptyComponent={<EmptyState message="No authors found." />}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={{ width: itemWidth }}
-            className="items-center px-1 mb-3"
-            onPress={() => navigation.navigate('AuthorDetail', { authorId: item.id, authorName: item.name })}
-          >
-            <View className="w-full overflow-hidden rounded-[28px] border border-border bg-surface px-3 py-4">
-              <View className="items-center">
-                <View className="h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-border bg-background p-2">
-                  <View className="h-full w-full items-center justify-center overflow-hidden rounded-full bg-border">
-                    <ImageWithFallback
-                      uri={getAuthorCoverUri(item)}
-                      fallback={<User size={32} color="#9ca3af" />}
-                    />
-                  </View>
-                </View>
-                <Text className="mt-4 text-center text-sm font-semibold text-secondary" numberOfLines={2}>
-                  {item.name}
-                </Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-        )}
       />
     </View>
   );
