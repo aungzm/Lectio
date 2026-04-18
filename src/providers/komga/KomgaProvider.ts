@@ -190,6 +190,10 @@ export class KomgaProvider implements ILibraryProvider {
     return this.client.bookFileUrl(bookId);
   }
 
+  getDownloadUrl(bookId: string): string {
+    return this.client.bookFileUrl(bookId);
+  }
+
   async getProgress(chapterId: string): Promise<ReadingProgress | null> {
     const p = await this.client.getBookProgress(chapterId);
     if (!p) return null;

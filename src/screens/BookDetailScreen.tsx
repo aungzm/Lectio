@@ -4,10 +4,12 @@ import {
   Text,
   ScrollView,
   Alert,
-  Linking,
   Pressable,
+  Platform,
   useWindowDimensions,
 } from 'react-native';
+import { Directory, File as FSFile, Paths } from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 import RenderHtml from 'react-native-render-html';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import {
@@ -26,7 +28,7 @@ import { InfoPill } from '@/components/InfoPill';
 import { KeyFact } from '@/components/KeyFact';
 import { PeopleChips } from '@/components/PeopleChips';
 import { CollapsibleChipSection } from '@/components/CollapsibleChipSection';
-import type { DetailedMetadata } from '@/providers';
+import { BookFormat, type DetailedMetadata } from '@/providers';
 
 const AGE_RATING_LABELS: Record<number, string> = {
   0: 'Unknown',
@@ -60,6 +62,30 @@ const SYNOPSIS_BASE_STYLES = {
     color: '#0ea5e9',
   },
 };
+
+type ExportDirectoryPicker = typeof Directory & {
+  pickDirectoryAsync?: (initialUri?: string) => Promise<Directory>;
+};
+
+function sanitizeFileNamePart(value: string): string {
+  const cleaned = value
+    .replace(/[<>:"/\\|?*\u0000-\u001F]/g, '_')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  return cleaned || 'book';
+}
+
+function getFileExtension(format?: BookFormat): string {
+  if (format === BookFormat.Epub) return '.epub';
+  if (format === BookFormat.Pdf) return '.pdf';
+  return '';
+}
+
+function isPickerCancellation(error: unknown): boolean {
+  const message = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
+  return message.includes('cancel');
+}
 
 function ActionTile({
   label,
@@ -95,14 +121,15 @@ export default function BookDetailScreen() {
     seriesId: string;
     title: string;
   };
-  const { provider } = useAuthStore();
+  const { provider, auth } = useAuthStore();
   const { width } = useWindowDimensions();
 
   const [metadata, setMetadata] = useState<DetailedMetadata | null>(null);
-  const [book, setBook] = useState<{ pagesTotal: number } | null>(null);
+  const [book, setBook] = useState<{ pagesTotal: number; format: BookFormat } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [synopsisExpanded, setSynopsisExpanded] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     if (!provider?.getDetailedMetadata) {
@@ -118,7 +145,14 @@ export default function BookDetailScreen() {
       ([metadataResult, bookResult]) => {
         if (!cancelled) {
           setMetadata(metadataResult);
-          setBook(bookResult ? { pagesTotal: bookResult.pagesTotal } : null);
+          setBook(
+            bookResult
+              ? {
+                  pagesTotal: bookResult.pagesTotal,
+                  format: bookResult.format,
+                }
+              : null,
+          );
           setLoading(false);
         }
       },
@@ -161,16 +195,72 @@ export default function BookDetailScreen() {
     navigation.navigate('Reader', { chapterId, title, epubUrl });
   }
 
-  function handleDownload() {
+  async function handleDownload() {
     if (!provider?.getDownloadUrl) {
       Alert.alert('Download', 'Download is not supported for this provider.');
       return;
     }
+    if (downloading) {
+      return;
+    }
 
     const url = provider.getDownloadUrl(chapterId);
-    Linking.openURL(url).catch(() => {
-      Alert.alert('Download', 'Could not open the download link.');
-    });
+    const extension = getFileExtension(book?.format);
+    const fileName = `${sanitizeFileNamePart(title)}${extension}`;
+    const tempFile = new FSFile(Paths.cache, fileName);
+    const downloadOptions = auth?.apiKey
+      ? { headers: { Authorization: `Basic ${auth.apiKey}` }, idempotent: true as const }
+      : { idempotent: true as const };
+
+    try {
+      setDownloading(true);
+
+      if (tempFile.exists) {
+        tempFile.delete();
+      }
+
+      const pickDirectory = (Directory as ExportDirectoryPicker).pickDirectoryAsync;
+
+      if (pickDirectory) {
+        try {
+          const selectedDirectory = await pickDirectory();
+          const exportFile = new FSFile(selectedDirectory.uri, fileName);
+
+          if (exportFile.exists) {
+            exportFile.delete();
+          }
+
+          await FSFile.downloadFileAsync(url, exportFile, downloadOptions);
+          Alert.alert(
+            'Download complete',
+            Platform.OS === 'ios'
+              ? `Saved "${fileName}" to the folder you selected in Files.`
+              : `Saved "${fileName}" to the folder you selected.`,
+          );
+          return;
+        } catch (pickerError) {
+          if (isPickerCancellation(pickerError)) {
+            return;
+          }
+        }
+      }
+
+      const downloaded = await FSFile.downloadFileAsync(url, tempFile, downloadOptions);
+
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(downloaded.uri, {
+          dialogTitle: Platform.OS === 'ios' ? `Export "${fileName}"` : `Share "${fileName}"`,
+          mimeType: book?.format === BookFormat.Pdf ? 'application/pdf' : 'application/epub+zip',
+        });
+        return;
+      }
+
+      Alert.alert('Download complete', `Saved in app storage as "${fileName}".`);
+    } catch {
+      Alert.alert('Download', 'Download failed. Please try again.');
+    } finally {
+      setDownloading(false);
+    }
   }
 
   if (loading) {
@@ -252,7 +342,7 @@ export default function BookDetailScreen() {
               icon={<BookOpen size={18} color="#ffffff" />}
             />
             <ActionTile
-              label="Download"
+              label={downloading ? 'Saving...' : 'Download'}
               onPress={handleDownload}
               icon={<Download size={18} color="#000000" />}
             />
