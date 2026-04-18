@@ -406,7 +406,6 @@ export default function BookDetailScreen() {
           )}
 
           <SectionCard>
-            <PeopleChips label="Author(s)" people={metadata.writers} />
             <PeopleChips label="Penciller(s)" people={metadata.pencillers} />
             <PeopleChips label="Inker(s)" people={metadata.inkers} />
             <PeopleChips label="Colorist(s)" people={metadata.colorists} />
