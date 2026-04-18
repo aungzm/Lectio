@@ -9,6 +9,7 @@ interface BookGridProps<T extends { id: string }> {
   getCoverUri: (item: T) => string | null;
   getTitle: (item: T) => string;
   onPress: (item: T) => void;
+  renderEmptyCover?: (item: T) => React.ReactNode;
   emptyText?: string;
   ListHeaderComponent?: React.ReactElement;
   onEndReached?: () => void;
@@ -23,6 +24,7 @@ export function BookGrid<T extends { id: string }>({
   getCoverUri,
   getTitle,
   onPress,
+  renderEmptyCover,
   emptyText = 'No items found.',
   ListHeaderComponent,
   onEndReached,
@@ -43,30 +45,38 @@ export function BookGrid<T extends { id: string }>({
   }, [items, numCols, scrollEnabled]);
 
   const renderItem = useCallback(
-    ({ item }: { item: T }) => (
-      <TouchableOpacity
-        style={{ width: itemWidth }}
-        className="mb-3 items-center px-1"
-        onPress={() => onPress(item)}
-      >
-        <View className="w-full overflow-hidden rounded-2xl border border-border bg-surface">
-          <View className="aspect-[2/3] bg-background p-2">
-            <View className="h-full w-full overflow-hidden rounded-xl bg-border">
-              <CoverImage uri={getCoverUri(item)} className="w-full h-full" resizeMode="contain" />
+    ({ item }: { item: T }) => {
+      const coverUri = getCoverUri(item);
+
+      return (
+        <TouchableOpacity
+          style={{ width: itemWidth }}
+          className="mb-3 items-center px-1"
+          onPress={() => onPress(item)}
+        >
+          <View className="w-full overflow-hidden rounded-2xl border border-border bg-surface">
+            <View className="aspect-[2/3] bg-background p-2">
+              <View className="h-full w-full overflow-hidden rounded-xl bg-border">
+                {coverUri ? (
+                  <CoverImage uri={coverUri} className="w-full h-full" resizeMode="contain" />
+                ) : (
+                  renderEmptyCover?.(item) ?? <View className="h-full w-full bg-border" />
+                )}
+              </View>
+            </View>
+            <View className="min-h-[52px] px-3 pb-2 pt-1.5">
+              <Text
+                className={`text-sm font-semibold leading-5 text-secondary ${titleAlign === 'center' ? 'text-center' : ''}`}
+                numberOfLines={2}
+              >
+                {getTitle(item)}
+              </Text>
             </View>
           </View>
-          <View className="min-h-[52px] px-3 pb-2 pt-1.5">
-            <Text
-              className={`text-sm font-semibold leading-5 text-secondary ${titleAlign === 'center' ? 'text-center' : ''}`}
-              numberOfLines={2}
-            >
-              {getTitle(item)}
-            </Text>
-          </View>
-        </View>
-      </TouchableOpacity>
-    ),
-    [getCoverUri, getTitle, itemWidth, onPress, titleAlign],
+        </TouchableOpacity>
+      );
+    },
+    [getCoverUri, getTitle, itemWidth, onPress, renderEmptyCover, titleAlign],
   );
 
   const keyExtractor = useCallback((item: T) => item.id, []);
