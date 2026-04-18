@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
+import type { DrawerNavigationOptions } from '@react-navigation/drawer';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
@@ -102,7 +103,25 @@ function useHeaderOptions() {
     [accent, background, secondary, surface],
   );
 
-  return { cleanHeader, drawerRootScreen, subScreen, navigationTheme, drawerScreenOptions };
+  const drawerHeaderScreen = useMemo<DrawerNavigationOptions>(
+    () => ({
+      headerShown: true,
+      title: '',
+      headerShadowVisible: false,
+      headerStyle: { backgroundColor: background },
+      headerLeft: () => <NavIconButton type="drawer" />,
+    }),
+    [background],
+  );
+
+  return {
+    cleanHeader,
+    drawerRootScreen,
+    subScreen,
+    navigationTheme,
+    drawerScreenOptions,
+    drawerHeaderScreen,
+  };
 }
 
 function HomeNavigator() {
@@ -188,7 +207,7 @@ function ReadListsNavigator() {
 }
 
 function MainDrawer() {
-  const { cleanHeader, drawerScreenOptions } = useHeaderOptions();
+  const { drawerHeaderScreen, drawerScreenOptions } = useHeaderOptions();
 
   return (
     <Drawer.Navigator
@@ -205,7 +224,7 @@ function MainDrawer() {
       <Drawer.Screen
         name="Settings"
         component={SettingsScreen}
-        options={{ ...cleanHeader, headerShown: true, headerLeft: () => <NavIconButton type="drawer" /> }}
+        options={drawerHeaderScreen}
       />
     </Drawer.Navigator>
   );
