@@ -5,7 +5,7 @@ import { SearchBar } from '@/components/SearchBar';
 
 interface BrowseTopBarProps {
   title: string;
-  subtitle: string;
+  subtitle?: string;
   searchValue: string;
   onSearchChange: (text: string) => void;
   searchPlaceholder?: string;
@@ -13,6 +13,7 @@ interface BrowseTopBarProps {
   resultLabel?: string;
   filterContent?: React.ReactNode;
   activeFilterCount?: number;
+  variant?: 'default' | 'compact';
 }
 
 export function BrowseTopBar({
@@ -25,6 +26,7 @@ export function BrowseTopBar({
   resultLabel,
   filterContent,
   activeFilterCount = 0,
+  variant = 'default',
 }: BrowseTopBarProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -33,6 +35,76 @@ export function BrowseTopBar({
     if (resultCount == null || !resultLabel) return null;
     return `${resultCount} ${resultLabel}`;
   }, [resultCount, resultLabel]);
+
+  const searchButtonActive = searchOpen || Boolean(searchValue);
+  const filterButtonActive = filtersOpen || activeFilterCount > 0;
+
+  if (variant === 'compact') {
+    return (
+      <View className="px-4 pt-3 pb-2">
+        <View className="rounded-[24px] border border-border bg-surface px-4 py-3">
+          <View className="flex-row items-center justify-between">
+            <View className="mr-4 flex-1">
+              <View className="self-start rounded-full border border-primary-100 bg-primary-50 px-3 py-1.5">
+                <Text className="text-base font-bold tracking-wide text-secondary">{title}</Text>
+              </View>
+              {countLabel ? (
+                <Text className="mt-2 text-xs font-medium uppercase tracking-wide text-tertiary">
+                  {countLabel}
+                </Text>
+              ) : null}
+            </View>
+
+            <View className="flex-row gap-2">
+              <Pressable
+                onPress={() => setSearchOpen((value) => !value)}
+                className={`rounded-full border px-3 py-3 ${
+                  searchButtonActive ? 'border-secondary bg-secondary' : 'border-border bg-background'
+                }`}
+              >
+                {searchButtonActive ? <X size={18} color="#ffffff" /> : <Search size={18} color="#000000" />}
+              </Pressable>
+              {filterContent ? (
+                <Pressable
+                  onPress={() => setFiltersOpen((value) => !value)}
+                  className={`rounded-full border px-3 py-3 ${
+                    filterButtonActive ? 'border-secondary bg-secondary' : 'border-border bg-background'
+                  }`}
+                >
+                  <View>
+                    <SlidersHorizontal size={18} color={filterButtonActive ? '#ffffff' : '#000000'} />
+                    {activeFilterCount > 0 ? (
+                      <View className="absolute -right-2 -top-2 min-w-[18px] rounded-full bg-accent px-1 py-0.5">
+                        <Text className="text-center text-[10px] font-bold text-primary">
+                          {activeFilterCount}
+                        </Text>
+                      </View>
+                    ) : null}
+                  </View>
+                </Pressable>
+              ) : null}
+            </View>
+          </View>
+
+          {searchOpen ? (
+            <View className="mt-3 rounded-2xl border border-border bg-background">
+              <SearchBar
+                value={searchValue}
+                onChangeText={onSearchChange}
+                placeholder={searchPlaceholder}
+              />
+            </View>
+          ) : null}
+
+          {filtersOpen && filterContent ? (
+            <View className="mt-3 rounded-2xl border border-border bg-background py-2">
+              {filterContent}
+            </View>
+          ) : null}
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View className="px-4 pt-4 pb-3">
@@ -43,7 +115,7 @@ export function BrowseTopBar({
         <View className="flex-row items-start justify-between">
           <View className="mr-4 flex-1">
             <Text className="text-3xl font-bold text-secondary">{title}</Text>
-            <Text className="mt-2 text-sm leading-6 text-tertiary">{subtitle}</Text>
+            {subtitle ? <Text className="mt-2 text-sm leading-6 text-tertiary">{subtitle}</Text> : null}
             {countLabel ? (
               <View className="mt-4 self-start rounded-full border border-border bg-background px-3 py-2">
                 <Text className="text-xs font-semibold uppercase tracking-wide text-secondary">
@@ -57,29 +129,20 @@ export function BrowseTopBar({
             <Pressable
               onPress={() => setSearchOpen((value) => !value)}
               className={`rounded-full border px-3 py-3 ${
-                searchOpen || searchValue ? 'border-secondary bg-secondary' : 'border-border bg-background'
+                searchButtonActive ? 'border-secondary bg-secondary' : 'border-border bg-background'
               }`}
             >
-              {searchOpen || searchValue ? (
-                <X size={18} color="#ffffff" />
-              ) : (
-                <Search size={18} color="#000000" />
-              )}
+              {searchButtonActive ? <X size={18} color="#ffffff" /> : <Search size={18} color="#000000" />}
             </Pressable>
             {filterContent ? (
               <Pressable
                 onPress={() => setFiltersOpen((value) => !value)}
                 className={`rounded-full border px-3 py-3 ${
-                  filtersOpen || activeFilterCount > 0
-                    ? 'border-secondary bg-secondary'
-                    : 'border-border bg-background'
+                  filterButtonActive ? 'border-secondary bg-secondary' : 'border-border bg-background'
                 }`}
               >
                 <View>
-                  <SlidersHorizontal
-                    size={18}
-                    color={filtersOpen || activeFilterCount > 0 ? '#ffffff' : '#000000'}
-                  />
+                  <SlidersHorizontal size={18} color={filterButtonActive ? '#ffffff' : '#000000'} />
                   {activeFilterCount > 0 ? (
                     <View className="absolute -right-2 -top-2 min-w-[18px] rounded-full bg-accent px-1 py-0.5">
                       <Text className="text-center text-[10px] font-bold text-primary">
