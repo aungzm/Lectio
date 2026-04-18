@@ -15,19 +15,19 @@ export function Chip({ label, onPress, selected, onDismiss }: ChipProps) {
       className={`self-start rounded-full px-3 py-1 mr-2 mb-2 border flex-row items-center ${
         selected
           ? 'bg-secondary border-secondary'
-          : 'bg-background border-border'
+          : 'bg-primary-50 border-primary-100'
       }`}
     >
       <Text
         className={`text-xs font-medium ${
-          selected ? 'text-primary' : 'text-tertiary'
+          selected ? 'text-primary' : 'text-primary-700'
         }`}
       >
         {label}
       </Text>
       {onDismiss && (
         <Pressable onPress={onDismiss} hitSlop={8} className="ml-1">
-          <X size={12} color={selected ? '#ffffff' : '#6b7280'} />
+          <X size={12} color={selected ? '#ffffff' : '#0369a1'} />
         </Pressable>
       )}
     </View>
