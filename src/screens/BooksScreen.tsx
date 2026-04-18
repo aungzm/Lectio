@@ -3,8 +3,8 @@ import { View } from 'react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useFilterStore } from '@/store/filterStore';
 import { BookGrid } from '@/components/BookGrid';
-import { SearchBar } from '@/components/SearchBar';
 import { FilterBar } from '@/components/FilterBar';
+import { BrowseTopBar } from '@/components/BrowseTopBar';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { useCoverUri } from '@/hooks/useCoverUri';
 import { useBookDetailNavigation } from '@/hooks/useBookDetailNavigation';
@@ -19,9 +19,15 @@ const BOOK_FILTER_TYPES: FilterType[] = [
 
 export default function BooksScreen({ route }: BooksScreenProps) {
   const libraryId = route.params?.libraryId;
-  const provider = useAuthStore((s) => s.provider);
-  const { bookResults, loadingBookSearch, searchBooks, filterOptions, loadingFilterOptions, fetchFilterOptions } =
-    useFilterStore();
+  const provider = useAuthStore((state) => state.provider);
+  const {
+    bookResults,
+    loadingBookSearch,
+    searchBooks,
+    filterOptions,
+    loadingFilterOptions,
+    fetchFilterOptions,
+  } = useFilterStore();
   const getCoverUri = useCoverUri('getBookCoverUrl');
   const handlePress = useBookDetailNavigation();
 
@@ -35,9 +41,9 @@ export default function BooksScreen({ route }: BooksScreenProps) {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const doSearch = useCallback(
-    (f: SearchFilters, page = 0) => {
+    (nextFilters: SearchFilters, page = 0) => {
       if (!provider) return;
-      searchBooks(provider, f, page);
+      searchBooks(provider, nextFilters, page);
     },
     [provider, searchBooks],
   );
@@ -61,16 +67,15 @@ export default function BooksScreen({ route }: BooksScreenProps) {
   }, [searchText]);
 
   const handleFiltersChange = useCallback(
-    (newFilters: SearchFilters) => {
-      setFilters(newFilters);
-      doSearch(newFilters, 0);
+    (nextFilters: SearchFilters) => {
+      setFilters(nextFilters);
+      doSearch(nextFilters, 0);
     },
     [doSearch],
   );
 
   const handleEndReached = useCallback(() => {
-    if (loadingBookSearch) return;
-    if (!bookResults) return;
+    if (loadingBookSearch || !bookResults) return;
     if (bookResults.currentPage + 1 >= bookResults.totalPages) return;
     doSearch(filters, bookResults.currentPage + 1);
   }, [loadingBookSearch, bookResults, filters, doSearch]);
@@ -81,39 +86,43 @@ export default function BooksScreen({ route }: BooksScreenProps) {
 
   const items = bookResults?.items ?? [];
   const isInitialLoad = loadingBookSearch && items.length === 0;
+  const activeFilterCount = filters.criteria.filter((criterion) => !lockedTypes.includes(criterion.type)).length;
 
   if (isInitialLoad) {
     return <LoadingScreen />;
   }
 
-  const header = (
-    <View>
-      <SearchBar
-        value={searchText}
-        onChangeText={setSearchText}
-        placeholder="Search books…"
-      />
-      <FilterBar
-        filters={filters}
-        onFiltersChange={handleFiltersChange}
-        filterOptions={filterOptions}
-        availableTypes={BOOK_FILTER_TYPES}
-        lockedTypes={lockedTypes}
-        onLoadOptions={handleLoadOptions}
-        loading={loadingFilterOptions}
-      />
-    </View>
-  );
-
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-background">
       <BookGrid
         items={items}
         getCoverUri={(item) => getCoverUri(item.id)}
         getTitle={(item) => item.title}
         onPress={handlePress}
         emptyText="No books found."
-        ListHeaderComponent={header}
+        ListHeaderComponent={
+          <BrowseTopBar
+            title="Books"
+            subtitle="Open single books fast, with search and filters available from the top bar instead of always taking space."
+            searchValue={searchText}
+            onSearchChange={setSearchText}
+            searchPlaceholder="Search books..."
+            resultCount={items.length}
+            resultLabel={items.length === 1 ? 'result' : 'results'}
+            activeFilterCount={activeFilterCount}
+            filterContent={
+              <FilterBar
+                filters={filters}
+                onFiltersChange={handleFiltersChange}
+                filterOptions={filterOptions}
+                availableTypes={BOOK_FILTER_TYPES}
+                lockedTypes={lockedTypes}
+                onLoadOptions={handleLoadOptions}
+                loading={loadingFilterOptions}
+              />
+            }
+          />
+        }
         onEndReached={handleEndReached}
         loadingMore={loadingBookSearch && items.length > 0}
       />
