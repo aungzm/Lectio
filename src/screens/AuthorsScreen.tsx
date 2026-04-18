@@ -15,22 +15,22 @@ import type { Author } from '@/providers';
 export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
   const { provider } = useAuthStore();
   const { authors, loadingAuthors, fetchAuthors } = useBrowseStore();
-  const [search, setSearch] = useState('');
+  const [searchText, setSearchText] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useProviderFetch((p) => fetchAuthors(p, 0, search || undefined));
+  useProviderFetch((p) => fetchAuthors(p, 0, searchText || undefined));
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      if (provider) fetchAuthors(provider, 0, search || undefined);
-    }, 250);
+      if (provider) fetchAuthors(provider, 0, searchText || undefined);
+    }, 300);
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [search, provider, fetchAuthors]);
+  }, [searchText, provider, fetchAuthors]);
 
   function getAuthorCoverUri(author: Author): string | null {
     if (!provider) return null;
@@ -38,6 +38,8 @@ export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
   }
 
   useLayoutEffect(() => {
+    const searchButtonActive = searchOpen || Boolean(searchText);
+
     navigation.setOptions({
       headerTitle: () => <BrowseHeaderTitle label="Authors" />,
       headerTitleAlign: 'center',
@@ -46,14 +48,14 @@ export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
         <Pressable
           onPress={() => setSearchOpen((value) => !value)}
           className={`rounded-full border px-3 py-3 ${
-            searchOpen || search ? 'border-secondary bg-secondary' : 'border-border bg-primary'
+            searchButtonActive ? 'border-secondary bg-secondary' : 'border-border bg-primary'
           }`}
         >
-          {searchOpen || search ? <X size={18} color="#ffffff" /> : <Search size={18} color="#000000" />}
+          {searchButtonActive ? <X size={18} color="#ffffff" /> : <Search size={18} color="#000000" />}
         </Pressable>
       ),
     });
-  }, [navigation, search, searchOpen]);
+  }, [navigation, searchOpen, searchText]);
 
   if (loadingAuthors && authors.length === 0) {
     return (
@@ -61,7 +63,7 @@ export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
         <View className="px-4 pb-1">
           {searchOpen ? (
             <View className="mt-2 rounded-[26px] bg-primary-50/80">
-              <SearchBar value={search} onChangeText={setSearch} placeholder="Search authors..." />
+              <SearchBar value={searchText} onChangeText={setSearchText} placeholder="Search authors..." />
             </View>
           ) : null}
         </View>
@@ -89,7 +91,7 @@ export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
       <View className="px-4 pb-1">
         {searchOpen ? (
           <View className="mt-2 rounded-[26px] bg-primary-50/80">
-            <SearchBar value={search} onChangeText={setSearch} placeholder="Search authors..." />
+            <SearchBar value={searchText} onChangeText={setSearchText} placeholder="Search authors..." />
           </View>
         ) : null}
       </View>
