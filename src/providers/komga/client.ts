@@ -131,6 +131,18 @@ export class KomgaClient {
 
   // ── Authors ────────────────────────────────────────────────────────────────
 
+  async getBooksByAuthor(authorName: string, authorRole: string, page = 0, size = 30): Promise<KomgaPageResultDto<KomgaBookDto>> {
+    const { data } = await this.http.get<KomgaPageResultDto<KomgaBookDto>>('/api/v1/books', {
+      params: {
+        'author': [`${authorName},${authorRole}`],
+        page,
+        size,
+        sort: 'metadata.titleSort,asc',
+      },
+    });
+    return data;
+  }
+
   async getAuthors(page = 0, size = 30, search?: string): Promise<KomgaPageResultDto<KomgaAuthorDto>> {
     const params: Record<string, any> = { page, size, role: 'writer' };
     if (search) params['search'] = search;

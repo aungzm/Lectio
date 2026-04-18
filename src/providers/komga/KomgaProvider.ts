@@ -230,6 +230,12 @@ export class KomgaProvider implements ILibraryProvider {
 
   // ── Collections ───────────────────────────────────────────────────────────────
 
+  async getBooksByAuthor(authorId: string, page: number, pageSize: number): Promise<Book[]> {
+    const [name, role = 'writer'] = authorId.split('|');
+    const result = await this.client.getBooksByAuthor(name, role, page, pageSize);
+    return result.content.map(mapBook);
+  }
+
   async getCollections(): Promise<Collection[]> {
     const result = await this.client.getCollections();
     return result.content.map((c) => ({
