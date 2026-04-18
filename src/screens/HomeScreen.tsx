@@ -67,41 +67,27 @@ function SectionShell({
   );
 }
 
-function ShelfCard({
+function HorizontalShelfCard({
   book,
   onPress,
   getCoverUri,
-  loading,
-  compactMeta,
 }: {
   book: Book;
   onPress: () => void;
   getCoverUri: (id: string) => string | null;
-  loading?: boolean;
-  compactMeta?: string | null;
 }) {
   return (
-    <TouchableOpacity className="mr-3 w-36" onPress={onPress} disabled={loading}>
-      <View className="overflow-hidden rounded-2xl border border-border bg-background">
-        <View className="h-48 bg-background p-2">
+    <TouchableOpacity className="mr-3 w-36" onPress={onPress}>
+      <View className="overflow-hidden rounded-2xl border border-border bg-surface">
+        <View className="aspect-[2/3] bg-background p-2">
           <View className="h-full w-full overflow-hidden rounded-xl bg-border">
             <CoverImage uri={getCoverUri(book.id)} className="h-full w-full" resizeMode="contain" />
           </View>
-          {loading ? (
-            <View className="absolute inset-0 items-center justify-center bg-secondary/20">
-              <ActivityIndicator color="#ffffff" />
-            </View>
-          ) : null}
         </View>
-        <View className="min-h-[88px] justify-between px-3 py-3">
-          <Text className="text-sm font-semibold leading-6 text-secondary" numberOfLines={2}>
+        <View className="min-h-[52px] px-3 pb-2 pt-1.5">
+          <Text className="text-sm font-semibold leading-5 text-secondary" numberOfLines={2}>
             {book.title}
           </Text>
-          {compactMeta ? (
-            <Text className="mt-2 text-xs text-tertiary" numberOfLines={1}>
-              {compactMeta}
-            </Text>
-          ) : null}
         </View>
       </View>
     </TouchableOpacity>
@@ -178,6 +164,33 @@ function FeaturedContinueCard({
   );
 }
 
+function HorizontalShelf({
+  data,
+  onPress,
+  getCoverUri,
+}: {
+  data: Book[];
+  onPress: (book: Book) => void;
+  getCoverUri: (id: string) => string | null;
+}) {
+  return (
+    <FlatList
+      horizontal
+      data={data}
+      keyExtractor={(item) => item.id}
+      contentContainerClassName="px-4"
+      showsHorizontalScrollIndicator={false}
+      renderItem={({ item }) => (
+        <HorizontalShelfCard
+          book={item}
+          onPress={() => onPress(item)}
+          getCoverUri={getCoverUri}
+        />
+      )}
+    />
+  );
+}
+
 function EmptyState({
   title,
   description,
@@ -193,39 +206,6 @@ function EmptyState({
       <Text className="mt-4 text-base font-semibold text-secondary">{title}</Text>
       <Text className="mt-1 text-center text-sm leading-5 text-tertiary">{description}</Text>
     </View>
-  );
-}
-
-function HorizontalShelf({
-  data,
-  onPress,
-  getCoverUri,
-  loadingId,
-  metaFor,
-}: {
-  data: Book[];
-  onPress: (book: Book) => void;
-  getCoverUri: (id: string) => string | null;
-  loadingId?: string | null;
-  metaFor?: (book: Book) => string | null;
-}) {
-  return (
-    <FlatList
-      horizontal
-      data={data}
-      keyExtractor={(item) => item.id}
-      contentContainerClassName="px-4"
-      showsHorizontalScrollIndicator={false}
-      renderItem={({ item }) => (
-        <ShelfCard
-          book={item}
-          onPress={() => onPress(item)}
-          getCoverUri={getCoverUri}
-          loading={loadingId === item.id}
-          compactMeta={metaFor?.(item) ?? null}
-        />
-      )}
-    />
   );
 }
 
@@ -360,10 +340,6 @@ export default function HomeScreen() {
                   data={remainingContinue}
                   onPress={handleContinueReadingPress}
                   getCoverUri={getCoverUri}
-                  loadingId={loadingContinueId}
-                  metaFor={(book) => (
-                    book.pagesTotal > 0 ? `${book.pagesRead}/${book.pagesTotal} pages` : null
-                  )}
                 />
               </View>
             ) : null}
@@ -388,7 +364,6 @@ export default function HomeScreen() {
             data={recentlyAdded}
             onPress={handleSeriesPress}
             getCoverUri={getCoverUri}
-            metaFor={(book) => book.metadata.year ? `${book.metadata.year}` : null}
           />
         ) : (
           <EmptyState
@@ -410,7 +385,6 @@ export default function HomeScreen() {
             data={recentlyAddedBooks}
             onPress={handleBookPress}
             getCoverUri={getBookCoverUri}
-            metaFor={(book) => book.metadata.language ? book.metadata.language.toUpperCase() : null}
           />
         ) : (
           <EmptyState
@@ -432,7 +406,6 @@ export default function HomeScreen() {
             data={recentlyUpdatedSeries}
             onPress={handleSeriesPress}
             getCoverUri={getCoverUri}
-            metaFor={(book) => book.metadata.genres[0] ?? null}
           />
         ) : (
           <EmptyState
