@@ -1,22 +1,33 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
   ScrollView,
-  TouchableOpacity,
   Pressable,
-  useWindowDimensions,
+  TouchableOpacity,
 } from 'react-native';
-import RenderHtml from 'react-native-render-html';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import {
+  BookOpen,
+  CalendarDays,
+  Languages,
+  Library,
+  Shield,
+  Sparkles,
+  User,
+} from 'lucide-react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useLibraryStore } from '@/store/libraryStore';
+import { BookGrid } from '@/components/BookGrid';
 import { CoverImage } from '@/components/CoverImage';
 import { LoadingScreen } from '@/components/LoadingScreen';
-import { MetadataSection } from '@/components/MetadataSection';
-import { Chip } from '@/components/Chip';
+import { SectionCard } from '@/components/SectionCard';
+import { InfoPill } from '@/components/InfoPill';
+import { KeyFact } from '@/components/KeyFact';
+import { PeopleChips } from '@/components/PeopleChips';
+import { CollapsibleChipSection } from '@/components/CollapsibleChipSection';
 import { useProviderFetch } from '@/hooks/useProviderFetch';
-import type { Volume, DetailedMetadata, PersonInfo } from '@/providers';
+import type { Volume, DetailedMetadata } from '@/providers';
 
 const AGE_RATING_LABELS: Record<number, string> = {
   0: 'Unknown',
@@ -36,39 +47,44 @@ const AGE_RATING_LABELS: Record<number, string> = {
   14: 'Not Applicable',
 };
 
-function PeopleChips({ label, people }: { label: string; people: PersonInfo[] }) {
-  if (people.length === 0) return null;
+function ChapterRow({
+  title,
+  pagesRead,
+  pagesTotal,
+  onPress,
+}: {
+  title: string;
+  pagesRead: number;
+  pagesTotal: number;
+  onPress: () => void;
+}) {
+  const progressLabel =
+    pagesTotal > 0 ? `${pagesRead}/${pagesTotal} pages` : null;
+
   return (
-    <MetadataSection label={label}>
-      <View className="flex-row flex-wrap">
-        {people.map((p) => <Chip key={p.name} label={p.name} />)}
+    <TouchableOpacity
+      onPress={onPress}
+      className="mb-3 rounded-2xl border border-border bg-background px-4 py-4"
+    >
+      <View className="flex-row items-center justify-between">
+        <View className="mr-4 flex-1">
+          <Text className="text-base font-semibold text-secondary" numberOfLines={1}>
+            {title}
+          </Text>
+          {progressLabel ? (
+            <Text className="mt-1 text-xs text-tertiary">{progressLabel}</Text>
+          ) : null}
+        </View>
+        <View className="rounded-full bg-primary-50 px-3 py-2">
+          <Text className="text-xs font-semibold text-accent">Read</Text>
+        </View>
       </View>
-    </MetadataSection>
+    </TouchableOpacity>
   );
 }
 
-const SYNOPSIS_BASE_STYLES = {
-  body: {
-    color: '#374151',
-    fontSize: 14,
-    lineHeight: 22,
-  },
-  a: {
-    color: '#0ea5e9',
-  },
-};
-
-// A volume with a single chapter whose number is <= 0 represents a whole book (epub/pdf).
 function isBookVolume(volume: Volume): boolean {
-  return volume.chapters.length === 1 && Number(volume.chapters[0].number) <= 0;
-}
-
-function bookLabel(name: string | null | undefined, number: number): string {
-  if (name && isNaN(Number(name))) return name;
-  const n = Number(name);
-  if (!isNaN(n) && n > 0) return `Book ${n}`;
-  if (number > 0) return `Book ${number}`;
-  return 'Book';
+  return volume.chapters.length === 1;
 }
 
 function volumeLabel(name: string | null | undefined, number: number): string {
@@ -78,10 +94,14 @@ function volumeLabel(name: string | null | undefined, number: number): string {
   return `Volume ${number}`;
 }
 
-function chunkArray<T>(arr: T[], size: number): T[][] {
-  const result: T[][] = [];
-  for (let i = 0; i < arr.length; i += size) result.push(arr.slice(i, i + size));
-  return result;
+function formatSeriesStatus(status: string | null | undefined): string | null {
+  if (!status) return null;
+
+  return status
+    .toLowerCase()
+    .split('_')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
 }
 
 export default function SeriesDetailScreen() {
@@ -90,7 +110,6 @@ export default function SeriesDetailScreen() {
   const { seriesId, title } = route.params as { seriesId: string; title: string };
   const { provider } = useAuthStore();
   const { volumes, loadingVolumes, fetchVolumes } = useLibraryStore();
-  const { width } = useWindowDimensions();
 
   const [metadata, setMetadata] = useState<DetailedMetadata | null>(null);
   const [metaLoading, setMetaLoading] = useState(true);
@@ -105,38 +124,41 @@ export default function SeriesDetailScreen() {
       setMetaLoading(false);
       return;
     }
+
     let cancelled = false;
     provider.getDetailedMetadata(seriesId).then(
-      (data) => { if (!cancelled) { setMetadata(data); setMetaLoading(false); } },
-      () => { if (!cancelled) { setMetaLoading(false); } },
+      (data) => {
+        if (!cancelled) {
+          setMetadata(data);
+          setMetaLoading(false);
+        }
+      },
+      () => {
+        if (!cancelled) {
+          setMetaLoading(false);
+        }
+      },
     );
-    return () => { cancelled = true; };
-  }, [seriesId, provider]);
 
-  const synopsisHtml = useMemo(() => {
-    if (!metadata?.summary) return null;
-    const text = metadata.summary.trim();
-    if (!text) return null;
-    if (/<[a-z][\s\S]*>/i.test(text)) return { html: text };
-    return { html: `<p>${text}</p>` };
-  }, [metadata?.summary]);
+    return () => {
+      cancelled = true;
+    };
+  }, [seriesId, provider]);
 
   const synopsisPlain = useMemo(() => {
     if (!metadata?.summary) return '';
     return metadata.summary.replace(/<[^>]*>/g, '').trim();
   }, [metadata?.summary]);
 
-  const SYNOPSIS_TRUNCATE_LENGTH = 150;
-  const synopsisNeedsTruncation = synopsisPlain.length > SYNOPSIS_TRUNCATE_LENGTH;
-
   function getSeriesCoverUri(): string | null {
     if (!provider) return null;
     return provider.getCoverUrl(seriesId);
   }
 
-  function getVolumeCoverUri(volumeId: string): string | null {
+  function getBookCoverUri(bookId: string): string | null {
     if (!provider) return null;
-    return provider.getVolumeCoverUrl?.(volumeId)
+    return provider.getBookCoverUrl?.(bookId)
+      ?? provider.getVolumeCoverUrl?.(bookId)
       ?? provider.getCoverUrl(seriesId);
   }
 
@@ -150,178 +172,168 @@ export default function SeriesDetailScreen() {
   }
 
   const singleBooks = bookVolumes.filter(isBookVolume);
-  const multiChapterVolumes = bookVolumes.filter((v) => !isBookVolume(v));
+  const multiChapterVolumes = bookVolumes.filter((volume) => !isBookVolume(volume));
   const ageLabel = metadata ? AGE_RATING_LABELS[metadata.ageRating] ?? null : null;
-  const contentWidth = width - 32;
+  const statusLabel = formatSeriesStatus(metadata?.seriesStatus);
+  const bookCountLabel = `${bookVolumes.length} ${bookVolumes.length === 1 ? 'Book' : 'Books'}`;
+  const authorNames = metadata?.writers?.map((writer) => writer.name).filter(Boolean) ?? [];
+  const heroFacts = [
+    { label: 'Books', value: bookCountLabel },
+    statusLabel ? { label: 'Status', value: statusLabel } : null,
+    metadata?.releaseYear ? { label: 'Year', value: `${metadata.releaseYear}` } : null,
+    metadata?.language ? { label: 'Language', value: metadata.language.toUpperCase() } : null,
+  ].filter((item): item is { label: string; value: string } => Boolean(item));
 
   return (
-    <ScrollView className="flex-1 bg-background" contentContainerClassName="pb-12">
-      {/* Hero */}
-      <View className="items-center pt-2 pb-6 px-4">
-        <View className="w-40 h-56 bg-border rounded-2xl overflow-hidden shadow-lg">
-          <CoverImage uri={getSeriesCoverUri()} className="w-full h-full" resizeMode="cover" />
-        </View>
-        <Text className="text-xl font-bold text-secondary mt-4 text-center px-4" numberOfLines={3}>
-          {title}
-        </Text>
-        {metadata?.writers && metadata.writers.length > 0 && (
-          <Text className="text-sm text-tertiary mt-1">
-            {metadata.writers.map((w) => w.name).join(', ')}
-          </Text>
-        )}
-        <View className="flex-row items-center gap-3 mt-2">
-          {metadata?.releaseYear && (
-            <Text className="text-xs text-muted">{metadata.releaseYear}</Text>
-          )}
-          {metadata?.language && (
-            <Text className="text-xs text-muted">{metadata.language.toUpperCase()}</Text>
-          )}
-          {ageLabel && ageLabel !== 'Unknown' && (
-            <View className="bg-border rounded px-1.5 py-0.5">
-              <Text className="text-xs text-tertiary font-medium">{ageLabel}</Text>
+    <ScrollView className="flex-1 bg-background" contentContainerClassName="pb-10">
+      <View className="px-4 pt-4">
+        <View className="relative overflow-hidden rounded-[32px] border border-border bg-surface px-5 pb-6 pt-5">
+          <View className="absolute -right-10 -top-12 h-36 w-36 rounded-full bg-primary-100" />
+          <View className="absolute -left-12 top-28 h-28 w-28 rounded-full bg-primary-50" />
+
+          <View className="items-center">
+            <View className="h-64 w-44 overflow-hidden rounded-[28px] border border-border bg-border shadow-lg">
+              <CoverImage uri={getSeriesCoverUri()} className="h-full w-full" resizeMode="cover" />
             </View>
-          )}
+
+            <Text className="mt-5 text-center text-3xl font-bold text-secondary" numberOfLines={3}>
+              {title}
+            </Text>
+
+            {authorNames.length > 0 ? (
+              <View className="mt-3 w-full max-w-[320px] flex-row flex-wrap items-center justify-center gap-2 self-center">
+                {authorNames.map((author, index) => (
+                  <InfoPill
+                    key={`${author}-${index}`}
+                    icon={<User size={14} color="#6b7280" />}
+                    label={author}
+                  />
+                ))}
+              </View>
+            ) : null}
+
+            <View className="mt-4 flex-row flex-wrap items-center justify-center gap-2">
+              <InfoPill
+                icon={<Library size={14} color="#6b7280" />}
+                label={bookCountLabel}
+              />
+              {metadata?.releaseYear ? (
+                <InfoPill
+                  icon={<CalendarDays size={14} color="#6b7280" />}
+                  label={`${metadata.releaseYear}`}
+                />
+              ) : null}
+              {metadata?.language ? (
+                <InfoPill
+                  icon={<Languages size={14} color="#6b7280" />}
+                  label={metadata.language.toUpperCase()}
+                />
+              ) : null}
+              {statusLabel ? (
+                <InfoPill
+                  icon={<Sparkles size={14} color="#6b7280" />}
+                  label={statusLabel}
+                />
+              ) : null}
+              {ageLabel && ageLabel !== 'Unknown' ? (
+                <InfoPill icon={<Shield size={14} color="#6b7280" />} label={ageLabel} />
+              ) : null}
+            </View>
+          </View>
+
+          <View className="mt-5 flex-row flex-wrap gap-3">
+            {heroFacts.map((fact) => (
+              <KeyFact key={`${fact.label}-${fact.value}`} label={fact.label} value={fact.value} />
+            ))}
+          </View>
         </View>
       </View>
 
-      {/* Synopsis */}
-      {metadata && (
-        <View className="px-4">
-          {synopsisHtml && (
-            <MetadataSection label="Synopsis">
-              {synopsisExpanded ? (
-                <>
-                  <RenderHtml
-                    contentWidth={contentWidth}
-                    source={synopsisHtml}
-                    tagsStyles={SYNOPSIS_BASE_STYLES}
-                  />
-                  <Pressable onPress={() => setSynopsisExpanded(false)} className="mt-1">
-                    <Text className="text-accent text-sm font-medium">Show less</Text>
-                  </Pressable>
-                </>
-              ) : (
-                <>
-                  <Text className="text-sm text-secondary" numberOfLines={3}>
-                    {synopsisPlain}
-                  </Text>
-                  {synopsisNeedsTruncation && (
-                    <Pressable onPress={() => setSynopsisExpanded(true)} className="mt-1">
-                      <Text className="text-accent text-sm font-medium">Show more</Text>
-                    </Pressable>
-                  )}
-                </>
-              )}
-            </MetadataSection>
-          )}
+      <View className="px-4 pt-4">
+        {synopsisPlain.length > 0 ? (
+          <SectionCard title="Synopsis">
+            <Text
+              className="text-sm leading-6 text-secondary"
+              numberOfLines={synopsisExpanded ? undefined : 6}
+            >
+              {synopsisPlain}
+            </Text>
+            {synopsisPlain.length > 180 ? (
+              <Pressable onPress={() => setSynopsisExpanded((value) => !value)} className="mt-2">
+                <Text className="text-sm font-medium text-accent">
+                  {synopsisExpanded ? 'Show less' : 'Read full synopsis'}
+                </Text>
+              </Pressable>
+            ) : null}
+          </SectionCard>
+        ) : null}
 
-          {/* Genres */}
-          {metadata.genres.length > 0 && (
-            <MetadataSection label="Genres">
-              <View className="flex-row flex-wrap">
-                {metadata.genres.map((g) => <Chip key={g} label={g} />)}
-              </View>
-            </MetadataSection>
-          )}
+        {(metadata?.genres.length || metadata?.tags.length) ? (
+          <SectionCard>
+            <CollapsibleChipSection label="Genres" items={metadata?.genres ?? []} />
+            <CollapsibleChipSection label="Tags" items={metadata?.tags ?? []} />
+          </SectionCard>
+        ) : null}
 
-          {/* Tags */}
-          {metadata.tags.length > 0 && (
-            <MetadataSection label="Tags">
-              <View className="flex-row flex-wrap">
-                {metadata.tags.map((t) => <Chip key={t} label={t} />)}
-              </View>
-            </MetadataSection>
-          )}
+        {metadata ? (
+          <SectionCard>
+            <PeopleChips label="Penciller" people={metadata.pencillers} />
+            <PeopleChips label="Inker" people={metadata.inkers} />
+            <PeopleChips label="Colorist" people={metadata.colorists} />
+            <PeopleChips label="Letterer" people={metadata.letterers} />
+            <PeopleChips label="Cover Artist" people={metadata.coverArtists} />
+            <PeopleChips label="Editor" people={metadata.editors} />
+            <PeopleChips label="Publisher" people={metadata.publishers} />
+            <PeopleChips label="Translator" people={metadata.translators} />
+            <PeopleChips label="Character" people={metadata.characters} />
+          </SectionCard>
+        ) : null}
 
-          {/* People */}
-          <PeopleChips label="Author(s)" people={metadata.writers} />
-          <PeopleChips label="Penciller(s)" people={metadata.pencillers} />
-          <PeopleChips label="Inker(s)" people={metadata.inkers} />
-          <PeopleChips label="Colorist(s)" people={metadata.colorists} />
-          <PeopleChips label="Letterer(s)" people={metadata.letterers} />
-          <PeopleChips label="Cover Artist(s)" people={metadata.coverArtists} />
-          <PeopleChips label="Editor(s)" people={metadata.editors} />
-          <PeopleChips label="Publisher(s)" people={metadata.publishers} />
-          <PeopleChips label="Translator(s)" people={metadata.translators} />
-          <PeopleChips label="Character(s)" people={metadata.characters} />
-        </View>
-      )}
+        {singleBooks.length > 0 ? (
+          <SectionCard title="Books">
+            <BookGrid
+              items={singleBooks}
+              getCoverUri={(volume) => getBookCoverUri(volume.id)}
+              getTitle={(volume) => volume.chapters[0]?.title || volume.name}
+              onPress={(volume) => {
+                const chapter = volume.chapters[0];
+                handleReadChapter(chapter.id, chapter.title || volume.name);
+              }}
+              scrollEnabled={false}
+              contentPadding={0}
+              titleAlign="left"
+            />
+          </SectionCard>
+        ) : null}
 
-      {/* Book grid (epub/pdf series — each volume is one book) */}
-      {singleBooks.length > 0 && (
-        <View className="px-4">
-          <MetadataSection label="Books">
-            {chunkArray(singleBooks, 3).map((row, rowIndex) => (
-              <View key={rowIndex} className="flex-row gap-2 mb-4">
-                {row.map((volume) => {
-                  const chapter = volume.chapters[0];
-                  const label = chapter.title || bookLabel(volume.name, volume.number);
-                  return (
-                    <TouchableOpacity
-                      key={volume.id}
-                      className="flex-1 items-center"
-                      onPress={() => handleReadChapter(chapter.id, label)}
-                    >
-                      <View className="w-full aspect-[2/3] bg-border rounded-xl overflow-hidden mb-1">
-                        <CoverImage
-                          uri={getVolumeCoverUri(volume.id)}
-                          className="w-full h-full"
-                          resizeMode="cover"
-                        />
-                      </View>
-                      <Text className="text-xs text-secondary text-center font-medium" numberOfLines={1}>
-                        {label}
-                      </Text>
-                      {chapter.pagesTotal > 0 && (
-                        <Text className="text-xs text-muted text-center">
-                          {chapter.pagesRead}/{chapter.pagesTotal}p
-                        </Text>
-                      )}
-                    </TouchableOpacity>
-                  );
-                })}
-                {row.length < 3 &&
-                  Array(3 - row.length)
-                    .fill(null)
-                    .map((_, i) => <View key={`empty-${i}`} className="flex-1" />)}
-              </View>
+        {multiChapterVolumes.map((volume) => (
+          <SectionCard key={volume.id} title={volumeLabel(volume.name, volume.number)}>
+            {volume.chapters.map((chapter) => (
+              <ChapterRow
+                key={chapter.id}
+                title={chapter.title}
+                pagesRead={chapter.pagesRead}
+                pagesTotal={chapter.pagesTotal}
+                onPress={() => handleReadChapter(chapter.id, chapter.title)}
+              />
             ))}
-          </MetadataSection>
-        </View>
-      )}
+          </SectionCard>
+        ))}
 
-      {/* Multi-chapter volumes (manga/comics) */}
-      {multiChapterVolumes.length > 0 && (
-        <View className="px-4">
-          {multiChapterVolumes.map((volume) => (
-            <MetadataSection key={volume.id} label={volumeLabel(volume.name, volume.number)}>
-              {volume.chapters.map((chapter) => (
-                <TouchableOpacity
-                  key={chapter.id}
-                  className="flex-row items-center justify-between py-3 border-b border-border"
-                  onPress={() => handleReadChapter(chapter.id, chapter.title)}
-                >
-                  <View className="flex-1 mr-4">
-                    <Text className="text-base text-secondary" numberOfLines={1}>
-                      {chapter.title}
-                    </Text>
-                    {chapter.pagesTotal > 0 && (
-                      <Text className="text-xs text-muted mt-0.5">
-                        {chapter.pagesRead}/{chapter.pagesTotal} pages
-                      </Text>
-                    )}
-                  </View>
-                  <Text className="text-accent text-sm font-medium">Read</Text>
-                </TouchableOpacity>
-              ))}
-            </MetadataSection>
-          ))}
-        </View>
-      )}
-
-      {bookVolumes.length === 0 && !loadingVolumes && (
-        <Text className="text-center text-muted mt-10">No chapters found.</Text>
-      )}
+        {bookVolumes.length === 0 && !loadingVolumes ? (
+          <View className="rounded-[28px] border border-border bg-surface px-5 py-8">
+            <View className="items-center">
+              <View className="rounded-full bg-primary-50 p-4">
+                <BookOpen size={24} color="#0ea5e9" />
+              </View>
+              <Text className="mt-4 text-base font-semibold text-secondary">No books found</Text>
+              <Text className="mt-1 text-center text-sm text-tertiary">
+                This series does not have any readable entries yet.
+              </Text>
+            </View>
+          </View>
+        ) : null}
+      </View>
     </ScrollView>
   );
 }

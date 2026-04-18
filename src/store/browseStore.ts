@@ -4,12 +4,14 @@ import type { Author, Collection, ReadList, Book, ILibraryProvider } from '@/pro
 interface BrowseState {
   authors: Author[];
   seriesByAuthor: Record<string, Book[]>;
+  booksByAuthor: Record<string, Book[]>;
   collections: Collection[];
   seriesByCollection: Record<string, Book[]>;
   readLists: ReadList[];
   booksByReadList: Record<string, Book[]>;
   loadingAuthors: boolean;
   loadingSeriesByAuthor: boolean;
+  loadingBooksByAuthor: boolean;
   loadingCollections: boolean;
   loadingCollectionSeries: boolean;
   loadingReadLists: boolean;
@@ -18,6 +20,7 @@ interface BrowseState {
 
   fetchAuthors: (provider: ILibraryProvider, page?: number, search?: string) => Promise<void>;
   fetchSeriesByAuthor: (provider: ILibraryProvider, authorId: string) => Promise<void>;
+  fetchBooksByAuthor: (provider: ILibraryProvider, authorId: string) => Promise<void>;
   fetchCollections: (provider: ILibraryProvider) => Promise<void>;
   fetchCollectionSeries: (provider: ILibraryProvider, collectionId: string) => Promise<void>;
   fetchReadLists: (provider: ILibraryProvider) => Promise<void>;
@@ -27,12 +30,14 @@ interface BrowseState {
 export const useBrowseStore = create<BrowseState>((set, get) => ({
   authors: [],
   seriesByAuthor: {},
+  booksByAuthor: {},
   collections: [],
   seriesByCollection: {},
   readLists: [],
   booksByReadList: {},
   loadingAuthors: false,
   loadingSeriesByAuthor: false,
+  loadingBooksByAuthor: false,
   loadingCollections: false,
   loadingCollectionSeries: false,
   loadingReadLists: false,
@@ -67,6 +72,23 @@ export const useBrowseStore = create<BrowseState>((set, get) => ({
       }));
     } catch (e: any) {
       set({ loadingSeriesByAuthor: false, error: e?.message ?? 'Failed to load series by author' });
+    }
+  },
+
+  fetchBooksByAuthor: async (provider, authorId) => {
+    set({ loadingBooksByAuthor: true, error: null });
+    try {
+      if (!provider.getBooksByAuthor) {
+        set({ loadingBooksByAuthor: false });
+        return;
+      }
+      const books = await provider.getBooksByAuthor(authorId, 0, 100);
+      set((state) => ({
+        booksByAuthor: { ...state.booksByAuthor, [authorId]: books },
+        loadingBooksByAuthor: false,
+      }));
+    } catch (e: any) {
+      set({ loadingBooksByAuthor: false, error: e?.message ?? 'Failed to load books by author' });
     }
   },
 

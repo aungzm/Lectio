@@ -9,7 +9,7 @@ interface MetadataSectionProps {
 export function MetadataSection({ label, children }: MetadataSectionProps) {
   return (
     <View className="mb-6">
-      <Text className="text-xs font-semibold text-tertiary uppercase tracking-wide mb-2">{label}</Text>
+      <Text className="text-xs font-bold text-tertiary uppercase tracking-wide mb-2">{label}</Text>
       {children}
     </View>
   );
