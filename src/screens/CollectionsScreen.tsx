@@ -3,6 +3,7 @@ import { View, Text } from 'react-native';
 import { Layers3 } from 'lucide-react-native';
 import { BookGrid } from '@/components/BookGrid';
 import { BrowseHeaderTitle } from '@/components/BrowseHeaderTitle';
+import { Chip } from '@/components/Chip';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import NavIconButton from '@/components/NavIconButton';
 import { useCoverUri } from '@/hooks/useCoverUri';
@@ -52,11 +53,7 @@ export default function CollectionsScreen({ navigation }: CollectionsScreenProps
         emptyText="No collections found."
         ListHeaderComponent={
           <View className="px-4 pb-3 pt-2">
-            <View className="self-start rounded-full border border-border bg-surface px-3 py-2">
-              <Text className="text-xs font-semibold uppercase tracking-wide text-secondary">
-                {collections.length} {collections.length === 1 ? 'collection' : 'collections'}
-              </Text>
-            </View>
+            <Chip label={`${collections.length} ${collections.length === 1 ? 'collection' : 'collections'}`} />
           </View>
         }
         titleAlign="left"

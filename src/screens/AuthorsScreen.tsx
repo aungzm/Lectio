@@ -5,6 +5,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useBrowseStore } from '@/store/browseStore';
 import { BrowseHeaderTitle } from '@/components/BrowseHeaderTitle';
 import { BookGrid } from '@/components/BookGrid';
+import { Chip } from '@/components/Chip';
 import NavIconButton from '@/components/NavIconButton';
 import { SearchBar } from '@/components/SearchBar';
 import { useProviderFetch } from '@/hooks/useProviderFetch';
@@ -69,7 +70,7 @@ export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
           data={[]}
           ListHeaderComponent={
             <View className="px-4 pb-3 pt-2">
-              <Text className="ml-1 text-xs font-semibold uppercase tracking-wide text-tertiary">0 authors</Text>
+              <Chip label="0 authors" />
             </View>
           }
           ListEmptyComponent={
@@ -103,9 +104,7 @@ export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
         cardVariant="author"
         ListHeaderComponent={
           <View className="px-4 pb-3 pt-2">
-            <Text className="ml-1 text-xs font-semibold uppercase tracking-wide text-tertiary">
-              {authors.length} {authors.length === 1 ? 'author' : 'authors'}
-            </Text>
+            <Chip label={`${authors.length} ${authors.length === 1 ? 'author' : 'authors'}`} />
           </View>
         }
       />

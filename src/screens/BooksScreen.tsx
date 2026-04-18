@@ -5,6 +5,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useFilterStore } from '@/store/filterStore';
 import { BookGrid } from '@/components/BookGrid';
 import { BrowseHeaderTitle } from '@/components/BrowseHeaderTitle';
+import { Chip } from '@/components/Chip';
 import { FilterBar } from '@/components/FilterBar';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import NavIconButton from '@/components/NavIconButton';
@@ -170,9 +171,7 @@ export default function BooksScreen({ route, navigation }: BooksScreenProps) {
         emptyText="No books found."
         ListHeaderComponent={
           <View className="px-4 pb-3 pt-2">
-            <Text className="ml-1 text-xs font-semibold uppercase tracking-wide text-tertiary">
-              {items.length} {items.length === 1 ? 'result' : 'results'}
-            </Text>
+            <Chip label={`${items.length} ${items.length === 1 ? 'result' : 'results'}`} />
           </View>
         }
         onEndReached={handleEndReached}
