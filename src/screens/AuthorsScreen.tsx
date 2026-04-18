@@ -94,15 +94,6 @@ export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
                 <Text className="mt-4 text-center text-sm font-semibold text-secondary" numberOfLines={2}>
                   {item.name}
                 </Text>
-                <View className="mt-2 self-center rounded-full bg-primary-50 px-3 py-1.5">
-                  <Text className="text-xs font-medium capitalize text-accent" numberOfLines={1}>
-                    {item.role || 'Author'}
-                  </Text>
-                </View>
-                <View className="mt-4 flex-row items-center">
-                  <PenTool size={14} color="#6b7280" />
-                  <Text className="ml-2 text-xs text-tertiary">Open profile</Text>
-                </View>
               </View>
             </View>
           </TouchableOpacity>
