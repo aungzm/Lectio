@@ -6,19 +6,18 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
-  Pressable,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { DrawerActions } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   BookOpen,
-  ChevronRight,
   Clock3,
   Compass,
   Library,
   Sparkles,
 } from 'lucide-react-native';
+import { SectionShell } from '@/components/SectionShell';
 import { useHomeStore } from '@/store/homeStore';
 import { CoverImage } from '@/components/CoverImage';
 import { LoadingScreen } from '@/components/LoadingScreen';
@@ -30,42 +29,6 @@ import type { HomeStackParamList } from '@/navigation/types';
 
 type HomeNav = NativeStackNavigationProp<HomeStackParamList, 'HomeScreen'>;
 
-function SectionShell({
-  title,
-  subtitle,
-  icon,
-  actionLabel = 'View all',
-  onPress,
-  children,
-}: {
-  title: string;
-  subtitle: string;
-  icon: React.ReactNode;
-  actionLabel?: string;
-  onPress?: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <View className="mb-6 rounded-[28px] border border-border bg-surface py-5">
-      <View className="mb-4 flex-row items-start justify-between px-4">
-        <View className="mr-3 flex-1">
-          <View className="mb-2 flex-row items-center">
-            <View className="mr-2 rounded-full bg-primary-50 p-2">{icon}</View>
-            <Text className="text-lg font-bold text-secondary">{title}</Text>
-          </View>
-          <Text className="text-sm leading-5 text-tertiary">{subtitle}</Text>
-        </View>
-        {onPress ? (
-          <Pressable onPress={onPress} className="flex-row items-center rounded-full bg-background px-3 py-2">
-            <Text className="text-sm font-medium text-secondary">{actionLabel}</Text>
-            <ChevronRight size={16} color="#000000" strokeWidth={2} />
-          </Pressable>
-        ) : null}
-      </View>
-      {children}
-    </View>
-  );
-}
 
 function HorizontalShelfCard({
   book,
@@ -322,7 +285,6 @@ export default function HomeScreen() {
 
       <SectionShell
         title="Continue Reading"
-        subtitle="Pick up where momentum already exists."
         icon={<Clock3 size={18} color="#0ea5e9" />}
         onPress={() => navigateDrawer('Library')}
       >
@@ -355,7 +317,6 @@ export default function HomeScreen() {
 
       <SectionShell
         title="Recently Added Series"
-        subtitle="New worlds and runs that just landed in your library."
         icon={<Sparkles size={18} color="#0ea5e9" />}
         onPress={() => navigateDrawer('Series')}
       >
@@ -376,7 +337,6 @@ export default function HomeScreen() {
 
       <SectionShell
         title="Recently Added Books"
-        subtitle="New individual books ready to open right away."
         icon={<BookOpen size={18} color="#0ea5e9" />}
         onPress={() => navigateDrawer('Books')}
       >
@@ -397,7 +357,6 @@ export default function HomeScreen() {
 
       <SectionShell
         title="Recently Updated Series"
-        subtitle="Series with new movement since your last check-in."
         icon={<Compass size={18} color="#0ea5e9" />}
         onPress={() => navigateDrawer('Series')}
       >
