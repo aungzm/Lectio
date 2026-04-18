@@ -1,9 +1,11 @@
-import React, { useMemo } from 'react';
+import React, { useLayoutEffect, useMemo } from 'react';
 import { View, Text } from 'react-native';
 import { BookOpen } from 'lucide-react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useLibraryStore } from '@/store/libraryStore';
+import { BrowseHeaderTitle } from '@/components/BrowseHeaderTitle';
 import { LoadingScreen } from '@/components/LoadingScreen';
+import NavIconButton from '@/components/NavIconButton';
 import { BookGrid } from '@/components/BookGrid';
 import { useProviderFetch } from '@/hooks/useProviderFetch';
 import type { LibrariesScreenProps } from '@/navigation/types';
@@ -20,6 +22,15 @@ export default function LibrariesScreen({ navigation }: LibrariesScreenProps) {
     [libraries],
   );
 
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerTitle: () => <BrowseHeaderTitle label="Libraries" />,
+      headerTitleAlign: 'center',
+      headerLeft: () => <NavIconButton type="drawer" />,
+      headerRight: () => <View className="w-10" />,
+    });
+  }, [navigation]);
+
   function getCoverUri(library: Library): string | null {
     if (!provider) return null;
     return provider.getLibraryCoverUrl?.(library.id) ?? null;
@@ -28,42 +39,6 @@ export default function LibrariesScreen({ navigation }: LibrariesScreenProps) {
   if (loadingLibraries && libraries.length === 0) {
     return <LoadingScreen />;
   }
-
-  const header = (
-    <View className="px-4 pt-4 pb-3">
-      <View className="relative overflow-hidden rounded-[30px] border border-border bg-surface px-5 py-5">
-        <View className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-primary-100" />
-        <View className="absolute -left-8 top-16 h-20 w-20 rounded-full bg-primary-50" />
-
-        <View className="flex-row items-start justify-between">
-          <View className="mr-4 flex-1">
-            <Text className="text-3xl font-bold text-secondary">Libraries</Text>
-            <Text className="mt-2 text-sm leading-6 text-tertiary">
-              Pick a collection to jump into its series and keep browsing from a calmer, cleaner
-              home base.
-            </Text>
-          </View>
-
-          <View className="rounded-full border border-border bg-background px-3 py-3">
-            <BookOpen size={18} color="#000000" />
-          </View>
-        </View>
-
-        <View className="mt-4 flex-row flex-wrap gap-2">
-          <View className="rounded-full border border-border bg-background px-3 py-2">
-            <Text className="text-xs font-semibold uppercase tracking-wide text-secondary">
-              {libraries.length} {libraries.length === 1 ? 'library' : 'libraries'}
-            </Text>
-          </View>
-          <View className="rounded-full border border-border bg-background px-3 py-2">
-            <Text className="text-xs font-semibold uppercase tracking-wide text-secondary">
-              {totalBooks} {totalBooks === 1 ? 'book' : 'books'}
-            </Text>
-          </View>
-        </View>
-      </View>
-    </View>
-  );
 
   return (
     <View className="flex-1 bg-background">
@@ -88,7 +63,22 @@ export default function LibrariesScreen({ navigation }: LibrariesScreenProps) {
           });
         }}
         emptyText="No libraries found."
-        ListHeaderComponent={header}
+        ListHeaderComponent={
+          <View className="px-4 pt-2 pb-3">
+            <View className="flex-row flex-wrap gap-2">
+              <View className="rounded-full border border-border bg-surface px-3 py-2">
+                <Text className="text-xs font-semibold uppercase tracking-wide text-secondary">
+                  {libraries.length} {libraries.length === 1 ? 'library' : 'libraries'}
+                </Text>
+              </View>
+              <View className="rounded-full border border-border bg-surface px-3 py-2">
+                <Text className="text-xs font-semibold uppercase tracking-wide text-secondary">
+                  {totalBooks} {totalBooks === 1 ? 'book' : 'books'}
+                </Text>
+              </View>
+            </View>
+          </View>
+        }
         titleAlign="left"
       />
     </View>

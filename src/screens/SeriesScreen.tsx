@@ -4,6 +4,7 @@ import { Search, SlidersHorizontal, X } from 'lucide-react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useFilterStore } from '@/store/filterStore';
 import { BookGrid } from '@/components/BookGrid';
+import { BrowseHeaderTitle } from '@/components/BrowseHeaderTitle';
 import { FilterBar } from '@/components/FilterBar';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import NavIconButton from '@/components/NavIconButton';
@@ -99,16 +100,7 @@ export default function SeriesScreen({ route, navigation }: SeriesScreenProps) {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerTitle: () => (
-        <View className="items-center justify-center">
-          <View className="relative overflow-hidden rounded-full border border-primary-100 bg-primary-50 px-6 py-2">
-            <View className="absolute -left-2 top-1 h-4 w-4 rounded-full bg-primary-100/80" />
-            <View className="absolute right-3 top-0.5 h-3 w-3 rounded-full bg-white/70" />
-            <View className="absolute -right-1 bottom-0.5 h-5 w-5 rounded-full bg-primary-100/60" />
-            <Text className="text-xl font-bold tracking-[0.2px] text-secondary">Series</Text>
-          </View>
-        </View>
-      ),
+      headerTitle: () => <BrowseHeaderTitle label="Series" />,
       headerTitleAlign: 'center',
       headerLeft: () => <NavIconButton type="drawer" />,
       headerRight: () => (
