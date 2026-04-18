@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useMemo } from 'react';
+import React, { useLayoutEffect } from 'react';
 import { View, Text } from 'react-native';
 import { BookOpen } from 'lucide-react-native';
 import { useAuthStore } from '@/store/authStore';
@@ -16,11 +16,6 @@ export default function LibrariesScreen({ navigation }: LibrariesScreenProps) {
   const { libraries, loadingLibraries, fetchLibraries } = useLibraryStore();
 
   useProviderFetch((p) => fetchLibraries(p));
-
-  const totalBooks = useMemo(
-    () => libraries.reduce((sum, library) => sum + (library.bookCount ?? 0), 0),
-    [libraries],
-  );
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -65,17 +60,10 @@ export default function LibrariesScreen({ navigation }: LibrariesScreenProps) {
         emptyText="No libraries found."
         ListHeaderComponent={
           <View className="px-4 pt-2 pb-3">
-            <View className="flex-row flex-wrap gap-2">
-              <View className="rounded-full border border-border bg-surface px-3 py-2">
-                <Text className="text-xs font-semibold uppercase tracking-wide text-secondary">
-                  {libraries.length} {libraries.length === 1 ? 'library' : 'libraries'}
-                </Text>
-              </View>
-              <View className="rounded-full border border-border bg-surface px-3 py-2">
-                <Text className="text-xs font-semibold uppercase tracking-wide text-secondary">
-                  {totalBooks} {totalBooks === 1 ? 'book' : 'books'}
-                </Text>
-              </View>
+            <View className="rounded-full border border-border bg-surface px-3 py-2">
+              <Text className="text-xs font-semibold uppercase tracking-wide text-secondary">
+                {libraries.length} {libraries.length === 1 ? 'library' : 'libraries'}
+              </Text>
             </View>
           </View>
         }
