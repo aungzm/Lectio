@@ -171,7 +171,7 @@ export default function BooksScreen({ route, navigation }: BooksScreenProps) {
         emptyText="No books found."
         ListHeaderComponent={
           <View className="px-4 pb-3 pt-2">
-            <Chip label={`${items.length} ${items.length === 1 ? 'result' : 'results'}`} />
+            <Chip label={`${items.length} ${items.length === 1 ? 'book' : 'books'}`} />
           </View>
         }
         onEndReached={handleEndReached}
