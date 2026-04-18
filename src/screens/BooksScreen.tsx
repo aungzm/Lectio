@@ -6,20 +6,14 @@ import { useFilterStore } from '@/store/filterStore';
 import { BookGrid } from '@/components/BookGrid';
 import { BrowseHeaderTitle } from '@/components/BrowseHeaderTitle';
 import { Chip } from '@/components/Chip';
-import { FilterBar } from '@/components/FilterBar';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import NavIconButton from '@/components/NavIconButton';
 import { SearchBar } from '@/components/SearchBar';
+import { BOOK_FILTER_TYPES, SeriesFilterModal } from '@/components/SeriesFilterModal';
 import { useCoverUri } from '@/hooks/useCoverUri';
 import { useBookDetailNavigation } from '@/hooks/useBookDetailNavigation';
 import type { SearchFilters, FilterType } from '@/providers';
 import type { BooksScreenProps } from '@/navigation/types';
-
-const BOOK_FILTER_TYPES: FilterType[] = [
-  'readStatus',
-  'tag',
-  'libraryId',
-];
 
 export default function BooksScreen({ route, navigation }: BooksScreenProps) {
   const libraryId = route.params?.libraryId;
@@ -90,6 +84,11 @@ export default function BooksScreen({ route, navigation }: BooksScreenProps) {
     if (provider) fetchFilterOptions(provider);
   }, [provider, fetchFilterOptions]);
 
+  const handleOpenFilters = useCallback(() => {
+    setFiltersOpen(true);
+    handleLoadOptions();
+  }, [handleLoadOptions]);
+
   const items = bookResults?.items ?? [];
   const isInitialLoad = loadingBookSearch && items.length === 0;
   const activeFilterCount = filters.criteria.filter((criterion) => !lockedTypes.includes(criterion.type)).length;
@@ -112,7 +111,7 @@ export default function BooksScreen({ route, navigation }: BooksScreenProps) {
             {searchButtonActive ? <X size={18} color="#ffffff" /> : <Search size={18} color="#000000" />}
           </Pressable>
           <Pressable
-            onPress={() => setFiltersOpen((value) => !value)}
+            onPress={() => (filtersOpen ? setFiltersOpen(false) : handleOpenFilters())}
             className={`rounded-full border px-3 py-3 ${
               filterButtonActive ? 'border-secondary bg-secondary' : 'border-border bg-primary'
             }`}
@@ -120,7 +119,7 @@ export default function BooksScreen({ route, navigation }: BooksScreenProps) {
             <View>
               <SlidersHorizontal size={18} color={filterButtonActive ? '#ffffff' : '#000000'} />
               {activeFilterCount > 0 ? (
-                <View className="absolute -right-2 -top-2 min-w-[18px] rounded-full bg-accent px-1 py-0.5">
+                <View className="absolute -right-3 -top-3 min-w-[18px] rounded-full bg-accent px-1 py-0.5">
                   <Text className="text-center text-[10px] font-bold text-primary">{activeFilterCount}</Text>
                 </View>
               ) : null}
@@ -140,25 +139,7 @@ export default function BooksScreen({ route, navigation }: BooksScreenProps) {
       <View className="px-4 pb-1">
         {searchOpen ? (
           <View className="mt-2 rounded-[26px] bg-primary-50/80">
-            <SearchBar
-              value={searchText}
-              onChangeText={setSearchText}
-              placeholder="Search books..."
-            />
-          </View>
-        ) : null}
-
-        {filtersOpen ? (
-          <View className="mt-3 rounded-2xl border border-border bg-surface py-2">
-            <FilterBar
-              filters={filters}
-              onFiltersChange={handleFiltersChange}
-              filterOptions={filterOptions}
-              availableTypes={BOOK_FILTER_TYPES}
-              lockedTypes={lockedTypes}
-              onLoadOptions={handleLoadOptions}
-              loading={loadingFilterOptions}
-            />
+            <SearchBar value={searchText} onChangeText={setSearchText} placeholder="Search books..." />
           </View>
         ) : null}
       </View>
@@ -176,6 +157,25 @@ export default function BooksScreen({ route, navigation }: BooksScreenProps) {
         }
         onEndReached={handleEndReached}
         loadingMore={loadingBookSearch && items.length > 0}
+      />
+
+      <SeriesFilterModal
+        visible={filtersOpen}
+        filters={filters}
+        onApply={handleFiltersChange}
+        onClose={() => setFiltersOpen(false)}
+        filterOptions={filterOptions}
+        availableTypes={BOOK_FILTER_TYPES}
+        lockedTypes={lockedTypes}
+        onLoadOptions={handleLoadOptions}
+        loading={loadingFilterOptions}
+        title="Filter Books"
+        subtitle="Choose a few book-specific filters, then apply them together."
+        emptyStateText="No book filters selected yet. Start with reading progress, one-shot, or library."
+        notesByType={{
+          oneShot: 'Use this to isolate standalone books or one-off releases from books in larger series runs.',
+          tag: 'Your current Komga server returns no book-specific tags, so this may stay empty until tags are added.',
+        }}
       />
     </View>
   );
