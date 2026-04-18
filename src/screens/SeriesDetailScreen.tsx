@@ -3,10 +3,9 @@ import {
   View,
   Text,
   ScrollView,
-  TouchableOpacity,
   Pressable,
+  TouchableOpacity,
 } from 'react-native';
-import type { DimensionValue } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import {
   BookOpen,
@@ -18,6 +17,7 @@ import {
 } from 'lucide-react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useLibraryStore } from '@/store/libraryStore';
+import { BookGrid } from '@/components/BookGrid';
 import { CoverImage } from '@/components/CoverImage';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { SectionCard } from '@/components/SectionCard';
@@ -26,7 +26,6 @@ import { KeyFact } from '@/components/KeyFact';
 import { PeopleChips } from '@/components/PeopleChips';
 import { CollapsibleChipSection } from '@/components/CollapsibleChipSection';
 import { useProviderFetch } from '@/hooks/useProviderFetch';
-import { useResponsiveGrid } from '@/hooks/useResponsiveGrid';
 import type { Volume, DetailedMetadata } from '@/providers';
 
 const AGE_RATING_LABELS: Record<number, string> = {
@@ -46,40 +45,6 @@ const AGE_RATING_LABELS: Record<number, string> = {
   13: 'X 18+',
   14: 'Not Applicable',
 };
-
-function BookGridCard({
-  title,
-  subtitle,
-  coverUri,
-  onPress,
-}: {
-  title: string;
-  subtitle?: string | null;
-  coverUri: string | null;
-  onPress: () => void;
-}) {
-  return (
-    <TouchableOpacity onPress={onPress} className="px-1">
-      <View className="overflow-hidden rounded-2xl border border-border bg-surface">
-        <View className="aspect-[2/3] bg-background p-2">
-          <View className="h-full w-full overflow-hidden rounded-xl bg-border">
-            <CoverImage uri={coverUri} className="h-full w-full" resizeMode="contain" />
-          </View>
-        </View>
-        <View className="min-h-[88px] justify-between px-3 py-3">
-          <Text className="text-sm font-semibold leading-6 text-secondary" numberOfLines={2}>
-            {title}
-          </Text>
-          {subtitle ? (
-            <Text className="mt-2 text-xs text-tertiary" numberOfLines={1}>
-              {subtitle}
-            </Text>
-          ) : null}
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-}
 
 function ChapterRow({
   title,
@@ -138,21 +103,12 @@ function formatSeriesStatus(status: string | null | undefined): string | null {
     .join(' ');
 }
 
-function chunkArray<T>(arr: T[], size: number): T[][] {
-  const result: T[][] = [];
-  for (let i = 0; i < arr.length; i += size) {
-    result.push(arr.slice(i, i + size));
-  }
-  return result;
-}
-
 export default function SeriesDetailScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { seriesId, title } = route.params as { seriesId: string; title: string };
   const { provider } = useAuthStore();
   const { volumes, loadingVolumes, fetchVolumes } = useLibraryStore();
-  const { numCols, itemWidth } = useResponsiveGrid();
 
   const [metadata, setMetadata] = useState<DetailedMetadata | null>(null);
   const [metaLoading, setMetaLoading] = useState(true);
@@ -219,8 +175,6 @@ export default function SeriesDetailScreen() {
   const ageLabel = metadata ? AGE_RATING_LABELS[metadata.ageRating] ?? null : null;
   const statusLabel = formatSeriesStatus(metadata?.seriesStatus);
   const bookCountLabel = `${bookVolumes.length} ${bookVolumes.length === 1 ? 'Book' : 'Books'}`;
-  const cardWidth: DimensionValue = itemWidth;
-  const bookRows = chunkArray(singleBooks, numCols);
   const heroFacts = [
     { label: 'Books', value: bookCountLabel },
     statusLabel ? { label: 'Status', value: statusLabel } : null,
@@ -324,34 +278,18 @@ export default function SeriesDetailScreen() {
 
         {singleBooks.length > 0 ? (
           <SectionCard title="Books">
-            <View>
-              {bookRows.map((row, rowIndex) => (
-                <View key={`row-${rowIndex}`} className="mb-3 flex-row">
-                  {row.map((volume) => {
-                    const chapter = volume.chapters[0];
-
-                    return (
-                      <View key={volume.id} style={{ width: cardWidth }}>
-                        <BookGridCard
-                          title={chapter.title || volume.name}
-                          subtitle={null}
-                          coverUri={getBookCoverUri(volume.id)}
-                          onPress={() => handleReadChapter(chapter.id, chapter.title || volume.name)}
-                        />
-                      </View>
-                    );
-                  })}
-                  {row.length < numCols
-                    ? Array.from({ length: numCols - row.length }).map((_, index) => (
-                        <View
-                          key={`spacer-${rowIndex}-${index}`}
-                          style={{ width: cardWidth }}
-                        />
-                      ))
-                    : null}
-                </View>
-              ))}
-            </View>
+            <BookGrid
+              items={singleBooks}
+              getCoverUri={(volume) => getBookCoverUri(volume.id)}
+              getTitle={(volume) => volume.chapters[0]?.title || volume.name}
+              onPress={(volume) => {
+                const chapter = volume.chapters[0];
+                handleReadChapter(chapter.id, chapter.title || volume.name);
+              }}
+              scrollEnabled={false}
+              contentPadding={0}
+              titleAlign="left"
+            />
           </SectionCard>
         ) : null}
 
