@@ -60,16 +60,18 @@ function BookGridCard({
 }) {
   return (
     <TouchableOpacity onPress={onPress} className="px-1">
-      <View className="overflow-hidden rounded-[22px] border border-border bg-surface">
-        <View className="aspect-[2/3] bg-border">
-          <CoverImage uri={coverUri} className="h-full w-full" resizeMode="cover" />
+      <View className="overflow-hidden rounded-2xl border border-border bg-surface">
+        <View className="aspect-[2/3] bg-background p-2">
+          <View className="h-full w-full overflow-hidden rounded-xl bg-border">
+            <CoverImage uri={coverUri} className="h-full w-full" resizeMode="contain" />
+          </View>
         </View>
-        <View className="px-3 py-3">
-          <Text className="text-sm font-semibold text-secondary" numberOfLines={2}>
+        <View className="min-h-[88px] justify-between px-3 py-3">
+          <Text className="text-sm font-semibold leading-6 text-secondary" numberOfLines={2}>
             {title}
           </Text>
           {subtitle ? (
-            <Text className="mt-1 text-xs text-tertiary" numberOfLines={1}>
+            <Text className="mt-2 text-xs text-tertiary" numberOfLines={1}>
               {subtitle}
             </Text>
           ) : null}
@@ -332,7 +334,7 @@ export default function SeriesDetailScreen() {
                       <View key={volume.id} style={{ width: cardWidth }}>
                         <BookGridCard
                           title={chapter.title || volume.name}
-                          subtitle={chapter.pagesTotal > 0 ? `${chapter.pagesTotal} pages` : null}
+                          subtitle={null}
                           coverUri={getBookCoverUri(volume.id)}
                           onPress={() => handleReadChapter(chapter.id, chapter.title || volume.name)}
                         />

@@ -98,6 +98,7 @@ export default function BookDetailScreen() {
   const { width } = useWindowDimensions();
 
   const [metadata, setMetadata] = useState<DetailedMetadata | null>(null);
+  const [book, setBook] = useState<{ pagesTotal: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [synopsisExpanded, setSynopsisExpanded] = useState(false);
@@ -109,10 +110,14 @@ export default function BookDetailScreen() {
     }
 
     let cancelled = false;
-    provider.getDetailedMetadata(seriesId).then(
-      (data) => {
+    Promise.all([
+      provider.getDetailedMetadata(seriesId),
+      provider.getBookDetail?.(chapterId) ?? Promise.resolve(null),
+    ]).then(
+      ([metadataResult, bookResult]) => {
         if (!cancelled) {
-          setMetadata(data);
+          setMetadata(metadataResult);
+          setBook(bookResult ? { pagesTotal: bookResult.pagesTotal } : null);
           setLoading(false);
         }
       },
@@ -127,7 +132,7 @@ export default function BookDetailScreen() {
     return () => {
       cancelled = true;
     };
-  }, [seriesId, provider]);
+  }, [seriesId, chapterId, provider]);
 
   const synopsisHtml = useMemo(() => {
     if (!metadata?.summary) return null;
@@ -173,6 +178,7 @@ export default function BookDetailScreen() {
   const contentWidth = width - 64;
   const synopsisNeedsTruncation = synopsisPlain.length > 180;
   const heroFacts = [
+    book?.pagesTotal ? { label: 'Pages', value: `${book.pagesTotal}` } : null,
     metadata?.releaseYear ? { label: 'Year', value: `${metadata.releaseYear}` } : null,
     metadata?.language ? { label: 'Language', value: metadata.language.toUpperCase() } : null,
     ageLabel && ageLabel !== 'Unknown' ? { label: 'Rating', value: ageLabel } : null,
@@ -208,6 +214,12 @@ export default function BookDetailScreen() {
                   <InfoPill
                     icon={<CalendarDays size={14} color="#6b7280" />}
                     label={`${metadata.releaseYear}`}
+                  />
+                ) : null}
+                {book?.pagesTotal ? (
+                  <InfoPill
+                    icon={<BookOpen size={14} color="#6b7280" />}
+                    label={`${book.pagesTotal} pages`}
                   />
                 ) : null}
                 {metadata?.language ? (

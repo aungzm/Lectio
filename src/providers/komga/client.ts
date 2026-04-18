@@ -112,6 +112,11 @@ export class KomgaClient {
     return data;
   }
 
+  async getBookDetail(bookId: string): Promise<KomgaBookDto> {
+    const { data } = await this.http.get<KomgaBookDto>(`/api/v1/books/${bookId}`);
+    return data;
+  }
+
   async getSeriesByAuthor(authorName: string, authorRole: string, page = 0, size = 30): Promise<KomgaPageResultDto<KomgaSeriesDto>> {
     const { data } = await this.http.get<KomgaPageResultDto<KomgaSeriesDto>>('/api/v1/series', {
       params: {

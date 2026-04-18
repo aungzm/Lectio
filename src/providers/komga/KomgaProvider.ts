@@ -135,6 +135,11 @@ export class KomgaProvider implements ILibraryProvider {
     return mapSeries(s);
   }
 
+  async getBookDetail(bookId: string): Promise<Book> {
+    const book = await this.client.getBookDetail(bookId);
+    return mapBook(book);
+  }
+
   async getDetailedMetadata(seriesId: string): Promise<DetailedMetadata> {
     const series = await this.client.getSeriesDetail(seriesId);
     const authors = series.booksMetadata?.authors ?? [];
