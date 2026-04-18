@@ -16,6 +16,7 @@ import {
   Download,
   Languages,
   Shield,
+  User,
 } from 'lucide-react-native';
 import { useAuthStore } from '@/store/authStore';
 import { CoverImage } from '@/components/CoverImage';
@@ -185,7 +186,7 @@ export default function BookDetailScreen() {
     metadata?.language ? { label: 'Language', value: metadata.language.toUpperCase() } : null,
     ageLabel && ageLabel !== 'Unknown' ? { label: 'Rating', value: ageLabel } : null,
   ].filter((item): item is { label: string; value: string } => Boolean(item));
-  const creatorNames = metadata?.writers?.map((writer) => writer.name).join(', ');
+  const authorNames = metadata?.writers?.map((writer) => writer.name).filter(Boolean) ?? [];
 
   return (
     <ScrollView className="flex-1 bg-background" contentContainerClassName="pb-10">
@@ -203,10 +204,16 @@ export default function BookDetailScreen() {
               <Text className="text-center text-3xl font-bold text-secondary" numberOfLines={3}>
                 {title}
               </Text>
-              {creatorNames ? (
-                <Text className="mt-2 text-center text-sm text-tertiary" numberOfLines={2}>
-                  by {creatorNames}
-                </Text>
+              {authorNames.length > 0 ? (
+                <View className="mt-3 w-full max-w-[320px] flex-row flex-wrap items-center justify-center gap-2 self-center">
+                  {authorNames.map((author, index) => (
+                    <InfoPill
+                      key={`${author}-${index}`}
+                      icon={<User size={14} color="#6b7280" />}
+                      label={author}
+                    />
+                  ))}
+                </View>
               ) : null}
             </View>
 
