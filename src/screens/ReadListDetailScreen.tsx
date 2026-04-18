@@ -32,10 +32,9 @@ export default function ReadListDetailScreen({ route, navigation }: ReadListDeta
 
   function getCoverUri(book: Book): string | null {
     if (!provider) return null;
-    if (book.volumeId) {
-      return provider.getVolumeCoverUrl?.(book.volumeId) ?? provider.getCoverUrl(book.seriesId ?? book.id);
-    }
-    return provider.getCoverUrl(book.seriesId ?? book.id);
+    return provider.getBookCoverUrl?.(book.id)
+      ?? provider.getVolumeCoverUrl?.(book.volumeId ?? book.id)
+      ?? provider.getCoverUrl(book.seriesId ?? book.id);
   }
 
   if (loadingReadListBooks && books.length === 0) {

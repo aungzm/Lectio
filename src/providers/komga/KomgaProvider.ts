@@ -219,6 +219,10 @@ export class KomgaProvider implements ILibraryProvider {
     return this.client.bookCoverUrl(bookId);
   }
 
+  getVolumeCoverUrl(volumeId: string): string {
+    return this.client.bookCoverUrl(volumeId);
+  }
+
   // ── Authors ─────────────────────────────────────────────────────────────────
 
   async getAuthors(page: number, pageSize: number, search?: string): Promise<Author[]> {
