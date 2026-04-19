@@ -374,10 +374,10 @@ export function SeriesFilterModal({
                     {count > 0 ? (
                       <View
                         className={`mt-3 self-start rounded-full px-2.5 py-1 ${
-                          selected ? 'bg-primary-100' : 'bg-primary-50'
+                          selected ? 'bg-accent-soft-strong' : 'bg-accent-soft'
                         }`}
                       >
-                        <Text className={`text-[11px] font-semibold ${selected ? 'text-primary' : 'text-accent'}`}>
+                        <Text className={`text-[11px] font-semibold ${selected ? 'text-secondary' : 'text-accent'}`}>
                           {count} selected
                         </Text>
                       </View>
@@ -427,7 +427,7 @@ export function SeriesFilterModal({
                           key={option.value}
                           onPress={() => toggleCriterion(activeSection.type, option.value)}
                           className={`rounded-2xl border px-4 py-3 ${
-                            selected ? 'border-accent bg-primary-50' : 'border-border bg-surface'
+                            selected ? 'border-accent-soft-strong bg-accent-soft' : 'border-border bg-surface'
                           }`}
                         >
                           <View className="flex-row items-center justify-between gap-3">
