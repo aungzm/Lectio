@@ -181,7 +181,7 @@ export default function BooksScreen({ route, navigation }: BooksScreenProps) {
         onLoadOptions={handleLoadOptions}
         loading={loadingFilterOptions}
         title="Filter Books"
-        subtitle="Choose a few book-specific filters, then apply them together."
+        subtitle="Choose book-specific filters and see results update right away."
         emptyStateText="No book filters selected yet. Start with reading progress, one-shot, or library."
         notesByType={{
           oneShot: 'Use this to isolate standalone books or one-off releases from books in larger series runs.',
