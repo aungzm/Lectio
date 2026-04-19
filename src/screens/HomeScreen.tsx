@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useLayoutEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -17,12 +17,15 @@ import {
   Library,
   Sparkles,
 } from 'lucide-react-native';
+import { AnimatedBrowseTopBar } from '@/components/AnimatedBrowseTopBar';
 import { SectionShell } from '@/components/SectionShell';
+import NavIconButton from '@/components/NavIconButton';
 import { useHomeStore } from '@/store/homeStore';
 import { CoverImage } from '@/components/CoverImage';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { useCoverUri } from '@/hooks/useCoverUri';
 import { useProviderFetch } from '@/hooks/useProviderFetch';
+import { useScrollAwareHeader } from '@/hooks/useScrollAwareHeader';
 import { useAuthStore } from '@/store/authStore';
 import { useThemeColors } from '@/theme/useThemeColors';
 import type { Book } from '@/providers';
@@ -189,6 +192,13 @@ export default function HomeScreen() {
   const provider = useAuthStore((state) => state.provider);
   const [loadingContinueId, setLoadingContinueId] = React.useState<string | null>(null);
   const { accent } = useThemeColors();
+  const { headerVisible, handleScroll } = useScrollAwareHeader();
+
+  useLayoutEffect(() => {
+    nav.setOptions({
+      headerShown: false,
+    });
+  }, [nav]);
 
   useProviderFetch((p) => fetchHomeData(p));
 
@@ -241,142 +251,156 @@ export default function HomeScreen() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-background" contentContainerClassName="px-4 pb-8 pt-4">
-      <View className="relative mb-6 overflow-hidden rounded-[32px] border border-border bg-surface px-5 pb-6 pt-5">
-        <View className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-accent-soft-strong" />
-        <View className="absolute -left-8 top-24 h-24 w-24 rounded-full bg-accent-soft" />
+    <View className="flex-1 bg-background">
+      <AnimatedBrowseTopBar
+        title="Home"
+        visible={headerVisible}
+        leftSlot={<NavIconButton type="drawer" />}
+        rightSlot={<View className="w-10" />}
+      />
 
-        <View className="mb-4">
-          <View className="mb-3 self-start rounded-full bg-accent-soft px-3 py-2">
-            <Text className="text-xs font-semibold uppercase tracking-wide text-accent">
-              Library hub
-            </Text>
-          </View>
-          <Text className="text-3xl font-bold text-secondary">Find your next session</Text>
-          <Text className="mt-2 text-sm leading-6 text-tertiary">
-            Jump back into active reads, catch fresh arrivals, and see what changed across your shelves.
-          </Text>
-        </View>
-
-        <View className="flex-row flex-wrap gap-3">
-          <View className="min-w-[30%] flex-1 rounded-2xl border border-border bg-background px-3 py-3">
-            <Text className="text-[11px] font-bold uppercase tracking-wide text-tertiary">
-              In Progress
-            </Text>
-            <Text className="mt-1 text-sm font-semibold text-secondary">
-              {continueReading.length} active
-            </Text>
-          </View>
-          <View className="min-w-[30%] flex-1 rounded-2xl border border-border bg-background px-3 py-3">
-            <Text className="text-[11px] font-bold uppercase tracking-wide text-tertiary">
-              New Series
-            </Text>
-            <Text className="mt-1 text-sm font-semibold text-secondary">
-              {recentlyAdded.length} arrivals
-            </Text>
-          </View>
-          <View className="min-w-[30%] flex-1 rounded-2xl border border-border bg-background px-3 py-3">
-            <Text className="text-[11px] font-bold uppercase tracking-wide text-tertiary">
-              Updated
-            </Text>
-            <Text className="mt-1 text-sm font-semibold text-secondary">
-              {recentlyUpdatedSeries.length} refreshed
-            </Text>
-          </View>
-        </View>
-      </View>
-
-      <SectionShell
-        title="Continue Reading"
-        icon={<Clock3 size={18} color={accent} />}
-        onPress={() => navigateDrawer('Library')}
+      <ScrollView
+        className="flex-1 bg-background"
+        contentContainerStyle={{ paddingTop: 16, paddingBottom: 32, paddingHorizontal: 16 }}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
       >
-        {featuredContinue ? (
-          <>
-            <FeaturedContinueCard
-              book={featuredContinue}
-              onPress={() => handleContinueReadingPress(featuredContinue)}
-              getCoverUri={getCoverUri}
-              loading={loadingContinueId === featuredContinue.id}
+        <View className="relative mb-6 overflow-hidden rounded-[32px] border border-border bg-surface px-5 pb-6 pt-5">
+          <View className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-accent-soft-strong" />
+          <View className="absolute -left-8 top-24 h-24 w-24 rounded-full bg-accent-soft" />
+
+          <View className="mb-4">
+            <View className="mb-3 self-start rounded-full bg-accent-soft px-3 py-2">
+              <Text className="text-xs font-semibold uppercase tracking-wide text-accent">
+                Library hub
+              </Text>
+            </View>
+            <Text className="text-3xl font-bold text-secondary">Find your next session</Text>
+            <Text className="mt-2 text-sm leading-6 text-tertiary">
+              Jump back into active reads, catch fresh arrivals, and see what changed across your shelves.
+            </Text>
+          </View>
+
+          <View className="flex-row flex-wrap gap-3">
+            <View className="min-w-[30%] flex-1 rounded-2xl border border-border bg-background px-3 py-3">
+              <Text className="text-[11px] font-bold uppercase tracking-wide text-tertiary">
+                In Progress
+              </Text>
+              <Text className="mt-1 text-sm font-semibold text-secondary">
+                {continueReading.length} active
+              </Text>
+            </View>
+            <View className="min-w-[30%] flex-1 rounded-2xl border border-border bg-background px-3 py-3">
+              <Text className="text-[11px] font-bold uppercase tracking-wide text-tertiary">
+                New Series
+              </Text>
+              <Text className="mt-1 text-sm font-semibold text-secondary">
+                {recentlyAdded.length} arrivals
+              </Text>
+            </View>
+            <View className="min-w-[30%] flex-1 rounded-2xl border border-border bg-background px-3 py-3">
+              <Text className="text-[11px] font-bold uppercase tracking-wide text-tertiary">
+                Updated
+              </Text>
+              <Text className="mt-1 text-sm font-semibold text-secondary">
+                {recentlyUpdatedSeries.length} refreshed
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        <SectionShell
+          title="Continue Reading"
+          icon={<Clock3 size={18} color={accent} />}
+          onPress={() => navigateDrawer('Library')}
+        >
+          {featuredContinue ? (
+            <>
+              <FeaturedContinueCard
+                book={featuredContinue}
+                onPress={() => handleContinueReadingPress(featuredContinue)}
+                getCoverUri={getCoverUri}
+                loading={loadingContinueId === featuredContinue.id}
+              />
+              {remainingContinue.length > 0 ? (
+                <View className="mt-4">
+                  <HorizontalShelf
+                    data={remainingContinue}
+                    onPress={handleContinueReadingPress}
+                    getCoverUri={getCoverUri}
+                  />
+                </View>
+              ) : null}
+            </>
+          ) : (
+            <EmptyState
+              title="Nothing in progress yet"
+              description="Start a book or series and it will appear here for quick access."
+              icon={<BookOpen size={22} color={accent} />}
             />
-            {remainingContinue.length > 0 ? (
-              <View className="mt-4">
-                <HorizontalShelf
-                  data={remainingContinue}
-                  onPress={handleContinueReadingPress}
-                  getCoverUri={getCoverUri}
-                />
-              </View>
-            ) : null}
-          </>
-        ) : (
-          <EmptyState
-            title="Nothing in progress yet"
-            description="Start a book or series and it will appear here for quick access."
-            icon={<BookOpen size={22} color={accent} />}
-          />
-        )}
-      </SectionShell>
+          )}
+        </SectionShell>
 
-      <SectionShell
-        title="Recently Added Series"
-        icon={<Sparkles size={18} color={accent} />}
-        onPress={() => navigateDrawer('Series')}
-      >
-        {recentlyAdded.length > 0 ? (
-          <HorizontalShelf
-            data={recentlyAdded}
-            onPress={handleSeriesPress}
-            getCoverUri={getCoverUri}
-          />
-        ) : (
-          <EmptyState
-            title="No recently added series"
-            description="Fresh series will show up here as soon as your provider syncs them."
-            icon={<Sparkles size={22} color={accent} />}
-          />
-        )}
-      </SectionShell>
+        <SectionShell
+          title="Recently Added Series"
+          icon={<Sparkles size={18} color={accent} />}
+          onPress={() => navigateDrawer('Series')}
+        >
+          {recentlyAdded.length > 0 ? (
+            <HorizontalShelf
+              data={recentlyAdded}
+              onPress={handleSeriesPress}
+              getCoverUri={getCoverUri}
+            />
+          ) : (
+            <EmptyState
+              title="No recently added series"
+              description="Fresh series will show up here as soon as your provider syncs them."
+              icon={<Sparkles size={22} color={accent} />}
+            />
+          )}
+        </SectionShell>
 
-      <SectionShell
-        title="Recently Added Books"
-        icon={<BookOpen size={18} color={accent} />}
-        onPress={() => navigateDrawer('Books')}
-      >
-        {recentlyAddedBooks.length > 0 ? (
-          <HorizontalShelf
-            data={recentlyAddedBooks}
-            onPress={handleBookPress}
-            getCoverUri={getBookCoverUri}
-          />
-        ) : (
-          <EmptyState
-            title="No recently added books"
-            description="Once new books are available, they will appear in this shelf."
-            icon={<Library size={22} color={accent} />}
-          />
-        )}
-      </SectionShell>
+        <SectionShell
+          title="Recently Added Books"
+          icon={<BookOpen size={18} color={accent} />}
+          onPress={() => navigateDrawer('Books')}
+        >
+          {recentlyAddedBooks.length > 0 ? (
+            <HorizontalShelf
+              data={recentlyAddedBooks}
+              onPress={handleBookPress}
+              getCoverUri={getBookCoverUri}
+            />
+          ) : (
+            <EmptyState
+              title="No recently added books"
+              description="Once new books are available, they will appear in this shelf."
+              icon={<Library size={22} color={accent} />}
+            />
+          )}
+        </SectionShell>
 
-      <SectionShell
-        title="Recently Updated Series"
-        icon={<Compass size={18} color={accent} />}
-        onPress={() => navigateDrawer('Series')}
-      >
-        {recentlyUpdatedSeries.length > 0 ? (
-          <HorizontalShelf
-            data={recentlyUpdatedSeries}
-            onPress={handleSeriesPress}
-            getCoverUri={getCoverUri}
-          />
-        ) : (
-          <EmptyState
-            title="No recent updates"
-            description="Updated series will appear here when new chapters or files arrive."
-            icon={<Compass size={22} color={accent} />}
-          />
-        )}
-      </SectionShell>
-    </ScrollView>
+        <SectionShell
+          title="Recently Updated Series"
+          icon={<Compass size={18} color={accent} />}
+          onPress={() => navigateDrawer('Series')}
+        >
+          {recentlyUpdatedSeries.length > 0 ? (
+            <HorizontalShelf
+              data={recentlyUpdatedSeries}
+              onPress={handleSeriesPress}
+              getCoverUri={getCoverUri}
+            />
+          ) : (
+            <EmptyState
+              title="No recent updates"
+              description="Updated series will appear here when new chapters or files arrive."
+              icon={<Compass size={22} color={accent} />}
+            />
+          )}
+        </SectionShell>
+      </ScrollView>
+    </View>
   );
 }
