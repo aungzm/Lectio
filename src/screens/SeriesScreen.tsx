@@ -12,6 +12,7 @@ import { SearchBar } from '@/components/SearchBar';
 import { SeriesFilterModal, SERIES_FILTER_TYPES } from '@/components/SeriesFilterModal';
 import { useCoverUri } from '@/hooks/useCoverUri';
 import type { SearchFilters, FilterType } from '@/providers';
+import { useThemeColors } from '@/theme/useThemeColors';
 import type { SeriesScreenProps } from '@/navigation/types';
 
 export default function SeriesScreen({ route, navigation }: SeriesScreenProps) {
@@ -26,6 +27,7 @@ export default function SeriesScreen({ route, navigation }: SeriesScreenProps) {
     fetchFilterOptions,
   } = useFilterStore();
   const getCoverUri = useCoverUri();
+  const { primary, secondary } = useThemeColors();
 
   const lockedCriteria = libraryId ? [{ type: 'libraryId' as const, value: libraryId }] : [];
   const lockedTypes: FilterType[] = libraryId ? ['libraryId'] : [];
@@ -106,7 +108,7 @@ export default function SeriesScreen({ route, navigation }: SeriesScreenProps) {
               searchButtonActive ? 'border-secondary bg-secondary' : 'border-border bg-primary'
             }`}
           >
-            {searchButtonActive ? <X size={18} color="#ffffff" /> : <Search size={18} color="#000000" />}
+            {searchButtonActive ? <X size={18} color={primary} /> : <Search size={18} color={secondary} />}
           </Pressable>
           <Pressable
             onPress={() => (filtersOpen ? setFiltersOpen(false) : handleOpenFilters())}
@@ -115,10 +117,10 @@ export default function SeriesScreen({ route, navigation }: SeriesScreenProps) {
             }`}
           >
             <View>
-              <SlidersHorizontal size={18} color={filterButtonActive ? '#ffffff' : '#000000'} />
+              <SlidersHorizontal size={18} color={filterButtonActive ? primary : secondary} />
               {activeFilterCount > 0 ? (
                 <View className="absolute -right-3 -top-3 min-w-[18px] rounded-full bg-accent px-1 py-0.5">
-                  <Text className="text-center text-[10px] font-bold text-primary">{activeFilterCount}</Text>
+                  <Text className="text-center text-[10px] font-bold text-accent-contrast">{activeFilterCount}</Text>
                 </View>
               ) : null}
             </View>
@@ -136,7 +138,7 @@ export default function SeriesScreen({ route, navigation }: SeriesScreenProps) {
     <View className="flex-1 bg-background">
       <View className="px-4 pb-1">
         {searchOpen ? (
-          <View className="mt-2 rounded-[26px] bg-primary-50/80">
+          <View className="mt-2 rounded-[26px] bg-accent-soft">
             <SearchBar value={searchText} onChangeText={setSearchText} placeholder="Search series..." />
           </View>
         ) : null}
