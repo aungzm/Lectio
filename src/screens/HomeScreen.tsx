@@ -24,6 +24,7 @@ import { LoadingScreen } from '@/components/LoadingScreen';
 import { useCoverUri } from '@/hooks/useCoverUri';
 import { useProviderFetch } from '@/hooks/useProviderFetch';
 import { useAuthStore } from '@/store/authStore';
+import { useThemeColors } from '@/theme/useThemeColors';
 import type { Book } from '@/providers';
 import type { HomeStackParamList } from '@/navigation/types';
 
@@ -68,6 +69,7 @@ function FeaturedContinueCard({
   getCoverUri: (id: string) => string | null;
   loading?: boolean;
 }) {
+  const { primary } = useThemeColors();
   const pagesLeft = Math.max(book.pagesTotal - book.pagesRead, 0);
   const progress = book.pagesTotal > 0 ? Math.min(book.pagesRead / book.pagesTotal, 1) : 0;
 
@@ -80,7 +82,7 @@ function FeaturedContinueCard({
           </View>
           {loading ? (
             <View className="absolute inset-0 items-center justify-center bg-secondary/20">
-              <ActivityIndicator color="#ffffff" />
+              <ActivityIndicator color={primary} />
             </View>
           ) : null}
         </View>
@@ -186,6 +188,7 @@ export default function HomeScreen() {
   const getBookCoverUri = useCoverUri('getBookCoverUrl');
   const provider = useAuthStore((state) => state.provider);
   const [loadingContinueId, setLoadingContinueId] = React.useState<string | null>(null);
+  const { accent } = useThemeColors();
 
   useProviderFetch((p) => fetchHomeData(p));
 
@@ -240,11 +243,11 @@ export default function HomeScreen() {
   return (
     <ScrollView className="flex-1 bg-background" contentContainerClassName="px-4 pb-8 pt-4">
       <View className="relative mb-6 overflow-hidden rounded-[32px] border border-border bg-surface px-5 pb-6 pt-5">
-        <View className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-primary-100" />
-        <View className="absolute -left-8 top-24 h-24 w-24 rounded-full bg-primary-50" />
+        <View className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-accent-soft-strong" />
+        <View className="absolute -left-8 top-24 h-24 w-24 rounded-full bg-accent-soft" />
 
         <View className="mb-4">
-          <View className="mb-3 self-start rounded-full bg-primary-50 px-3 py-2">
+          <View className="mb-3 self-start rounded-full bg-accent-soft px-3 py-2">
             <Text className="text-xs font-semibold uppercase tracking-wide text-accent">
               Library hub
             </Text>
@@ -285,7 +288,7 @@ export default function HomeScreen() {
 
       <SectionShell
         title="Continue Reading"
-        icon={<Clock3 size={18} color="#0ea5e9" />}
+        icon={<Clock3 size={18} color={accent} />}
         onPress={() => navigateDrawer('Library')}
       >
         {featuredContinue ? (
@@ -310,14 +313,14 @@ export default function HomeScreen() {
           <EmptyState
             title="Nothing in progress yet"
             description="Start a book or series and it will appear here for quick access."
-            icon={<BookOpen size={22} color="#0ea5e9" />}
+            icon={<BookOpen size={22} color={accent} />}
           />
         )}
       </SectionShell>
 
       <SectionShell
         title="Recently Added Series"
-        icon={<Sparkles size={18} color="#0ea5e9" />}
+        icon={<Sparkles size={18} color={accent} />}
         onPress={() => navigateDrawer('Series')}
       >
         {recentlyAdded.length > 0 ? (
@@ -330,14 +333,14 @@ export default function HomeScreen() {
           <EmptyState
             title="No recently added series"
             description="Fresh series will show up here as soon as your provider syncs them."
-            icon={<Sparkles size={22} color="#0ea5e9" />}
+            icon={<Sparkles size={22} color={accent} />}
           />
         )}
       </SectionShell>
 
       <SectionShell
         title="Recently Added Books"
-        icon={<BookOpen size={18} color="#0ea5e9" />}
+        icon={<BookOpen size={18} color={accent} />}
         onPress={() => navigateDrawer('Books')}
       >
         {recentlyAddedBooks.length > 0 ? (
@@ -350,14 +353,14 @@ export default function HomeScreen() {
           <EmptyState
             title="No recently added books"
             description="Once new books are available, they will appear in this shelf."
-            icon={<Library size={22} color="#0ea5e9" />}
+            icon={<Library size={22} color={accent} />}
           />
         )}
       </SectionShell>
 
       <SectionShell
         title="Recently Updated Series"
-        icon={<Compass size={18} color="#0ea5e9" />}
+        icon={<Compass size={18} color={accent} />}
         onPress={() => navigateDrawer('Series')}
       >
         {recentlyUpdatedSeries.length > 0 ? (
@@ -370,7 +373,7 @@ export default function HomeScreen() {
           <EmptyState
             title="No recent updates"
             description="Updated series will appear here when new chapters or files arrive."
-            icon={<Compass size={22} color="#0ea5e9" />}
+            icon={<Compass size={22} color={accent} />}
           />
         )}
       </SectionShell>

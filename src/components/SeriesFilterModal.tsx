@@ -11,6 +11,7 @@ import {
 import { SlidersHorizontal, X } from 'lucide-react-native';
 import { Chip } from './Chip';
 import type { FilterCriterion, FilterOptions, FilterType, SearchFilters } from '@/providers';
+import { useThemeColors } from '@/theme/useThemeColors';
 
 interface SeriesFilterModalProps {
   visible: boolean;
@@ -205,6 +206,7 @@ export function SeriesFilterModal({
   onApply,
   onLoadOptions,
 }: SeriesFilterModalProps) {
+  const { accent, accentSoft, accentSoftStrong, primary, tertiary } = useThemeColors();
   const visibleSections = useMemo(
     () =>
       FILTER_SECTIONS.filter(
@@ -300,8 +302,8 @@ export function SeriesFilterModal({
           <View className="flex-row items-start justify-between gap-3">
             <View className="flex-1">
               <View className="flex-row items-center gap-2">
-                <View className="rounded-full bg-primary-50 p-2">
-                  <SlidersHorizontal size={16} color="#0ea5e9" />
+                <View className="rounded-full bg-accent-soft p-2">
+                  <SlidersHorizontal size={16} color={accent} />
                 </View>
                 <Text className="text-xl font-bold text-secondary">{title}</Text>
               </View>
@@ -313,7 +315,7 @@ export function SeriesFilterModal({
               className="rounded-full border border-border bg-background p-3"
               hitSlop={8}
             >
-              <X size={18} color="#6b7280" />
+              <X size={18} color={tertiary} />
             </Pressable>
           </View>
 
@@ -399,8 +401,8 @@ export function SeriesFilterModal({
                 <Text className="mt-1 text-sm leading-5 text-tertiary">{activeSection.description}</Text>
 
                 {notesByType?.[activeSection.type] ? (
-                  <View className="mt-3 rounded-2xl border border-primary-100 bg-primary-50 px-3 py-3">
-                    <Text className="text-xs leading-5 text-primary-700">{notesByType[activeSection.type]}</Text>
+                  <View className="mt-3 rounded-2xl border border-accent-soft-strong bg-accent-soft px-3 py-3">
+                    <Text className="text-xs leading-5 text-accent-dark">{notesByType[activeSection.type]}</Text>
                   </View>
                 ) : null}
 
@@ -410,8 +412,8 @@ export function SeriesFilterModal({
                       value={optionSearch}
                       onChangeText={setOptionSearch}
                       placeholder={`Search ${activeSection.title.toLowerCase()}...`}
-                      placeholderTextColor="#9ca3af"
-                      className="rounded-2xl border border-primary-100 bg-surface px-4 py-3 text-sm text-secondary"
+                      placeholderTextColorClassName="accent-muted"
+                      className="rounded-2xl border border-accent-soft-strong bg-surface px-4 py-3 text-sm text-secondary"
                       autoCapitalize="none"
                       autoCorrect={false}
                     />
@@ -421,7 +423,7 @@ export function SeriesFilterModal({
                 <View className="mt-4 gap-2">
                   {loading && allOptions.length === 0 ? (
                     <View className="items-center py-6">
-                      <ActivityIndicator size="small" />
+                      <ActivityIndicator size="small" color={accent} />
                       <Text className="mt-3 text-sm text-tertiary">Loading filter values...</Text>
                     </View>
                   ) : filteredOptions.length > 0 ? (
@@ -443,7 +445,7 @@ export function SeriesFilterModal({
                                 selected ? 'border-accent bg-accent' : 'border-border bg-background'
                               }`}
                             >
-                              {selected ? <View className="h-2 w-2 rounded-full bg-primary" /> : null}
+                              {selected ? <View className="h-2 w-2 rounded-full bg-accent-contrast" /> : null}
                             </View>
                           </View>
                         </Pressable>
