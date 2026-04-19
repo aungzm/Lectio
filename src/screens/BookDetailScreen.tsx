@@ -25,7 +25,6 @@ import { LoadingScreen } from '@/components/LoadingScreen';
 import NavIconButton from '@/components/NavIconButton';
 import { SectionCard } from '@/components/SectionCard';
 import { InfoPill } from '@/components/InfoPill';
-import { KeyFact } from '@/components/KeyFact';
 import { PeopleChips } from '@/components/PeopleChips';
 import { CollapsibleChipSection } from '@/components/CollapsibleChipSection';
 import { useScrollAwareHeader } from '@/hooks/useScrollAwareHeader';
@@ -116,7 +115,7 @@ export default function BookDetailScreen() {
   const [error, setError] = useState<string | null>(null);
   const [synopsisExpanded, setSynopsisExpanded] = useState(false);
   const [downloading, setDownloading] = useState(false);
-  const { accent, accentSoft, accentSoftStrong, muted, primary, secondary, tertiary } = useThemeColors();
+  const { primary, secondary, tertiary } = useThemeColors();
   const { headerVisible, handleScroll } = useScrollAwareHeader();
 
   useLayoutEffect(() => {
@@ -345,14 +344,6 @@ export default function BookDetailScreen() {
                 icon={<Download size={18} color={secondary} />}
               />
             </View>
-
-            {heroFacts.length > 0 && (
-              <View className="mt-5 flex-row flex-wrap gap-3">
-                {heroFacts.map((fact) => (
-                  <KeyFact key={fact.label} label={fact.label} value={fact.value} />
-                ))}
-              </View>
-            )}
           </View>
         </View>
 
