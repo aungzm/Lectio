@@ -9,7 +9,7 @@ interface SectionCardProps {
 
 export function SectionCard({ title, children }: SectionCardProps) {
   return (
-    <View className="mb-4 rounded-[28px] border border-border bg-surface px-4 py-5">
+    <View className="mb-4 rounded-[28px] border border-border bg-surface px-4 py-5 shadow-sm">
       {title ? <MetadataSection label={title}>{children}</MetadataSection> : children}
     </View>
   );

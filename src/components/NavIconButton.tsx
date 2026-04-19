@@ -2,6 +2,7 @@ import React from 'react';
 import { Pressable } from 'react-native';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
 import { Menu, ChevronLeft } from 'lucide-react-native';
+import { useThemeColors } from '@/theme/useThemeColors';
 
 type NavIconButtonProps = {
   type: 'drawer' | 'back';
@@ -9,6 +10,7 @@ type NavIconButtonProps = {
 
 export default function NavIconButton({ type }: NavIconButtonProps) {
   const navigation = useNavigation();
+  const { background, secondary } = useThemeColors();
 
   const onPress = () => {
     if (type === 'drawer') {
@@ -23,10 +25,16 @@ export default function NavIconButton({ type }: NavIconButtonProps) {
   return (
     <Pressable
       onPress={onPress}
-      className="w-10 h-10 rounded-full bg-primary items-center justify-center active:opacity-70"
-      style={{ elevation: 2, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 4, shadowOffset: { width: 0, height: 1 } }}
+      className="h-10 w-10 items-center justify-center rounded-full bg-primary active:opacity-70"
+      style={{
+        elevation: 2,
+        shadowColor: background,
+        shadowOpacity: 0.12,
+        shadowRadius: 6,
+        shadowOffset: { width: 0, height: 2 },
+      }}
     >
-      <Icon size={20} color="#000000" strokeWidth={2} />
+      <Icon size={20} color={secondary} strokeWidth={2} />
     </Pressable>
   );
 }

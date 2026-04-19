@@ -27,6 +27,7 @@ import { KeyFact } from '@/components/KeyFact';
 import { PeopleChips } from '@/components/PeopleChips';
 import { CollapsibleChipSection } from '@/components/CollapsibleChipSection';
 import { useProviderFetch } from '@/hooks/useProviderFetch';
+import { useThemeColors } from '@/theme/useThemeColors';
 import type { Volume, DetailedMetadata } from '@/providers';
 
 const AGE_RATING_LABELS: Record<number, string> = {
@@ -114,6 +115,7 @@ export default function SeriesDetailScreen() {
   const [metadata, setMetadata] = useState<DetailedMetadata | null>(null);
   const [metaLoading, setMetaLoading] = useState(true);
   const [synopsisExpanded, setSynopsisExpanded] = useState(false);
+  const { accent, accentSoft, accentSoftStrong, tertiary } = useThemeColors();
 
   const bookVolumes = volumes[seriesId] ?? [];
 
@@ -188,8 +190,8 @@ export default function SeriesDetailScreen() {
     <ScrollView className="flex-1 bg-background" contentContainerClassName="pb-10">
       <View className="px-4 pt-4">
         <View className="relative overflow-hidden rounded-[32px] border border-border bg-surface px-5 pb-6 pt-5">
-          <View className="absolute -right-10 -top-12 h-36 w-36 rounded-full bg-primary-100" />
-          <View className="absolute -left-12 top-28 h-28 w-28 rounded-full bg-primary-50" />
+          <View className="absolute -right-10 -top-12 h-36 w-36 rounded-full bg-accent-soft-strong" />
+          <View className="absolute -left-12 top-28 h-28 w-28 rounded-full bg-accent-soft" />
 
           <View className="items-center">
             <View className="h-64 w-44 overflow-hidden rounded-[28px] border border-border bg-border shadow-lg">
@@ -205,7 +207,7 @@ export default function SeriesDetailScreen() {
                 {authorNames.map((author, index) => (
                   <InfoPill
                     key={`${author}-${index}`}
-                    icon={<User size={14} color="#6b7280" />}
+                    icon={<User size={14} color={tertiary} />}
                     label={author}
                   />
                 ))}
@@ -214,29 +216,29 @@ export default function SeriesDetailScreen() {
 
             <View className="mt-4 flex-row flex-wrap items-center justify-center gap-2">
               <InfoPill
-                icon={<Library size={14} color="#6b7280" />}
+                icon={<Library size={14} color={tertiary} />}
                 label={bookCountLabel}
               />
               {metadata?.releaseYear ? (
                 <InfoPill
-                  icon={<CalendarDays size={14} color="#6b7280" />}
+                  icon={<CalendarDays size={14} color={tertiary} />}
                   label={`${metadata.releaseYear}`}
                 />
               ) : null}
               {metadata?.language ? (
                 <InfoPill
-                  icon={<Languages size={14} color="#6b7280" />}
+                  icon={<Languages size={14} color={tertiary} />}
                   label={metadata.language.toUpperCase()}
                 />
               ) : null}
               {statusLabel ? (
                 <InfoPill
-                  icon={<Sparkles size={14} color="#6b7280" />}
+                  icon={<Sparkles size={14} color={tertiary} />}
                   label={statusLabel}
                 />
               ) : null}
               {ageLabel && ageLabel !== 'Unknown' ? (
-                <InfoPill icon={<Shield size={14} color="#6b7280" />} label={ageLabel} />
+                <InfoPill icon={<Shield size={14} color={tertiary} />} label={ageLabel} />
               ) : null}
             </View>
           </View>
@@ -323,8 +325,8 @@ export default function SeriesDetailScreen() {
         {bookVolumes.length === 0 && !loadingVolumes ? (
           <View className="rounded-[28px] border border-border bg-surface px-5 py-8">
             <View className="items-center">
-              <View className="rounded-full bg-primary-50 p-4">
-                <BookOpen size={24} color="#0ea5e9" />
+              <View className="rounded-full bg-accent-soft p-4">
+                <BookOpen size={24} color={accent} />
               </View>
               <Text className="mt-4 text-base font-semibold text-secondary">No books found</Text>
               <Text className="mt-1 text-center text-sm text-tertiary">
