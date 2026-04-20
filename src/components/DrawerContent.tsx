@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { DrawerContentComponentProps } from '@react-navigation/drawer';
 import { useAuthStore } from '@/store/authStore';
 import { InfoPill } from '@/components/InfoPill';
+import { useThemeColors } from '@/theme/useThemeColors';
 import {
   BookOpen,
   BookOpenText,
@@ -68,6 +69,7 @@ export default function DrawerContent({ state, navigation }: DrawerContentCompon
   const serverConfig = useAuthStore((store) => store.serverConfig);
   const auth = useAuthStore((store) => store.auth);
   const logout = useAuthStore((store) => store.logout);
+  const { accent, accentSoft, accentSoftStrong, primary, secondary, tertiary } = useThemeColors();
 
   const activeRoute = state.routeNames[state.index];
 
@@ -75,10 +77,10 @@ export default function DrawerContent({ state, navigation }: DrawerContentCompon
     <View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
       <View className="px-4 pt-4 pb-2">
         <View className="relative overflow-hidden rounded-[26px] border border-border bg-surface px-5 py-4">
-          <View className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-primary-100" />
-          <View className="absolute -left-6 top-16 h-16 w-16 rounded-full bg-primary-50" />
+          <View className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-accent-soft-strong" />
+          <View className="absolute -left-6 top-16 h-16 w-16 rounded-full bg-accent-soft" />
 
-          <View className="mb-3 self-start rounded-full bg-primary-50 px-3 py-2">
+          <View className="mb-3 self-start rounded-full bg-accent-soft px-3 py-2">
             <Text className="text-xs font-semibold uppercase tracking-wide text-accent">
               Lektio
             </Text>
@@ -87,7 +89,7 @@ export default function DrawerContent({ state, navigation }: DrawerContentCompon
           {serverConfig?.name ? (
             <View className="mt-4 self-start">
               <InfoPill
-                icon={<Library size={14} color="#6b7280" strokeWidth={1.9} />}
+                icon={<Library size={14} color={tertiary} strokeWidth={1.9} />}
                 label={serverConfig.name}
               />
             </View>
@@ -109,7 +111,7 @@ export default function DrawerContent({ state, navigation }: DrawerContentCompon
               icon={
                 <Icon
                   size={18}
-                  color={isActive ? '#ffffff' : '#0ea5e9'}
+                  color={isActive ? primary : accent}
                   strokeWidth={2}
                 />
               }
@@ -133,7 +135,7 @@ export default function DrawerContent({ state, navigation }: DrawerContentCompon
               onPress={logout}
               className="rounded-full border border-border bg-background p-2.5"
             >
-              <LogOut size={18} color="#6b7280" strokeWidth={1.9} />
+              <LogOut size={18} color={tertiary} strokeWidth={1.9} />
             </Pressable>
           </View>
         </View>

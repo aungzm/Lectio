@@ -10,6 +10,7 @@ import NavIconButton from '@/components/NavIconButton';
 import { BookGrid } from '@/components/BookGrid';
 import { SearchBar } from '@/components/SearchBar';
 import { useProviderFetch } from '@/hooks/useProviderFetch';
+import { useThemeColors } from '@/theme/useThemeColors';
 import type { LibrariesScreenProps } from '@/navigation/types';
 import type { Library } from '@/providers';
 
@@ -20,6 +21,7 @@ export default function LibrariesScreen({ navigation }: LibrariesScreenProps) {
   const [debouncedSearchText, setDebouncedSearchText] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { accent, primary, secondary } = useThemeColors();
 
   useProviderFetch((p) => fetchLibraries(p));
 
@@ -48,7 +50,7 @@ export default function LibrariesScreen({ navigation }: LibrariesScreenProps) {
             searchButtonActive ? 'border-secondary bg-secondary' : 'border-border bg-primary'
           }`}
         >
-          {searchButtonActive ? <X size={18} color="#ffffff" /> : <Search size={18} color="#000000" />}
+          {searchButtonActive ? <X size={18} color={primary} /> : <Search size={18} color={secondary} />}
         </Pressable>
       ),
     });
@@ -71,7 +73,7 @@ export default function LibrariesScreen({ navigation }: LibrariesScreenProps) {
     <View className="flex-1 bg-background">
       <View className="px-4 pb-1">
         {searchOpen ? (
-          <View className="mt-2 rounded-[26px] bg-primary-50/80">
+          <View className="mt-2 rounded-[26px] bg-accent-soft">
             <SearchBar value={searchText} onChangeText={setSearchText} placeholder="Search libraries..." />
           </View>
         ) : null}
@@ -82,9 +84,9 @@ export default function LibrariesScreen({ navigation }: LibrariesScreenProps) {
         getCoverUri={getCoverUri}
         getTitle={(library) => library.name}
         renderEmptyCover={() => (
-          <View className="h-full w-full items-center justify-center bg-primary-50">
+          <View className="h-full w-full items-center justify-center bg-accent-soft">
             <View className="mb-3 rounded-full bg-surface p-3">
-              <BookOpen size={28} color="#0284c7" />
+              <BookOpen size={28} color={accent} />
             </View>
             <Text className="text-xs font-semibold uppercase tracking-wide text-tertiary">
               No Cover

@@ -28,6 +28,7 @@ import { InfoPill } from '@/components/InfoPill';
 import { KeyFact } from '@/components/KeyFact';
 import { PeopleChips } from '@/components/PeopleChips';
 import { CollapsibleChipSection } from '@/components/CollapsibleChipSection';
+import { useThemeColors } from '@/theme/useThemeColors';
 import { BookFormat, type DetailedMetadata } from '@/providers';
 
 const AGE_RATING_LABELS: Record<number, string> = {
@@ -130,6 +131,7 @@ export default function BookDetailScreen() {
   const [error, setError] = useState<string | null>(null);
   const [synopsisExpanded, setSynopsisExpanded] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const { accent, accentSoft, accentSoftStrong, muted, primary, secondary, tertiary } = useThemeColors();
 
   useEffect(() => {
     if (!provider?.getDetailedMetadata) {
@@ -282,8 +284,8 @@ export default function BookDetailScreen() {
     <ScrollView className="flex-1 bg-background" contentContainerClassName="pb-10">
       <View className="px-4 pt-4">
         <View className="relative overflow-hidden rounded-[32px] border border-border bg-surface px-5 pb-6 pt-5">
-          <View className="absolute -top-12 -right-10 h-36 w-36 rounded-full bg-primary-100" />
-          <View className="absolute top-24 -left-12 h-28 w-28 rounded-full bg-primary-50" />
+          <View className="absolute -top-12 -right-10 h-36 w-36 rounded-full bg-accent-soft-strong" />
+          <View className="absolute top-24 -left-12 h-28 w-28 rounded-full bg-accent-soft" />
 
           <View className="items-center">
             <View className="h-64 w-44 overflow-hidden rounded-[28px] border border-border bg-border shadow-lg">
@@ -299,7 +301,7 @@ export default function BookDetailScreen() {
                   {authorNames.map((author, index) => (
                     <InfoPill
                       key={`${author}-${index}`}
-                      icon={<User size={14} color="#6b7280" />}
+                      icon={<User size={14} color={tertiary} />}
                       label={author}
                     />
                   ))}
@@ -311,24 +313,24 @@ export default function BookDetailScreen() {
               <View className="mt-4 flex-row flex-wrap items-center justify-center gap-2">
                 {metadata?.releaseYear ? (
                   <InfoPill
-                    icon={<CalendarDays size={14} color="#6b7280" />}
+                    icon={<CalendarDays size={14} color={tertiary} />}
                     label={`${metadata.releaseYear}`}
                   />
                 ) : null}
                 {book?.pagesTotal ? (
                   <InfoPill
-                    icon={<BookOpen size={14} color="#6b7280" />}
+                    icon={<BookOpen size={14} color={tertiary} />}
                     label={`${book.pagesTotal} pages`}
                   />
                 ) : null}
                 {metadata?.language ? (
                   <InfoPill
-                    icon={<Languages size={14} color="#6b7280" />}
+                    icon={<Languages size={14} color={tertiary} />}
                     label={metadata.language.toUpperCase()}
                   />
                 ) : null}
                 {ageLabel && ageLabel !== 'Unknown' ? (
-                  <InfoPill icon={<Shield size={14} color="#6b7280" />} label={ageLabel} />
+                  <InfoPill icon={<Shield size={14} color={tertiary} />} label={ageLabel} />
                 ) : null}
               </View>
             )}
@@ -339,12 +341,12 @@ export default function BookDetailScreen() {
               label="Read Now"
               primary
               onPress={handleReadNow}
-              icon={<BookOpen size={18} color="#ffffff" />}
+              icon={<BookOpen size={18} color={primary} />}
             />
             <ActionTile
               label={downloading ? 'Saving...' : 'Download'}
               onPress={handleDownload}
-              icon={<Download size={18} color="#000000" />}
+              icon={<Download size={18} color={secondary} />}
             />
           </View>
 

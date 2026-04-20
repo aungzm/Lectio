@@ -9,6 +9,7 @@ import { Chip } from '@/components/Chip';
 import NavIconButton from '@/components/NavIconButton';
 import { SearchBar } from '@/components/SearchBar';
 import { useProviderFetch } from '@/hooks/useProviderFetch';
+import { useThemeColors } from '@/theme/useThemeColors';
 import type { AuthorsScreenProps } from '@/navigation/types';
 import type { Author } from '@/providers';
 
@@ -18,6 +19,7 @@ export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
   const [searchText, setSearchText] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { muted, primary, secondary } = useThemeColors();
 
   useProviderFetch((p) => fetchAuthors(p, 0, searchText || undefined));
 
@@ -51,7 +53,7 @@ export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
             searchButtonActive ? 'border-secondary bg-secondary' : 'border-border bg-primary'
           }`}
         >
-          {searchButtonActive ? <X size={18} color="#ffffff" /> : <Search size={18} color="#000000" />}
+          {searchButtonActive ? <X size={18} color={primary} /> : <Search size={18} color={secondary} />}
         </Pressable>
       ),
     });
@@ -62,7 +64,7 @@ export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
       <View className="flex-1 bg-background">
         <View className="px-4 pb-1">
           {searchOpen ? (
-            <View className="mt-2 rounded-[26px] bg-primary-50/80">
+            <View className="mt-2 rounded-[26px] bg-accent-soft">
               <SearchBar value={searchText} onChangeText={setSearchText} placeholder="Search authors..." />
             </View>
           ) : null}
@@ -90,7 +92,7 @@ export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
     <View className="flex-1 bg-background">
       <View className="px-4 pb-1">
         {searchOpen ? (
-          <View className="mt-2 rounded-[26px] bg-primary-50/80">
+          <View className="mt-2 rounded-[26px] bg-accent-soft">
             <SearchBar value={searchText} onChangeText={setSearchText} placeholder="Search authors..." />
           </View>
         ) : null}
@@ -101,7 +103,7 @@ export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
         getCoverUri={getAuthorCoverUri}
         getTitle={(item) => item.name}
         onPress={(item) => navigation.navigate('AuthorDetail', { authorId: item.id, authorName: item.name })}
-        renderEmptyCover={() => <User size={32} color="#9ca3af" />}
+        renderEmptyCover={() => <User size={32} color={muted} />}
         emptyText="No authors found."
         cardVariant="author"
         ListHeaderComponent={

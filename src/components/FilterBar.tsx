@@ -3,6 +3,7 @@ import { View, Text, ScrollView, Pressable, ActivityIndicator } from 'react-nati
 import { ChevronDown, ChevronUp, X } from 'lucide-react-native';
 import { Chip } from './Chip';
 import type { FilterType, FilterCriterion, SearchFilters, FilterOptions } from '@/providers';
+import { useThemeColors } from '@/theme/useThemeColors';
 
 interface FilterBarProps {
   filters: SearchFilters;
@@ -69,6 +70,7 @@ export function FilterBar({
   loading,
 }: FilterBarProps) {
   const [expandedType, setExpandedType] = useState<FilterType | null>(null);
+  const { accent, primary, secondary, danger, tertiary } = useThemeColors();
 
   const activeCriteria = filters.criteria.filter((c) => !lockedTypes.includes(c.type));
   const hasActiveFilters = activeCriteria.length > 0;
@@ -152,7 +154,7 @@ export function FilterBar({
                 {FILTER_LABELS[type]}
                 {count > 0 && ` (${count})`}
               </Text>
-              <Icon size={14} color={isExpanded ? '#ffffff' : '#6b7280'} className="ml-1" />
+              <Icon size={14} color={isExpanded ? primary : tertiary} className="ml-1" />
             </Pressable>
           );
         })}
@@ -162,8 +164,8 @@ export function FilterBar({
             onPress={clearAll}
             className="flex-row items-center rounded-full px-3 py-1.5 border border-danger bg-surface"
           >
-            <X size={12} color="#ef4444" />
-            <Text className="text-xs font-medium text-red-500 ml-1">Clear</Text>
+            <X size={12} color={danger} />
+            <Text className="ml-1 text-xs font-medium text-danger">Clear</Text>
           </Pressable>
         )}
       </ScrollView>
@@ -172,7 +174,7 @@ export function FilterBar({
       {expandedType && (
         <View className="px-3 pb-2">
           {loading ? (
-            <ActivityIndicator size="small" className="py-2" />
+            <ActivityIndicator size="small" className="py-2" color={accent} />
           ) : (
             <ScrollView
               horizontal

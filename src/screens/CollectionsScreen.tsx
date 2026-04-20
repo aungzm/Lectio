@@ -10,6 +10,7 @@ import { SearchBar } from '@/components/SearchBar';
 import { useCoverUri } from '@/hooks/useCoverUri';
 import { useProviderFetch } from '@/hooks/useProviderFetch';
 import { useBrowseStore } from '@/store/browseStore';
+import { useThemeColors } from '@/theme/useThemeColors';
 import type { CollectionsScreenProps } from '@/navigation/types';
 
 export default function CollectionsScreen({ navigation }: CollectionsScreenProps) {
@@ -19,6 +20,7 @@ export default function CollectionsScreen({ navigation }: CollectionsScreenProps
   const [debouncedSearchText, setDebouncedSearchText] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { accent, primary, secondary } = useThemeColors();
 
   useProviderFetch((p) => fetchCollections(p));
 
@@ -47,7 +49,7 @@ export default function CollectionsScreen({ navigation }: CollectionsScreenProps
             searchButtonActive ? 'border-secondary bg-secondary' : 'border-border bg-primary'
           }`}
         >
-          {searchButtonActive ? <X size={18} color="#ffffff" /> : <Search size={18} color="#000000" />}
+          {searchButtonActive ? <X size={18} color={primary} /> : <Search size={18} color={secondary} />}
         </Pressable>
       ),
     });
@@ -68,7 +70,7 @@ export default function CollectionsScreen({ navigation }: CollectionsScreenProps
     <View className="flex-1 bg-background">
       <View className="px-4 pb-1">
         {searchOpen ? (
-          <View className="mt-2 rounded-[26px] bg-primary-50/80">
+          <View className="mt-2 rounded-[26px] bg-accent-soft">
             <SearchBar
               value={searchText}
               onChangeText={setSearchText}
@@ -83,9 +85,9 @@ export default function CollectionsScreen({ navigation }: CollectionsScreenProps
         getCoverUri={(collection) => getCoverUri(collection.id)}
         getTitle={(collection) => collection.name}
         renderEmptyCover={() => (
-          <View className="h-full w-full items-center justify-center bg-primary-50">
+          <View className="h-full w-full items-center justify-center bg-accent-soft">
             <View className="mb-3 rounded-full bg-surface p-3">
-              <Layers3 size={28} color="#0284c7" />
+              <Layers3 size={28} color={accent} />
             </View>
             <Text className="text-xs font-semibold uppercase tracking-wide text-tertiary">No Cover</Text>
           </View>
