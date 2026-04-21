@@ -12,6 +12,7 @@ import { SearchBar } from '@/components/SearchBar';
 import { BOOK_FILTER_TYPES, SeriesFilterModal } from '@/components/SeriesFilterModal';
 import { useCoverUri } from '@/hooks/useCoverUri';
 import { useBookDetailNavigation } from '@/hooks/useBookDetailNavigation';
+import { useThemeColors } from '@/theme/useThemeColors';
 import type { SearchFilters, FilterType } from '@/providers';
 import type { BooksScreenProps } from '@/navigation/types';
 
@@ -28,6 +29,7 @@ export default function BooksScreen({ route, navigation }: BooksScreenProps) {
   } = useFilterStore();
   const getCoverUri = useCoverUri('getBookCoverUrl');
   const handlePress = useBookDetailNavigation();
+  const { primary, secondary } = useThemeColors();
 
   const lockedCriteria = libraryId ? [{ type: 'libraryId' as const, value: libraryId }] : [];
   const lockedTypes: FilterType[] = libraryId ? ['libraryId'] : [];
@@ -108,7 +110,7 @@ export default function BooksScreen({ route, navigation }: BooksScreenProps) {
               searchButtonActive ? 'border-secondary bg-secondary' : 'border-border bg-primary'
             }`}
           >
-            {searchButtonActive ? <X size={18} color="#ffffff" /> : <Search size={18} color="#000000" />}
+            {searchButtonActive ? <X size={18} color={primary} /> : <Search size={18} color={secondary} />}
           </Pressable>
           <Pressable
             onPress={() => (filtersOpen ? setFiltersOpen(false) : handleOpenFilters())}
@@ -117,10 +119,10 @@ export default function BooksScreen({ route, navigation }: BooksScreenProps) {
             }`}
           >
             <View>
-              <SlidersHorizontal size={18} color={filterButtonActive ? '#ffffff' : '#000000'} />
+              <SlidersHorizontal size={18} color={filterButtonActive ? primary : secondary} />
               {activeFilterCount > 0 ? (
                 <View className="absolute -right-3 -top-3 min-w-[18px] rounded-full bg-accent px-1 py-0.5">
-                  <Text className="text-center text-[10px] font-bold text-primary">{activeFilterCount}</Text>
+                  <Text className="text-center text-[10px] font-bold text-accent-contrast">{activeFilterCount}</Text>
                 </View>
               ) : null}
             </View>
@@ -138,7 +140,7 @@ export default function BooksScreen({ route, navigation }: BooksScreenProps) {
     <View className="flex-1 bg-background">
       <View className="px-4 pb-1">
         {searchOpen ? (
-          <View className="mt-2 rounded-[26px] bg-primary-50/80">
+          <View className="mt-2 rounded-[26px] bg-accent-soft">
             <SearchBar value={searchText} onChangeText={setSearchText} placeholder="Search books..." />
           </View>
         ) : null}

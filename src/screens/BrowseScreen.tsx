@@ -54,7 +54,7 @@ export default function BrowseScreen({ navigation }: BrowseHubScreenProps) {
       <BrowseSection
         title="Reading Lists"
         subtitle="Ordered reading sequences"
-        onPress={() => navigation.navigate('ReadLists')}
+        onPress={() => navigation.navigate('ReadList')}
         supported={supportsReadLists}
       />
     </ScrollView>
