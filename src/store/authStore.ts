@@ -1,11 +1,13 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
+  DemoProvider,
   KomgaProvider,
   komgaLogin,
   komgaValidateToken,
 } from '@/providers';
 import type { ILibraryProvider, AuthResult } from '@/providers';
+import { createDemoAuth, createDemoServerConfig, isDemoModeEnabled } from '@/demo/config';
 
 export type ProviderType = 'komga';
 
@@ -30,6 +32,10 @@ interface AuthState {
 }
 
 function createProvider(config: ServerConfig, auth: AuthResult): ILibraryProvider {
+  if (isDemoModeEnabled()) {
+    return new DemoProvider();
+  }
+
   switch (config.providerType) {
     case 'komga':
       return new KomgaProvider(config.serverUrl, auth.apiKey);
@@ -49,6 +55,22 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (config, username, password) => {
     set({ isLoading: true, error: null });
     try {
+      if (isDemoModeEnabled()) {
+        const demoConfig = createDemoServerConfig();
+        const demoAuth = createDemoAuth();
+        const provider = createProvider(demoConfig, demoAuth);
+        await AsyncStorage.setItem(SESSION_KEY, JSON.stringify({ config: demoConfig, auth: demoAuth }));
+        set({
+          serverConfig: demoConfig,
+          auth: demoAuth,
+          provider,
+          isAuthenticated: true,
+          isLoading: false,
+          error: null,
+        });
+        return;
+      }
+
       const { user, sessionToken, basicAuth } = await komgaLogin(config.serverUrl, username, password);
       const auth: AuthResult = { token: sessionToken, username: user.email, apiKey: basicAuth };
       const provider = createProvider(config, auth);
@@ -67,6 +89,14 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   restoreSession: async () => {
     try {
+      if (isDemoModeEnabled()) {
+        const config = createDemoServerConfig();
+        const auth = createDemoAuth();
+        const provider = createProvider(config, auth);
+        set({ serverConfig: config, auth, provider, isAuthenticated: true, isLoading: false });
+        return;
+      }
+
       const raw = await AsyncStorage.getItem(SESSION_KEY);
       if (!raw) return;
       const { config, auth } = JSON.parse(raw) as { config: ServerConfig; auth: AuthResult };
@@ -78,7 +108,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         await AsyncStorage.removeItem(SESSION_KEY);
       }
     } catch {
-      // silently ignore — user will be prompted to log in
+      // silently ignore - user will be prompted to log in
     }
   },
 }));

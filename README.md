@@ -1,114 +1,110 @@
 # Lektio
 
-A React Native companion reading app for self-hosted e-libraries. Connect to your personal book server, sync reading progress via KOReader, and read ebooks directly in-app on iOS and Android.
+A native [Komga](https://komga.org/) client for Android and iOS, focused on books.
 
-## Vision
+## Why
 
-Self-hosted e-library servers like Kavita are excellent for managing your personal collection, but their mobile experience is often limited or browser-based. Lektio bridges that gap by providing a native mobile reading experience that connects to your existing infrastructure — with no cloud lock-in.
+Most existing Komga clients are built around comics and manga. Lektio is built for readers whose libraries are mostly books: EPUB, PDF, FB2, and similar formats. The goal is a reading-first experience rather than a page-by-page image viewer.
 
-The app is designed from the ground up to support multiple library backends. Kavita is the first supported provider, with others planned.
+## Design
 
-## Planned Features
+The aim is a clean, library-first layout with large covers, readable metadata, and a reader that feels closer to a dedicated e-reader than a comic viewer.
 
-### Library Integration
-- Browse your Kavita library: series, volumes, chapters, and reading lists
-- Search, filter, and sort your collection
-- View metadata: covers, descriptions, genres, tags, ratings
-- Track reading status and progress synced back to the server
+## Requirements
 
-### In-App Reading
-- Native epub rendering via `@epubjs-react-native` (or equivalent)
-- Customizable reader: font, size, theme (light/dark/sepia), line spacing
-- Tap-to-turn / swipe navigation
-- Chapter navigation and table of contents
-
-### KOReader Progress Sync
-- Sync reading position and progress with KOReader via the kosync protocol
-- Resume on any device — phone, tablet, or KOReader e-ink device
-- Two-way sync: positions set in Lektio appear in KOReader and vice versa
-
-### Multi-Provider Support
-- Plugin-style provider system — add a server URL and authenticate
-- Kavita (v0.8.9.33+) — JWT auth via `/api/Account/login`
-- Planned: Calibre-Web, Komga, Audiobookshelf
-
-### Offline Support
-- Download books for offline reading
-- Offline progress tracked and synced when back online
+- Komga server, version 1.24.0 or later
+- A Komga user account
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Framework | React Native (Expo or bare workflow) |
-| Navigation | React Navigation |
-| State management | Zustand or Redux Toolkit |
-| Epub rendering | `@epubjs-react-native` / `react-native-epub-view` |
-| HTTP client | Axios or fetch with typed API layer |
-| KOReader sync | kosync REST protocol (self-hosted or third-party) |
-| Storage | AsyncStorage + SQLite (via expo-sqlite or react-native-mmkv) |
-| Auth | JWT (Kavita), extensible per provider |
-
-## Supported Backends
-
-### Kavita
-- API: OpenAPI 3.0, JWT-authenticated
-- Tested against: v0.8.9.33
-- Features used: Account, Library, Series, Volume, Chapter, Reader endpoints
-- Docs: https://wiki.kavitareader.com/en/api
-
-### Future Providers
-- Calibre-Web (Content Server API)
-- Komga (REST API)
-- Audiobookshelf (for audiobooks)
-
-## KOReader Sync
-
-Lektio implements the [kosync](https://github.com/koreader/koreader/tree/master/plugins/kosync.koplugin) protocol to sync reading positions. This requires a kosync-compatible server (e.g. [koreader-sync-server](https://github.com/koreader/koreader-sync-server) or a Kavita instance with sync support).
-
-Progress synced per document:
-- Current page / CFI position
-- Percentage complete
-- Last read timestamp
-
-## Project Structure (Planned)
-
-```
-src/
-  providers/          # Library backend adapters (Kavita, Komga, ...)
-    kavita/           # Kavita API client, types, auth
-    base/             # ILibraryProvider interface
-  sync/               # KOReader kosync integration
-  reader/             # Epub reader component and controls
-  screens/            # App screens (Home, Library, Reader, Settings)
-  store/              # Global state (auth, library, progress)
-  components/         # Shared UI components
-```
+- React Native (Expo 54) 
+- TypeScript
+- React Navigation (bottom tabs + native stack)
+- Zustand for state management
+- Axios for HTTP
+- NativeWind for styling
+- AsyncStorage for persisted auth and settings
+- Lucide icons
 
 ## Getting Started
 
-> Setup instructions will be added once the project scaffolding is in place.
+```bash
+npm install
+npx expo run:android
+npx expo run:ios
+```
+
+You will need a running Komga server and a user account on it.
+
+### Demo Mode
+
+If you want to share the app with someone who does not have a Komga server, you can run Lektio in a bundled demo mode:
 
 ```bash
-# Install dependencies
-npm install
+EXPO_PUBLIC_DEMO_MODE=true npx expo start
+```
 
-# Run on iOS
-npx expo run:ios
+In demo mode the app skips server authentication and loads a static public-domain sample library with:
 
-# Run on Android
-npx expo run:android
+- 2 libraries
+- 10 series
+- 38 books
+- genres, tags, publishers, language, age ratings, and read progress
+- 2 collections
+- 1 reading list
+
+The seeded metadata is based on public-domain classics so you can attach your own compatible covers later.
+
+## Project Structure
+
+```
+src/
+  providers/     Library backend adapters (Komga, base interface)
+  store/         Zustand stores (auth, library, browse, bookmarks, progress)
+  navigation/    React Navigation stacks and tab layout
+  screens/       App screens (Login, Libraries, Series, Book, Reader, etc.)
+  components/    Shared UI components (CoverImage, etc.)
+  hooks/         Reusable hooks
+  theme/         Theme tokens and helpers
+  sync/          KOReader kosync integration
 ```
 
 ## Roadmap
 
-- [ ] Project scaffolding (Expo + TypeScript)
-- [ ] Kavita auth + library browsing
-- [ ] Epub reader integration
-- [ ] KOReader progress sync
-- [ ] Offline download support
-- [ ] Second provider (Calibre-Web or Komga)
-- [ ] App Store / Google Play release
+- [x] Komga authentication (session token via `X-Auth-Token`, Basic auth for images)
+- [x] Library, series, and book metadata fetching and rendering
+- [x] Authors, collections, and read lists browsing
+- [x] Bookmarks 
+- [x] UI layout, navigation, and theming
+- [x] Search, filter, and sort across libraries
+- [ ] Offline caching with a local database (in progress)
+- [ ] Creating and managing read lists and collections from the app
+- [ ] EPUB reader
+- [ ] PDF reader
+- [ ] FB2 reader
+- [ ] Read progress tracking, synced back to Komga
+- [ ] Per-book reader settings (font, size, theme, line spacing)
+- [ ] KOReader kosync integration for sharing progress with e-ink devices
+- [ ] Downloading books for offline reading
+- [ ] Reading statistics (time read, books finished, streaks)
+- [ ] Kavita support (tentative)
+
+## Supported Backend
+
+- Komga
+
+## Contributing
+
+Issues and pull requests are welcome. Please open an issue first for larger changes so the approach can be discussed before work starts.
+
+## Acknowledgements
+
+- [Komga](https://komga.org/) for the server this app is built around
+- [Bookfusion](https://www.bookfusion.com) for the UI inspiration
+
+## Disclaimer
+
+Lektio is an independent, community-built client and is not affiliated with or endorsed by Komga or Bookfusion.
 
 ## License
 
