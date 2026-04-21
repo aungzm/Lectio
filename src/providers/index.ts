@@ -1,4 +1,5 @@
 export { KomgaProvider } from './komga';
+export { DemoProvider } from './demo/DemoProvider';
 export { komgaLogin, komgaValidateToken } from './komga/client';
 export type {
   ILibraryProvider,
