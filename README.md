@@ -8,20 +8,29 @@ Most existing Komga clients are built around comics and manga. Lectio is built f
 
 ## Design
 
-<img width="1080" height="2340" alt="demo_HomeScreen-modified" src="https://github.com/user-attachments/assets/2b7832b9-24dd-48c4-9dd7-90a8cdf6d8c0" />
-<img width="1080" height="2340" alt="demo_LibrariesScreen-modified" src="https://github.com/user-attachments/assets/61a61aec-763d-4784-81ed-2a4fbe5dcb68" />
-<img width="1080" height="2340" alt="demo_SeriesScreen-modified" src="https://github.com/user-attachments/assets/3e5d30f6-06a2-44d0-ab09-3237eb5f5f08" />
-<img width="1080" height="2340" alt="demo_BooksScreen-modified" src="https://github.com/user-attachments/assets/7051a9d5-de17-485d-8c00-f69cbe3336c8" />
-<img width="1080" height="2340" alt="demo_AuthorsScreen-modified" src="https://github.com/user-attachments/assets/174b48d1-4de8-4ccd-b47b-23ff8bae44e3" />
-<img width="1080" height="2340" alt="demo_CollectionsScreen-modified" src="https://github.com/user-attachments/assets/2c29b856-3de3-4ff0-af62-6021b04416f7" />
-<img width="1080" height="2340" alt="demo_ReadListScreen-modified" src="https://github.com/user-attachments/assets/c33b9891-fbee-4532-8b8e-0c16217a9d9b" />
-<img width="1080" height="2340" alt="demo_SettingsScreen-modified" src="https://github.com/user-attachments/assets/35bcf809-985d-4c6a-8dce-1e3ebd2b5f6d" />
-<img width="1080" height="2340" alt="demo_Theme1-modified" src="https://github.com/user-attachments/assets/02c12d77-9126-4fc6-80f7-df9833bc7817" />
-<img width="1080" height="2340" alt="demo_Theme2-modified" src="https://github.com/user-attachments/assets/91ae20dd-67c6-4c29-a464-85bd0e0c92cf" />
-<img width="1080" height="2340" alt="demo_Theme3-modified" src="https://github.com/user-attachments/assets/00c50aad-760d-448a-bcd1-2dd64b9017e1" />
-<img width="1080" height="2340" alt="demo_LoginScreen-modified" src="https://github.com/user-attachments/assets/c07c00b5-ddba-4be4-b3ac-1a1d89b6757e" />
-
 The aim is a clean, library-first layout with large covers, readable metadata, and a reader that feels closer to a dedicated e-reader than a comic viewer.
+
+<div align="center">
+
+**Getting started & browsing**
+
+| Sign In | Home | Libraries | Series |
+|:---:|:---:|:---:|:---:|
+| <img src="https://github.com/user-attachments/assets/c07c00b5-ddba-4be4-b3ac-1a1d89b6757e" width="200"/> | <img src="https://github.com/user-attachments/assets/2b7832b9-24dd-48c4-9dd7-90a8cdf6d8c0" width="200"/> | <img src="https://github.com/user-attachments/assets/61a61aec-763d-4784-81ed-2a4fbe5dcb68" width="200"/> | <img src="https://github.com/user-attachments/assets/3e5d30f6-06a2-44d0-ab09-3237eb5f5f08" width="200"/> |
+
+**Discovery**
+
+| Books | Authors | Collections | Reading Lists |
+|:---:|:---:|:---:|:---:|
+| <img src="https://github.com/user-attachments/assets/7051a9d5-de17-485d-8c00-f69cbe3336c8" width="200"/> | <img src="https://github.com/user-attachments/assets/174b48d1-4de8-4ccd-b47b-23ff8bae44e3" width="200"/> | <img src="https://github.com/user-attachments/assets/2c29b856-3de3-4ff0-af62-6021b04416f7" width="200"/> | <img src="https://github.com/user-attachments/assets/c33b9891-fbee-4532-8b8e-0c16217a9d9b" width="200"/> |
+
+**Themes & settings**
+
+| Settings | Theme 1 | Theme 2 | Theme 3 |
+|:---:|:---:|:---:|:---:|
+| <img src="https://github.com/user-attachments/assets/35bcf809-985d-4c6a-8dce-1e3ebd2b5f6d" width="200"/> | <img src="https://github.com/user-attachments/assets/02c12d77-9126-4fc6-80f7-df9833bc7817" width="200"/> | <img src="https://github.com/user-attachments/assets/91ae20dd-67c6-4c29-a464-85bd0e0c92cf" width="200"/> | <img src="https://github.com/user-attachments/assets/00c50aad-760d-448a-bcd1-2dd64b9017e1" width="200"/> |
+
+</div>
 
 ## Requirements
 
