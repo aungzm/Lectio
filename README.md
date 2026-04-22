@@ -53,8 +53,6 @@ In demo mode the app skips server authentication and loads a static public-domai
 - 2 collections
 - 1 reading list
 
-The seeded metadata is based on public-domain classics so you can attach your own compatible covers later.
-
 You can also download the release APK and let people enter the bundled demo library from the login screen. Demo sessions are stored on-device until the user signs out.
 
 ## Project Structure
