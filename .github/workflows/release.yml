@@ -5,6 +5,9 @@ on:
     tags:
       - "v*"
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build & Release APK
@@ -40,12 +43,19 @@ jobs:
         env:
           GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g"
 
+      - name: Locate and rename APK
+        run: |
+          APK=$(find android/app/build/outputs/apk/release -name "*.apk" | head -1)
+          echo "Found APK: $APK"
+          cp "$APK" lektio-${{ github.ref_name }}.apk
+
       - name: Create source zip
         run: |
           zip -r lektio-${{ github.ref_name }}-source.zip . \
             --exclude "node_modules/*" \
             --exclude "android/build/*" \
             --exclude "android/app/build/*" \
+            --exclude "android/app/.cxx/*" \
             --exclude ".git/*" \
             --exclude ".expo/*"
 
@@ -53,7 +63,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            android/app/build/outputs/apk/release/app-release-unsigned.apk
+            lektio-${{ github.ref_name }}.apk
             lektio-${{ github.ref_name }}-source.zip
           name: Lektio ${{ github.ref_name }}
           body: |
@@ -61,7 +71,7 @@ jobs:
 
             | Download | Description |
             |----------|-------------|
-            | `app-release-unsigned.apk` | Android app — install directly on your device |
+            | `lektio-*.apk` | Android app — install directly on your device |
             | `lektio-*-source.zip` | Clean source code (no node_modules) |
 
             > **Installing the APK:** Enable "Install from unknown sources" in your Android settings, then open the downloaded APK.
