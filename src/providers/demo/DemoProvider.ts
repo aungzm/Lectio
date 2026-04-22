@@ -24,7 +24,7 @@ import {
   type DemoBookRecord,
   type DemoSeriesRecord,
 } from '@/demo/demoData';
-import { getDemoBookCoverUri, getDemoSeriesCoverUri } from '@/demo/covers';
+import { getDemoAuthorCoverUri, getDemoBookCoverUri, getDemoSeriesCoverUri } from '@/demo/covers';
 
 type ReadStatus = 'UNREAD' | 'IN_PROGRESS' | 'READ';
 
@@ -322,6 +322,10 @@ export class DemoProvider implements ILibraryProvider {
 
   getCoverUrl(seriesId: string): string {
     return getDemoSeriesCoverUri(seriesId);
+  }
+
+  getAuthorCoverUrl(authorId: string): string {
+    return getDemoAuthorCoverUri(authorId) ?? '';
   }
 
   async getAuthors(page: number, pageSize: number, search?: string): Promise<Author[]> {
