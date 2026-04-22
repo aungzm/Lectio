@@ -1,10 +1,10 @@
-# Lektio
+# Lectio
 
 A native [Komga](https://komga.org/) client for Android and iOS, focused on books.
 
 ## Why
 
-Most existing Komga clients are built around comics and manga. Lektio is built for readers whose libraries are mostly books: EPUB, PDF, FB2, and similar formats. The goal is a reading-first experience rather than a page-by-page image viewer.
+Most existing Komga clients are built around comics and manga. Lectio is built for readers whose libraries are mostly books: EPUB, PDF, FB2, and similar formats. The goal is a reading-first experience rather than a page-by-page image viewer.
 
 ## Design
 
@@ -38,7 +38,7 @@ You will need a running Komga server and a user account on it.
 
 ### Demo Mode
 
-If you want to share the app with someone who does not have a Komga server, you can run Lektio in a bundled demo mode:
+If you want to share the app with someone who does not have a Komga server, you can run Lectio in a bundled demo mode:
 
 ```bash
 EXPO_PUBLIC_DEMO_MODE=true npx expo start
@@ -106,7 +106,7 @@ Issues and pull requests are welcome. Please open an issue first for larger chan
 
 ## Disclaimer
 
-Lektio is an independent, community-built client and is not affiliated with or endorsed by Komga or Bookfusion.
+Lectio is an independent, community-built client and is not affiliated with or endorsed by Komga or Bookfusion.
 
 ## License
 
