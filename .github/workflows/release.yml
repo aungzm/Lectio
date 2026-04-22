@@ -35,13 +35,9 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Decode release keystore
-        run: echo "$KEYSTORE_BASE64" | base64 -d > android/app/release.keystore
-        env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-
-      - name: Patch build.gradle for release signing
+      - name: Setup release signing
         run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > android/app/release.keystore
           node -e "
           const fs = require('fs');
           let g = fs.readFileSync('android/app/build.gradle', 'utf8');
@@ -50,9 +46,9 @@ jobs:
             \`    signingConfigs {
                   release {
                       storeFile file(\"release.keystore\")
-                      storePassword System.getenv(\"KEYSTORE_STORE_PASSWORD\")
+                      storePassword System.getenv(\"KEYSTORE_PASSWORD\")
                       keyAlias System.getenv(\"KEYSTORE_KEY_ALIAS\")
-                      keyPassword System.getenv(\"KEYSTORE_KEY_PASSWORD\")
+                      keyPassword System.getenv(\"KEYSTORE_PASSWORD\")
                   }
                   debug {\`
           );
@@ -61,8 +57,9 @@ jobs:
             'signingConfig signingConfigs.release'
           );
           fs.writeFileSync('android/app/build.gradle', g);
-          console.log('Signing config patched');
           "
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
 
       - name: Make Gradlew executable
         run: chmod +x android/gradlew
@@ -71,9 +68,8 @@ jobs:
         run: cd android && ./gradlew assembleRelease --no-daemon
         env:
           GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g"
-          KEYSTORE_STORE_PASSWORD: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEYSTORE_KEY_ALIAS: ${{ secrets.KEYSTORE_KEY_ALIAS }}
-          KEYSTORE_KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
 
       - name: Locate and rename APK
         run: |
