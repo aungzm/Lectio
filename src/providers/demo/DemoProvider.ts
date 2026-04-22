@@ -16,7 +16,6 @@ import type {
 } from '../base/ILibraryProvider';
 import { BookFormat } from '../base/ILibraryProvider';
 import {
-  DEMO_TRANSPARENT_COVER,
   demoBooks,
   demoCollections,
   demoLibraries,
@@ -25,6 +24,7 @@ import {
   type DemoBookRecord,
   type DemoSeriesRecord,
 } from '@/demo/demoData';
+import { getDemoBookCoverUri, getDemoSeriesCoverUri } from '@/demo/covers';
 
 type ReadStatus = 'UNREAD' | 'IN_PROGRESS' | 'READ';
 
@@ -291,32 +291,37 @@ export class DemoProvider implements ILibraryProvider {
     progressStore.set(progress.chapterId, progress);
   }
 
-  getCoverUrl(): string {
-    return DEMO_TRANSPARENT_COVER;
+  getBookCoverUrl(bookId: string): string {
+    return getDemoBookCoverUri(bookId);
   }
 
-  getBookCoverUrl(): string {
-    return DEMO_TRANSPARENT_COVER;
+  getVolumeCoverUrl(volumeId: string): string {
+    return getDemoBookCoverUri(volumeId);
   }
 
-  getVolumeCoverUrl(): string {
-    return DEMO_TRANSPARENT_COVER;
+  getLibraryCoverUrl(libraryId: string): string {
+    const firstSeries = demoSeries.find((series) => series.libraryId === libraryId);
+    return firstSeries ? getDemoSeriesCoverUri(firstSeries.id) : '';
   }
 
-  getLibraryCoverUrl(): string {
-    return DEMO_TRANSPARENT_COVER;
+  getCollectionCoverUrl(collectionId: string): string {
+    const collection = demoCollections.find((entry) => entry.id === collectionId);
+    const firstSeriesId = collection?.seriesIds[0];
+    return firstSeriesId ? getDemoSeriesCoverUri(firstSeriesId) : '';
   }
 
-  getCollectionCoverUrl(): string {
-    return DEMO_TRANSPARENT_COVER;
+  getReadListCoverUrl(readListId: string): string {
+    const readList = demoReadLists.find((entry) => entry.id === readListId);
+    const firstBookId = readList?.bookIds[0];
+    return firstBookId ? getDemoBookCoverUri(firstBookId) : '';
   }
 
-  getReadListCoverUrl(): string {
-    return DEMO_TRANSPARENT_COVER;
+  getChapterCoverUrl(chapterId: string): string {
+    return getDemoBookCoverUri(chapterId);
   }
 
-  getChapterCoverUrl(): string {
-    return DEMO_TRANSPARENT_COVER;
+  getCoverUrl(seriesId: string): string {
+    return getDemoSeriesCoverUri(seriesId);
   }
 
   async getAuthors(page: number, pageSize: number, search?: string): Promise<Author[]> {

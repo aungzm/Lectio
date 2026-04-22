@@ -1,0 +1,42 @@
+Place book covers here using these exact filenames:
+
+- `book-alice-1.webp`
+- `book-alice-2.webp`
+- `book-alice-3.webp`
+- `book-alice-4.webp`
+- `book-oz-1.webp`
+- `book-oz-2.webp`
+- `book-oz-3.webp`
+- `book-oz-4.webp`
+- `book-anne-1.webp`
+- `book-anne-2.webp`
+- `book-anne-3.webp`
+- `book-anne-4.webp`
+- `book-curdie-1.webp`
+- `book-curdie-2.webp`
+- `book-curdie-3.webp`
+- `book-burnett-1.webp`
+- `book-burnett-2.webp`
+- `book-burnett-3.webp`
+- `book-austen-1.webp`
+- `book-austen-2.webp`
+- `book-austen-3.webp`
+- `book-austen-4.webp`
+- `book-charlotte-1.webp`
+- `book-charlotte-2.webp`
+- `book-charlotte-3.webp`
+- `book-charlotte-4.webp`
+- `book-scientific-1.webp`
+- `book-scientific-2.webp`
+- `book-scientific-3.webp`
+- `book-scientific-4.webp`
+- `book-stevenson-1.webp`
+- `book-stevenson-2.webp`
+- `book-stevenson-3.webp`
+- `book-stevenson-4.webp`
+- `book-sherlock-1.webp`
+- `book-sherlock-2.webp`
+- `book-sherlock-3.webp`
+- `book-sherlock-4.webp`
+
+Series covers now automatically reuse the first book cover in each series.
