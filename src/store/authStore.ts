@@ -10,7 +10,6 @@ import type { ILibraryProvider, AuthResult } from '@/providers';
 import {
   createDemoAuth,
   createDemoServerConfig,
-  isBundledDemoModeEnabled,
   isDemoServerConfig,
 } from '@/demo/config';
 
@@ -119,23 +118,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   restoreSession: async () => {
     try {
       const raw = await AsyncStorage.getItem(SESSION_KEY);
-      if (!raw) {
-        if (isBundledDemoModeEnabled()) {
-          const config = createDemoServerConfig();
-          const auth = createDemoAuth();
-          const provider = createProvider(config, auth);
-          set({
-            serverConfig: config,
-            auth,
-            provider,
-            isAuthenticated: true,
-            isDemoSession: true,
-            isLoading: false,
-            error: null,
-          });
-        }
-        return;
-      }
+      if (!raw) return;
 
       const { config, auth } = JSON.parse(raw) as { config: ServerConfig; auth: AuthResult };
       if (isDemoServerConfig(config)) {
