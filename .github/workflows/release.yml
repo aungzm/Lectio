@@ -49,29 +49,14 @@ jobs:
           echo "Found APK: $APK"
           cp "$APK" lektio-${{ github.ref_name }}.apk
 
-      - name: Create source zip
-        run: |
-          zip -r lektio-${{ github.ref_name }}-source.zip . \
-            --exclude "node_modules/*" \
-            --exclude "android/build/*" \
-            --exclude "android/app/build/*" \
-            --exclude "android/app/.cxx/*" \
-            --exclude ".git/*" \
-            --exclude ".expo/*"
-
-      - name: Upload APK and source to GitHub Release
+      - name: Upload APK to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            lektio-${{ github.ref_name }}.apk
-            lektio-${{ github.ref_name }}-source.zip
+          files: lektio-${{ github.ref_name }}.apk
           name: Lektio ${{ github.ref_name }}
           body: |
             ## Lektio ${{ github.ref_name }}
 
-            | Download | Description |
-            |----------|-------------|
-            | `lektio-*.apk` | Android app — install directly on your device |
-            | `lektio-*-source.zip` | Clean source code (no node_modules) |
+            Download the APK below to install on your Android device.
 
             > **Installing the APK:** Enable "Install from unknown sources" in your Android settings, then open the downloaded APK.
