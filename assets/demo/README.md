@@ -7,6 +7,8 @@ Recommended format:
 
 Folder layout:
 - `assets/demo/books/book-id.webp`
+- `assets/demo/authors/author-id.webp`
 
 After adding files, register them in:
 - `src/demo/covers.ts`
+- `src/demo/author.ts`

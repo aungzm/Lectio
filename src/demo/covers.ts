@@ -57,6 +57,19 @@ export const DEMO_BOOK_COVER_FILES: Record<string, string> = {
   'book-holmes-4': 'book-sherlock-4.webp',
 };
 
+export const DEMO_AUTHOR_COVER_FILES: Record<string, string> = {
+  'Lewis Carroll|writer': 'author-lewis-carroll.webp',
+  'L. Frank Baum|writer': 'author-l-frank-baum.webp',
+  'L. M. Montgomery|writer': 'author-l-m-montgomery.webp',
+  'George MacDonald|writer': 'author-george-macdonald.webp',
+  'Frances Hodgson Burnett|writer': 'author-frances-hodgson-burnett.webp',
+  'Jane Austen|writer': 'author-jane-austen.webp',
+  'Charlotte Bronte|writer': 'author-charlotte-bronte.webp',
+  'H. G. Wells|writer': 'author-h-g-wells.webp',
+  'Robert Louis Stevenson|writer': 'author-robert-louis-stevenson.webp',
+  'Arthur Conan Doyle|writer': 'author-arthur-conan-doyle.webp',
+};
+
 const demoBookCoverModules: Partial<Record<string, DemoAssetModule>> = {
   'book-alice-1': require('../../assets/demo/books/book-alice-1.webp'),
   'book-alice-2': require('../../assets/demo/books/book-alice-2.webp'),
@@ -98,33 +111,46 @@ const demoBookCoverModules: Partial<Record<string, DemoAssetModule>> = {
   'book-holmes-4': require('../../assets/demo/books/book-sherlock-4.webp'),
 };
 
+const demoAuthorCoverModules: Partial<Record<string, DemoAssetModule>> = {
+  'Lewis Carroll|writer': require('../../assets/demo/authors/author-lewis-carroll.webp'),
+  'L. Frank Baum|writer': require('../../assets/demo/authors/author-l-frank-baum.webp'),
+  'L. M. Montgomery|writer': require('../../assets/demo/authors/author-l-m-montgomery.webp'),
+  'George MacDonald|writer': require('../../assets/demo/authors/author-george-macdonald.webp'),
+  'Frances Hodgson Burnett|writer': require('../../assets/demo/authors/author-frances-hodgson-burnett.webp'),
+  'Jane Austen|writer': require('../../assets/demo/authors/author-jane-austen.webp'),
+  'Charlotte Bronte|writer': require('../../assets/demo/authors/author-charlotte-bronte.webp'),
+  'H. G. Wells|writer': require('../../assets/demo/authors/author-h-g-wells.webp'),
+  'Robert Louis Stevenson|writer': require('../../assets/demo/authors/author-robert-louis-stevenson.webp'),
+  'Arthur Conan Doyle|writer': require('../../assets/demo/authors/author-arthur-conan-doyle.webp'),
+};
+
+const demoSeriesFirstBookMap: Record<string, string> = {
+  'series-alice': 'book-alice-1',
+  'series-oz': 'book-oz-1',
+  'series-anne': 'book-anne-1',
+  'series-princess-curdie': 'book-curdie-1',
+  'series-burnett': 'book-burnett-1',
+  'series-austen': 'book-austen-1',
+  'series-charlotte-bronte': 'book-bronte-1',
+  'series-wells': 'book-wells-1',
+  'series-stevenson': 'book-stevenson-1',
+  'series-holmes': 'book-holmes-1',
+};
+
 function resolveAssetUri(assetModule: DemoAssetModule | undefined): string | null {
   if (!assetModule) return null;
   return Image.resolveAssetSource(assetModule).uri ?? null;
 }
 
 export function getDemoSeriesCoverUri(seriesId: string): string {
-  const firstBookId = Object.entries(DEMO_SERIES_COVER_FILES).find(([id]) => id === seriesId)?.[0];
-  if (firstBookId) {
-    const mappedBookId = {
-      'series-alice': 'book-alice-1',
-      'series-oz': 'book-oz-1',
-      'series-anne': 'book-anne-1',
-      'series-princess-curdie': 'book-curdie-1',
-      'series-burnett': 'book-burnett-1',
-      'series-austen': 'book-austen-1',
-      'series-charlotte-bronte': 'book-bronte-1',
-      'series-wells': 'book-wells-1',
-      'series-stevenson': 'book-stevenson-1',
-      'series-holmes': 'book-holmes-1',
-    }[seriesId];
-    if (mappedBookId) {
-      return getDemoBookCoverUri(mappedBookId);
-    }
-  }
-  return DEMO_TRANSPARENT_COVER;
+  const firstBookId = demoSeriesFirstBookMap[seriesId];
+  return firstBookId ? getDemoBookCoverUri(firstBookId) : DEMO_TRANSPARENT_COVER;
 }
 
 export function getDemoBookCoverUri(bookId: string): string {
   return resolveAssetUri(demoBookCoverModules[bookId]) ?? DEMO_TRANSPARENT_COVER;
+}
+
+export function getDemoAuthorCoverUri(authorId: string): string | null {
+  return resolveAssetUri(demoAuthorCoverModules[authorId]);
 }
