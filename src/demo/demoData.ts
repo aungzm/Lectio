@@ -1,4 +1,4 @@
-import { BookFormat, type BookMetadata, type DetailedMetadata, type PersonInfo } from '@/providers';
+import { BookFormat, type BookMetadata, type DetailedMetadata, type PersonInfo } from '@/providers/base/ILibraryProvider';
 
 export const DEMO_TRANSPARENT_COVER =
   'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';

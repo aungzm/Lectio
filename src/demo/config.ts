@@ -1,4 +1,4 @@
-import type { AuthResult } from '@/providers';
+import type { AuthResult } from '@/providers/base/ILibraryProvider';
 import type { ServerConfig } from '@/store/authStore';
 
 export function isDemoModeEnabled(): boolean {
