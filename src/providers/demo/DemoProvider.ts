@@ -433,11 +433,12 @@ export class DemoProvider implements ILibraryProvider {
   }
 
   async getContinueReading(pageSize: number): Promise<Book[]> {
-    return demoSeries
-      .filter((series) => getSeriesReadStatus(series) === 'IN_PROGRESS')
-      .sort((a, b) => compareDatesDesc(a.updatedAt, b.updatedAt))
+    return demoBooks
+      .filter((book) => book.id === 'book-wells-2')
+      .filter((book) => getBookReadStatus(book) === 'IN_PROGRESS')
+      .sort((a, b) => compareDatesDesc(a.addedAt, b.addedAt))
       .slice(0, pageSize)
-      .map(toSeriesBook);
+      .map(toBook);
   }
 
   async getRecentlyUpdatedSeries(pageSize: number): Promise<Book[]> {
