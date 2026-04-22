@@ -82,7 +82,7 @@ export default function DrawerContent({ state, navigation }: DrawerContentCompon
 
           <View className="mb-3 self-start rounded-full bg-accent-soft px-3 py-2">
             <Text className="text-xs font-semibold uppercase tracking-wide text-accent">
-              Lektio
+              Lectio
             </Text>
           </View>
           <Text className="text-2xl font-bold text-secondary">Library Space</Text>
