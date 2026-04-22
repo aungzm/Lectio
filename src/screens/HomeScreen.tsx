@@ -206,6 +206,10 @@ export default function HomeScreen() {
     nav.dispatch(DrawerActions.jumpTo(screen));
   }, [nav]);
 
+  const isContinueReadingBook = useCallback((book: Book) => {
+    return Boolean(book.seriesId && book.seriesId !== book.id);
+  }, []);
+
   const handleSeriesPress = useCallback((book: Book) => {
     nav.navigate('SeriesDetail', { seriesId: book.id, title: book.title });
   }, [nav]);
@@ -219,6 +223,15 @@ export default function HomeScreen() {
   }, [nav]);
 
   const handleContinueReadingPress = useCallback(async (book: Book) => {
+    if (isContinueReadingBook(book)) {
+      nav.navigate('BookDetail', {
+        chapterId: book.id,
+        seriesId: book.seriesId ?? book.id,
+        title: book.title,
+      });
+      return;
+    }
+
     if (!provider?.getContinuePoint) {
       nav.navigate('SeriesDetail', { seriesId: book.id, title: book.title });
       return;
@@ -241,7 +254,14 @@ export default function HomeScreen() {
     } finally {
       setLoadingContinueId(null);
     }
-  }, [nav, provider]);
+  }, [isContinueReadingBook, nav, provider]);
+
+  const getContinueCoverUri = useCallback((book: Book) => {
+    if (isContinueReadingBook(book)) {
+      return getBookCoverUri(book.id);
+    }
+    return getCoverUri(book.id);
+  }, [getBookCoverUri, getCoverUri, isContinueReadingBook]);
 
   const featuredContinue = continueReading[0] ?? null;
   const remainingContinue = useMemo(() => continueReading.slice(1), [continueReading]);
@@ -319,7 +339,10 @@ export default function HomeScreen() {
               <FeaturedContinueCard
                 book={featuredContinue}
                 onPress={() => handleContinueReadingPress(featuredContinue)}
-                getCoverUri={getCoverUri}
+                getCoverUri={(id) => {
+                  const match = continueReading.find((entry) => entry.id === id);
+                  return match ? getContinueCoverUri(match) : getCoverUri(id);
+                }}
                 loading={loadingContinueId === featuredContinue.id}
               />
               {remainingContinue.length > 0 ? (
@@ -327,7 +350,10 @@ export default function HomeScreen() {
                   <HorizontalShelf
                     data={remainingContinue}
                     onPress={handleContinueReadingPress}
-                    getCoverUri={getCoverUri}
+                    getCoverUri={(id) => {
+                      const match = continueReading.find((entry) => entry.id === id);
+                      return match ? getContinueCoverUri(match) : getCoverUri(id);
+                    }}
                   />
                 </View>
               ) : null}
