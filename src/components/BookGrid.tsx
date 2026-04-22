@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { View, FlatList, TouchableOpacity, Text, ActivityIndicator } from 'react-native';
+import type { NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
 import { CoverImage } from './CoverImage';
 import { EmptyState } from './EmptyState';
 import { ImageWithFallback } from './ImageWithFallback';
@@ -19,6 +20,7 @@ interface BookGridProps<T extends { id: string }> {
   contentPadding?: number;
   titleAlign?: 'center' | 'left';
   cardVariant?: 'book' | 'author';
+  onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 }
 
 export function BookGrid<T extends { id: string }>({
@@ -35,6 +37,7 @@ export function BookGrid<T extends { id: string }>({
   contentPadding = 12,
   titleAlign = 'center',
   cardVariant = 'book',
+  onScroll,
 }: BookGridProps<T>) {
   const { numCols, itemWidth } = useResponsiveGrid();
   const rows = useMemo(() => {
@@ -167,6 +170,8 @@ export function BookGrid<T extends { id: string }>({
       ListFooterComponent={footer}
       onEndReached={onEndReached}
       onEndReachedThreshold={0.5}
+      onScroll={onScroll}
+      scrollEventThrottle={16}
     />
   );
 }

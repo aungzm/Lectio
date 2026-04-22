@@ -1,14 +1,15 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { Layers3, Search, X } from 'lucide-react-native';
+import { AnimatedBrowseTopBar } from '@/components/AnimatedBrowseTopBar';
 import { BookGrid } from '@/components/BookGrid';
-import { BrowseHeaderTitle } from '@/components/BrowseHeaderTitle';
 import { Chip } from '@/components/Chip';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import NavIconButton from '@/components/NavIconButton';
 import { SearchBar } from '@/components/SearchBar';
 import { useCoverUri } from '@/hooks/useCoverUri';
 import { useProviderFetch } from '@/hooks/useProviderFetch';
+import { useScrollAwareHeader } from '@/hooks/useScrollAwareHeader';
 import { useBrowseStore } from '@/store/browseStore';
 import { useThemeColors } from '@/theme/useThemeColors';
 import type { CollectionsScreenProps } from '@/navigation/types';
@@ -21,6 +22,9 @@ export default function CollectionsScreen({ navigation }: CollectionsScreenProps
   const [searchOpen, setSearchOpen] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { accent, primary, secondary } = useThemeColors();
+  const { headerVisible, handleScroll } = useScrollAwareHeader({
+    lockedVisible: searchOpen,
+  });
 
   useProviderFetch((p) => fetchCollections(p));
 
@@ -36,24 +40,12 @@ export default function CollectionsScreen({ navigation }: CollectionsScreenProps
   }, [searchText]);
 
   useLayoutEffect(() => {
-    const searchButtonActive = searchOpen || Boolean(searchText);
-
     navigation.setOptions({
-      headerTitle: () => <BrowseHeaderTitle label="Collections" />,
-      headerTitleAlign: 'center',
-      headerLeft: () => <NavIconButton type="drawer" />,
-      headerRight: () => (
-        <Pressable
-          onPress={() => setSearchOpen((value) => !value)}
-          className={`rounded-full border px-3 py-3 ${
-            searchButtonActive ? 'border-secondary bg-secondary' : 'border-border bg-primary'
-          }`}
-        >
-          {searchButtonActive ? <X size={18} color={primary} /> : <Search size={18} color={secondary} />}
-        </Pressable>
-      ),
+      headerShown: false,
     });
-  }, [navigation, searchOpen, searchText]);
+  }, [navigation]);
+
+  const searchButtonActive = searchOpen || Boolean(searchText);
 
   const filteredCollections = debouncedSearchText
     ? collections.filter((collection) => {
@@ -68,6 +60,22 @@ export default function CollectionsScreen({ navigation }: CollectionsScreenProps
 
   return (
     <View className="flex-1 bg-background">
+      <AnimatedBrowseTopBar
+        title="Collections"
+        visible={headerVisible}
+        leftSlot={<NavIconButton type="drawer" />}
+        rightSlot={
+          <Pressable
+            onPress={() => setSearchOpen((value) => !value)}
+            className={`rounded-full border px-3 py-3 ${
+              searchButtonActive ? 'border-secondary bg-secondary' : 'border-border bg-primary'
+            }`}
+          >
+            {searchButtonActive ? <X size={18} color={primary} /> : <Search size={18} color={secondary} />}
+          </Pressable>
+        }
+      />
+
       <View className="px-4 pb-1">
         {searchOpen ? (
           <View className="mt-2 rounded-[26px] bg-accent-soft">
@@ -109,6 +117,7 @@ export default function CollectionsScreen({ navigation }: CollectionsScreenProps
           </View>
         }
         titleAlign="left"
+        onScroll={handleScroll}
       />
     </View>
   );
