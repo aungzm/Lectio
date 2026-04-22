@@ -1,0 +1,67 @@
+name: Release APK
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    name: Build & Release APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate native Android project
+        run: npx expo prebuild --platform android --no-install
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Make Gradlew executable
+        run: chmod +x android/gradlew
+
+      - name: Build release APK
+        run: cd android && ./gradlew assembleRelease --no-daemon
+        env:
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g"
+
+      - name: Create source zip
+        run: |
+          zip -r lektio-${{ github.ref_name }}-source.zip . \
+            --exclude "node_modules/*" \
+            --exclude "android/build/*" \
+            --exclude "android/app/build/*" \
+            --exclude ".git/*" \
+            --exclude ".expo/*"
+
+      - name: Upload APK and source to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            android/app/build/outputs/apk/release/app-release-unsigned.apk
+            lektio-${{ github.ref_name }}-source.zip
+          name: Lektio ${{ github.ref_name }}
+          body: |
+            ## Lektio ${{ github.ref_name }}
+
+            | Download | Description |
+            |----------|-------------|
+            | `app-release-unsigned.apk` | Android app — install directly on your device |
+            | `lektio-*-source.zip` | Clean source code (no node_modules) |
+
+            > **Installing the APK:** Enable "Install from unknown sources" in your Android settings, then open the downloaded APK.
