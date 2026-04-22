@@ -102,7 +102,7 @@ export default function LoginScreen() {
                 Connect your library
               </Text>
             </View>
-            <Text className="text-3xl font-bold text-secondary">Sign in to Lektio</Text>
+            <Text className="text-3xl font-bold text-secondary">Sign in to Lectio</Text>
             <Text className="mt-2 max-w-[320px] text-sm leading-6 text-tertiary">
               Use your Komga server details, or open the bundled demo library instead.
             </Text>

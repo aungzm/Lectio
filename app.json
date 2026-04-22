@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Lektio",
-    "slug": "lektio",
+    "name": "Lectio",
+    "slug": "lectio",
     "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -22,7 +22,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.lektio"
+      "package": "com.anonymous.lectio"
     },
     "web": {
       "favicon": "./assets/favicon.png"

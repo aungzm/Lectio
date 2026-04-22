@@ -13,7 +13,7 @@ export function isDemoServerConfig(config: ServerConfig | null | undefined): boo
 export function createDemoServerConfig(): ServerConfig {
   return {
     id: 'demo-library',
-    name: 'Lektio Demo Library',
+    name: 'Lectio Demo Library',
     serverUrl: 'demo://library',
     providerType: 'komga',
   };
