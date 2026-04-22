@@ -44,7 +44,7 @@ The aim is a clean, library-first layout with large covers, readable metadata, a
 - React Navigation (bottom tabs + native stack)
 - Zustand for state management
 - Axios for HTTP
-- NativeWind for styling
+- UniWind for styling
 - AsyncStorage for persisted auth and settings
 - Lucide icons
 
