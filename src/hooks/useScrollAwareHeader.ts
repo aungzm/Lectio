@@ -7,6 +7,7 @@ interface UseScrollAwareHeaderOptions {
   hideThreshold?: number;
   showThreshold?: number;
   jitterThreshold?: number;
+  accumulatorResetMs?: number;
   toggleCooldownMs?: number;
 }
 
@@ -14,16 +15,18 @@ export function useScrollAwareHeader(options: UseScrollAwareHeaderOptions = {}) 
   const {
     lockedVisible = false,
     topOffset = 24,
-    hideThreshold = 18,
-    showThreshold = 28,
-    jitterThreshold = 2,
-    toggleCooldownMs = 1000,
+    hideThreshold = 40,
+    showThreshold = 60,
+    jitterThreshold = 6,
+    accumulatorResetMs = 120,
+    toggleCooldownMs = 180,
   } = options;
   const [headerVisible, setHeaderVisible] = useState(true);
   const headerVisibleRef = useRef(true);
   const lastOffsetYRef = useRef(0);
   const lastDirectionRef = useRef<1 | -1 | 0>(0);
   const directionalDistanceRef = useRef(0);
+  const lastEventAtRef = useRef(0);
   const lastToggleAtRef = useRef(0);
 
   useEffect(() => {
@@ -36,6 +39,7 @@ export function useScrollAwareHeader(options: UseScrollAwareHeaderOptions = {}) 
       headerVisibleRef.current = true;
       lastDirectionRef.current = 0;
       directionalDistanceRef.current = 0;
+      lastEventAtRef.current = 0;
       lastToggleAtRef.current = 0;
     }
   }, [lockedVisible]);
@@ -56,15 +60,23 @@ export function useScrollAwareHeader(options: UseScrollAwareHeaderOptions = {}) 
         }
         lastDirectionRef.current = 0;
         directionalDistanceRef.current = 0;
+        lastEventAtRef.current = now;
         lastToggleAtRef.current = now;
         return;
       }
 
       if (Math.abs(deltaFromLastOffset) <= jitterThreshold) {
+        lastEventAtRef.current = now;
         return;
       }
 
       const nextDirection: 1 | -1 = deltaFromLastOffset > 0 ? 1 : -1;
+
+      if (lastEventAtRef.current > 0 && now - lastEventAtRef.current > accumulatorResetMs) {
+        lastDirectionRef.current = 0;
+        directionalDistanceRef.current = 0;
+      }
+      lastEventAtRef.current = now;
 
       if (lastDirectionRef.current !== nextDirection) {
         lastDirectionRef.current = nextDirection;
@@ -95,7 +107,7 @@ export function useScrollAwareHeader(options: UseScrollAwareHeaderOptions = {}) 
         lastToggleAtRef.current = now;
       }
     },
-    [hideThreshold, jitterThreshold, lockedVisible, showThreshold, toggleCooldownMs, topOffset],
+    [accumulatorResetMs, hideThreshold, jitterThreshold, lockedVisible, showThreshold, toggleCooldownMs, topOffset],
   );
 
   return {
