@@ -6,11 +6,9 @@ import {
   Alert,
   Pressable,
   Platform,
-  useWindowDimensions,
 } from 'react-native';
 import { Directory, File as FSFile, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
-import RenderHtml from 'react-native-render-html';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import {
   BookOpen,
@@ -47,21 +45,6 @@ const AGE_RATING_LABELS: Record<number, string> = {
   12: 'Adults Only 18+',
   13: 'X 18+',
   14: 'Not Applicable',
-};
-
-const SYNOPSIS_BASE_STYLES = {
-  body: {
-    color: '#000000',
-    fontSize: 14,
-    lineHeight: 24,
-  },
-  p: {
-    marginTop: 0,
-    marginBottom: 12,
-  },
-  a: {
-    color: '#0ea5e9',
-  },
 };
 
 type ExportDirectoryPicker = typeof Directory & {
@@ -123,7 +106,6 @@ export default function BookDetailScreen() {
     title: string;
   };
   const { provider, auth } = useAuthStore();
-  const { width } = useWindowDimensions();
 
   const [metadata, setMetadata] = useState<DetailedMetadata | null>(null);
   const [book, setBook] = useState<{ pagesTotal: number; format: BookFormat } | null>(null);
@@ -170,14 +152,6 @@ export default function BookDetailScreen() {
       cancelled = true;
     };
   }, [seriesId, chapterId, provider]);
-
-  const synopsisHtml = useMemo(() => {
-    if (!metadata?.summary) return null;
-    const text = metadata.summary.trim();
-    if (!text) return null;
-    if (/<[a-z][\s\S]*>/i.test(text)) return { html: text };
-    return { html: `<p>${text}</p>` };
-  }, [metadata?.summary]);
 
   const synopsisPlain = useMemo(() => {
     if (!metadata?.summary) return '';
@@ -270,7 +244,6 @@ export default function BookDetailScreen() {
   }
 
   const ageLabel = metadata ? AGE_RATING_LABELS[metadata.ageRating] ?? null : null;
-  const contentWidth = width - 64;
   const synopsisNeedsTruncation = synopsisPlain.length > 180;
   const heroFacts = [
     book?.pagesTotal ? { label: 'Pages', value: `${book.pagesTotal}` } : null,
@@ -370,33 +343,21 @@ export default function BookDetailScreen() {
 
       {metadata ? (
         <View className="px-4 pt-4">
-          {synopsisHtml ? (
+          {synopsisPlain.length > 0 ? (
             <SectionCard title="Synopsis">
-              {synopsisExpanded ? (
-                <>
-                  <RenderHtml
-                    contentWidth={contentWidth}
-                    source={synopsisHtml}
-                    tagsStyles={SYNOPSIS_BASE_STYLES}
-                  />
-                  {synopsisNeedsTruncation ? (
-                    <Pressable onPress={() => setSynopsisExpanded(false)}>
-                      <Text className="text-accent text-sm font-medium">Show less</Text>
-                    </Pressable>
-                  ) : null}
-                </>
-              ) : (
-                <>
-                  <Text className="text-sm leading-6 text-secondary" numberOfLines={5}>
-                    {synopsisPlain}
+              <Text
+                className="text-sm leading-6 text-secondary"
+                numberOfLines={synopsisExpanded ? undefined : 5}
+              >
+                {synopsisPlain}
+              </Text>
+              {synopsisNeedsTruncation ? (
+                <Pressable onPress={() => setSynopsisExpanded((value) => !value)} className="mt-2">
+                  <Text className="text-accent text-sm font-medium">
+                    {synopsisExpanded ? 'Show less' : 'Read full synopsis'}
                   </Text>
-                  {synopsisNeedsTruncation ? (
-                    <Pressable onPress={() => setSynopsisExpanded(true)} className="mt-2">
-                      <Text className="text-accent text-sm font-medium">Read full synopsis</Text>
-                    </Pressable>
-                  ) : null}
-                </>
-              )}
+                </Pressable>
+              ) : null}
             </SectionCard>
           ) : null}
 
