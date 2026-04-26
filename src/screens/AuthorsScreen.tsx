@@ -3,12 +3,13 @@ import { View, Text, FlatList, ActivityIndicator, Pressable } from 'react-native
 import { Search, User, X } from 'lucide-react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useBrowseStore } from '@/store/browseStore';
-import { BrowseHeaderTitle } from '@/components/BrowseHeaderTitle';
+import { AnimatedBrowseTopBar } from '@/components/AnimatedBrowseTopBar';
 import { BookGrid } from '@/components/BookGrid';
 import { Chip } from '@/components/Chip';
 import NavIconButton from '@/components/NavIconButton';
 import { SearchBar } from '@/components/SearchBar';
 import { useProviderFetch } from '@/hooks/useProviderFetch';
+import { useScrollAwareHeader } from '@/hooks/useScrollAwareHeader';
 import { useThemeColors } from '@/theme/useThemeColors';
 import type { AuthorsScreenProps } from '@/navigation/types';
 import type { Author } from '@/providers';
@@ -20,6 +21,9 @@ export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { muted, primary, secondary } = useThemeColors();
+  const { headerVisible, handleScroll } = useScrollAwareHeader({
+    lockedVisible: searchOpen,
+  });
 
   useProviderFetch((p) => fetchAuthors(p, 0, searchText || undefined));
 
@@ -40,28 +44,32 @@ export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
   }
 
   useLayoutEffect(() => {
-    const searchButtonActive = searchOpen || Boolean(searchText);
-
     navigation.setOptions({
-      headerTitle: () => <BrowseHeaderTitle label="Authors" />,
-      headerTitleAlign: 'center',
-      headerLeft: () => <NavIconButton type="drawer" />,
-      headerRight: () => (
-        <Pressable
-          onPress={() => setSearchOpen((value) => !value)}
-          className={`rounded-full border px-3 py-3 ${
-            searchButtonActive ? 'border-secondary bg-secondary' : 'border-border bg-primary'
-          }`}
-        >
-          {searchButtonActive ? <X size={18} color={primary} /> : <Search size={18} color={secondary} />}
-        </Pressable>
-      ),
+      headerShown: false,
     });
-  }, [navigation, searchOpen, searchText]);
+  }, [navigation]);
+
+  const searchButtonActive = searchOpen || Boolean(searchText);
 
   if (loadingAuthors && authors.length === 0) {
     return (
       <View className="flex-1 bg-background">
+        <AnimatedBrowseTopBar
+          title="Authors"
+          visible={headerVisible}
+          leftSlot={<NavIconButton type="drawer" />}
+          rightSlot={
+            <Pressable
+              onPress={() => setSearchOpen((value) => !value)}
+              className={`rounded-full border px-3 py-3 ${
+                searchButtonActive ? 'border-secondary bg-secondary' : 'border-border bg-primary'
+              }`}
+            >
+              {searchButtonActive ? <X size={18} color={primary} /> : <Search size={18} color={secondary} />}
+            </Pressable>
+          }
+        />
+
         <View className="px-4 pb-1">
           {searchOpen ? (
             <View className="mt-2 rounded-[26px] bg-accent-soft">
@@ -90,6 +98,22 @@ export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
 
   return (
     <View className="flex-1 bg-background">
+      <AnimatedBrowseTopBar
+        title="Authors"
+        visible={headerVisible}
+        leftSlot={<NavIconButton type="drawer" />}
+        rightSlot={
+          <Pressable
+            onPress={() => setSearchOpen((value) => !value)}
+            className={`rounded-full border px-3 py-3 ${
+              searchButtonActive ? 'border-secondary bg-secondary' : 'border-border bg-primary'
+            }`}
+          >
+            {searchButtonActive ? <X size={18} color={primary} /> : <Search size={18} color={secondary} />}
+          </Pressable>
+        }
+      />
+
       <View className="px-4 pb-1">
         {searchOpen ? (
           <View className="mt-2 rounded-[26px] bg-accent-soft">
@@ -111,6 +135,7 @@ export default function AuthorsScreen({ navigation }: AuthorsScreenProps) {
             <Chip label={`${authors.length} ${authors.length === 1 ? 'author' : 'authors'}`} />
           </View>
         }
+        onScroll={handleScroll}
       />
     </View>
   );
