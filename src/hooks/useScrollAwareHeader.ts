@@ -15,8 +15,8 @@ export function useScrollAwareHeader(options: UseScrollAwareHeaderOptions = {}) 
   const {
     lockedVisible = false,
     topOffset = 24,
-    hideThreshold = 40,
-    showThreshold = 60,
+    hideThreshold = 20, // Minimum scroll distance to trigger hiding the header
+    showThreshold = 40, 
     jitterThreshold = 6,
     accumulatorResetMs = 120,
     toggleCooldownMs = 180,
