@@ -5,7 +5,7 @@ import { BrowseHeaderTitle } from './BrowseHeaderTitle';
 import { useThemeColors } from '@/theme/useThemeColors';
 
 interface AnimatedBrowseTopBarProps {
-  title: string;
+  title?: string;
   visible: boolean;
   leftSlot: React.ReactNode;
   rightSlot?: React.ReactNode;
@@ -63,7 +63,7 @@ export function AnimatedBrowseTopBar({
       >
         <View className="relative min-h-10 items-center justify-center">
           <View className="absolute left-0 top-0 bottom-0 justify-center">{leftSlot}</View>
-          <BrowseHeaderTitle label={title} />
+          {title ? <BrowseHeaderTitle label={title} /> : <View className="h-10" />}
           <View className="absolute right-0 top-0 bottom-0 justify-center">{rightSlot}</View>
         </View>
       </View>

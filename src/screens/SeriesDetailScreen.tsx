@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -16,17 +16,20 @@ import {
   Sparkles,
   User,
 } from 'lucide-react-native';
+import { AnimatedBrowseTopBar } from '@/components/AnimatedBrowseTopBar';
 import { useAuthStore } from '@/store/authStore';
 import { useLibraryStore } from '@/store/libraryStore';
 import { BookGrid } from '@/components/BookGrid';
 import { CoverImage } from '@/components/CoverImage';
 import { LoadingScreen } from '@/components/LoadingScreen';
+import NavIconButton from '@/components/NavIconButton';
 import { SectionCard } from '@/components/SectionCard';
 import { InfoPill } from '@/components/InfoPill';
 import { KeyFact } from '@/components/KeyFact';
 import { PeopleChips } from '@/components/PeopleChips';
 import { CollapsibleChipSection } from '@/components/CollapsibleChipSection';
 import { useProviderFetch } from '@/hooks/useProviderFetch';
+import { useScrollAwareHeader } from '@/hooks/useScrollAwareHeader';
 import { useThemeColors } from '@/theme/useThemeColors';
 import type { Volume, DetailedMetadata } from '@/providers';
 
@@ -116,6 +119,13 @@ export default function SeriesDetailScreen() {
   const [metaLoading, setMetaLoading] = useState(true);
   const [synopsisExpanded, setSynopsisExpanded] = useState(false);
   const { accent, accentSoft, accentSoftStrong, tertiary } = useThemeColors();
+  const { headerVisible, handleScroll } = useScrollAwareHeader();
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerShown: false,
+    });
+  }, [navigation]);
 
   const bookVolumes = volumes[seriesId] ?? [];
 
@@ -187,155 +197,169 @@ export default function SeriesDetailScreen() {
   ].filter((item): item is { label: string; value: string } => Boolean(item));
 
   return (
-    <ScrollView className="flex-1 bg-background" contentContainerClassName="pb-10">
-      <View className="px-4 pt-4">
-        <View className="relative overflow-hidden rounded-[32px] border border-border bg-surface px-5 pb-6 pt-5">
-          <View className="absolute -right-10 -top-12 h-36 w-36 rounded-full bg-accent-soft-strong" />
-          <View className="absolute -left-12 top-28 h-28 w-28 rounded-full bg-accent-soft" />
+    <View className="flex-1 bg-background">
+      <AnimatedBrowseTopBar
+        title="Series"
+        visible={headerVisible}
+        leftSlot={<NavIconButton type="back" />}
+        rightSlot={<View className="w-10" />}
+      />
 
-          <View className="items-center">
-            <View className="h-64 w-44 overflow-hidden rounded-[28px] border border-border bg-border shadow-lg">
-              <CoverImage uri={getSeriesCoverUri()} className="h-full w-full" resizeMode="cover" />
-            </View>
+      <ScrollView
+        className="flex-1 bg-background"
+        contentContainerStyle={{ paddingBottom: 40 }}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+      >
+        <View className="px-4 pt-4">
+          <View className="relative overflow-hidden rounded-[32px] border border-border bg-surface px-5 pb-6 pt-5">
+            <View className="absolute -right-10 -top-12 h-36 w-36 rounded-full bg-accent-soft-strong" />
+            <View className="absolute -left-12 top-28 h-28 w-28 rounded-full bg-accent-soft" />
 
-            <Text className="mt-5 text-center text-3xl font-bold text-secondary" numberOfLines={3}>
-              {title}
-            </Text>
-
-            {authorNames.length > 0 ? (
-              <View className="mt-3 w-full max-w-[320px] flex-row flex-wrap items-center justify-center gap-2 self-center">
-                {authorNames.map((author, index) => (
-                  <InfoPill
-                    key={`${author}-${index}`}
-                    icon={<User size={14} color={tertiary} />}
-                    label={author}
-                  />
-                ))}
+            <View className="items-center">
+              <View className="h-64 w-44 overflow-hidden rounded-[28px] border border-border bg-border shadow-lg">
+                <CoverImage uri={getSeriesCoverUri()} className="h-full w-full" resizeMode="cover" />
               </View>
-            ) : null}
 
-            <View className="mt-4 flex-row flex-wrap items-center justify-center gap-2">
-              <InfoPill
-                icon={<Library size={14} color={tertiary} />}
-                label={bookCountLabel}
-              />
-              {metadata?.releaseYear ? (
+              <Text className="mt-5 text-center text-3xl font-bold text-secondary" numberOfLines={3}>
+                {title}
+              </Text>
+
+              {authorNames.length > 0 ? (
+                <View className="mt-3 w-full max-w-[320px] flex-row flex-wrap items-center justify-center gap-2 self-center">
+                  {authorNames.map((author, index) => (
+                    <InfoPill
+                      key={`${author}-${index}`}
+                      icon={<User size={14} color={tertiary} />}
+                      label={author}
+                    />
+                  ))}
+                </View>
+              ) : null}
+
+              <View className="mt-4 flex-row flex-wrap items-center justify-center gap-2">
                 <InfoPill
-                  icon={<CalendarDays size={14} color={tertiary} />}
-                  label={`${metadata.releaseYear}`}
+                  icon={<Library size={14} color={tertiary} />}
+                  label={bookCountLabel}
                 />
-              ) : null}
-              {metadata?.language ? (
-                <InfoPill
-                  icon={<Languages size={14} color={tertiary} />}
-                  label={metadata.language.toUpperCase()}
-                />
-              ) : null}
-              {statusLabel ? (
-                <InfoPill
-                  icon={<Sparkles size={14} color={tertiary} />}
-                  label={statusLabel}
-                />
-              ) : null}
-              {ageLabel && ageLabel !== 'Unknown' ? (
-                <InfoPill icon={<Shield size={14} color={tertiary} />} label={ageLabel} />
-              ) : null}
+                {metadata?.releaseYear ? (
+                  <InfoPill
+                    icon={<CalendarDays size={14} color={tertiary} />}
+                    label={`${metadata.releaseYear}`}
+                  />
+                ) : null}
+                {metadata?.language ? (
+                  <InfoPill
+                    icon={<Languages size={14} color={tertiary} />}
+                    label={metadata.language.toUpperCase()}
+                  />
+                ) : null}
+                {statusLabel ? (
+                  <InfoPill
+                    icon={<Sparkles size={14} color={tertiary} />}
+                    label={statusLabel}
+                  />
+                ) : null}
+                {ageLabel && ageLabel !== 'Unknown' ? (
+                  <InfoPill icon={<Shield size={14} color={tertiary} />} label={ageLabel} />
+                ) : null}
+              </View>
             </View>
-          </View>
 
-          <View className="mt-5 flex-row flex-wrap gap-3">
-            {heroFacts.map((fact) => (
-              <KeyFact key={`${fact.label}-${fact.value}`} label={fact.label} value={fact.value} />
-            ))}
+            <View className="mt-5 flex-row flex-wrap gap-3">
+              {heroFacts.map((fact) => (
+                <KeyFact key={`${fact.label}-${fact.value}`} label={fact.label} value={fact.value} />
+              ))}
+            </View>
           </View>
         </View>
-      </View>
 
-      <View className="px-4 pt-4">
-        {synopsisPlain.length > 0 ? (
-          <SectionCard title="Synopsis">
-            <Text
-              className="text-sm leading-6 text-secondary"
-              numberOfLines={synopsisExpanded ? undefined : 6}
-            >
-              {synopsisPlain}
-            </Text>
-            {synopsisPlain.length > 180 ? (
-              <Pressable onPress={() => setSynopsisExpanded((value) => !value)} className="mt-2">
-                <Text className="text-sm font-medium text-accent">
-                  {synopsisExpanded ? 'Show less' : 'Read full synopsis'}
-                </Text>
-              </Pressable>
-            ) : null}
-          </SectionCard>
-        ) : null}
-
-        {(metadata?.genres.length || metadata?.tags.length) ? (
-          <SectionCard>
-            <CollapsibleChipSection label="Genres" items={metadata?.genres ?? []} />
-            <CollapsibleChipSection label="Tags" items={metadata?.tags ?? []} />
-          </SectionCard>
-        ) : null}
-
-        {metadata ? (
-          <SectionCard>
-            <PeopleChips label="Penciller" people={metadata.pencillers} />
-            <PeopleChips label="Inker" people={metadata.inkers} />
-            <PeopleChips label="Colorist" people={metadata.colorists} />
-            <PeopleChips label="Letterer" people={metadata.letterers} />
-            <PeopleChips label="Cover Artist" people={metadata.coverArtists} />
-            <PeopleChips label="Editor" people={metadata.editors} />
-            <PeopleChips label="Publisher" people={metadata.publishers} />
-            <PeopleChips label="Translator" people={metadata.translators} />
-            <PeopleChips label="Character" people={metadata.characters} />
-          </SectionCard>
-        ) : null}
-
-        {singleBooks.length > 0 ? (
-          <SectionCard title="Books">
-            <BookGrid
-              items={singleBooks}
-              getCoverUri={(volume) => getBookCoverUri(volume.id)}
-              getTitle={(volume) => volume.chapters[0]?.title || volume.name}
-              onPress={(volume) => {
-                const chapter = volume.chapters[0];
-                handleReadChapter(chapter.id, chapter.title || volume.name);
-              }}
-              scrollEnabled={false}
-              contentPadding={0}
-              titleAlign="left"
-            />
-          </SectionCard>
-        ) : null}
-
-        {multiChapterVolumes.map((volume) => (
-          <SectionCard key={volume.id} title={volumeLabel(volume.name, volume.number)}>
-            {volume.chapters.map((chapter) => (
-              <ChapterRow
-                key={chapter.id}
-                title={chapter.title}
-                pagesRead={chapter.pagesRead}
-                pagesTotal={chapter.pagesTotal}
-                onPress={() => handleReadChapter(chapter.id, chapter.title)}
-              />
-            ))}
-          </SectionCard>
-        ))}
-
-        {bookVolumes.length === 0 && !loadingVolumes ? (
-          <View className="rounded-[28px] border border-border bg-surface px-5 py-8">
-            <View className="items-center">
-              <View className="rounded-full bg-accent-soft p-4">
-                <BookOpen size={24} color={accent} />
-              </View>
-              <Text className="mt-4 text-base font-semibold text-secondary">No books found</Text>
-              <Text className="mt-1 text-center text-sm text-tertiary">
-                This series does not have any readable entries yet.
+        <View className="px-4 pt-4">
+          {synopsisPlain.length > 0 ? (
+            <SectionCard title="Synopsis">
+              <Text
+                className="text-sm leading-6 text-secondary"
+                numberOfLines={synopsisExpanded ? undefined : 6}
+              >
+                {synopsisPlain}
               </Text>
+              {synopsisPlain.length > 180 ? (
+                <Pressable onPress={() => setSynopsisExpanded((value) => !value)} className="mt-2">
+                  <Text className="text-sm font-medium text-accent">
+                    {synopsisExpanded ? 'Show less' : 'Read full synopsis'}
+                  </Text>
+                </Pressable>
+              ) : null}
+            </SectionCard>
+          ) : null}
+
+          {(metadata?.genres.length || metadata?.tags.length) ? (
+            <SectionCard>
+              <CollapsibleChipSection label="Genres" items={metadata?.genres ?? []} />
+              <CollapsibleChipSection label="Tags" items={metadata?.tags ?? []} />
+            </SectionCard>
+          ) : null}
+
+          {metadata ? (
+            <SectionCard>
+              <PeopleChips label="Penciller" people={metadata.pencillers} />
+              <PeopleChips label="Inker" people={metadata.inkers} />
+              <PeopleChips label="Colorist" people={metadata.colorists} />
+              <PeopleChips label="Letterer" people={metadata.letterers} />
+              <PeopleChips label="Cover Artist" people={metadata.coverArtists} />
+              <PeopleChips label="Editor" people={metadata.editors} />
+              <PeopleChips label="Publisher" people={metadata.publishers} />
+              <PeopleChips label="Translator" people={metadata.translators} />
+              <PeopleChips label="Character" people={metadata.characters} />
+            </SectionCard>
+          ) : null}
+
+          {singleBooks.length > 0 ? (
+            <SectionCard title="Books">
+              <BookGrid
+                items={singleBooks}
+                getCoverUri={(volume) => getBookCoverUri(volume.id)}
+                getTitle={(volume) => volume.chapters[0]?.title || volume.name}
+                onPress={(volume) => {
+                  const chapter = volume.chapters[0];
+                  handleReadChapter(chapter.id, chapter.title || volume.name);
+                }}
+                scrollEnabled={false}
+                contentPadding={0}
+                titleAlign="left"
+              />
+            </SectionCard>
+          ) : null}
+
+          {multiChapterVolumes.map((volume) => (
+            <SectionCard key={volume.id} title={volumeLabel(volume.name, volume.number)}>
+              {volume.chapters.map((chapter) => (
+                <ChapterRow
+                  key={chapter.id}
+                  title={chapter.title}
+                  pagesRead={chapter.pagesRead}
+                  pagesTotal={chapter.pagesTotal}
+                  onPress={() => handleReadChapter(chapter.id, chapter.title)}
+                />
+              ))}
+            </SectionCard>
+          ))}
+
+          {bookVolumes.length === 0 && !loadingVolumes ? (
+            <View className="rounded-[28px] border border-border bg-surface px-5 py-8">
+              <View className="items-center">
+                <View className="rounded-full bg-accent-soft p-4">
+                  <BookOpen size={24} color={accent} />
+                </View>
+                <Text className="mt-4 text-base font-semibold text-secondary">No books found</Text>
+                <Text className="mt-1 text-center text-sm text-tertiary">
+                  This series does not have any readable entries yet.
+                </Text>
+              </View>
             </View>
-          </View>
-        ) : null}
-      </View>
-    </ScrollView>
+          ) : null}
+        </View>
+      </ScrollView>
+    </View>
   );
 }
