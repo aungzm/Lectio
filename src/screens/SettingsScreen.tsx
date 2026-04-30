@@ -1,8 +1,9 @@
 import React, { useLayoutEffect } from 'react';
 import { View, Text, ScrollView, Pressable } from 'react-native';
 import { Check, LogOut, MoonStar, Palette, RefreshCw, Server } from 'lucide-react-native';
-import { BrowseHeaderTitle } from '@/components/BrowseHeaderTitle';
+import { AnimatedBrowseTopBar } from '@/components/AnimatedBrowseTopBar';
 import NavIconButton from '@/components/NavIconButton';
+import { useScrollAwareHeader } from '@/hooks/useScrollAwareHeader';
 import { useAuthStore } from '@/store/authStore';
 import { useThemeStore } from '@/store/themeStore';
 import { APP_THEME_NAMES, APP_THEMES } from '@/theme/themes';
@@ -14,25 +15,33 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
   const currentTheme = useThemeStore((state) => state.currentTheme);
   const setTheme = useThemeStore((state) => state.setTheme);
   const { accent, accentContrast, accentDark, danger } = useThemeColors();
+  const { headerVisible, handleScroll } = useScrollAwareHeader();
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerTitle: () => <BrowseHeaderTitle label="Settings" />,
-      headerTitleAlign: 'center',
-      headerLeft: () => <NavIconButton type="drawer" />,
-      headerRight: () => <View className="w-10" />,
-      headerLeftContainerStyle: { paddingLeft: 16 },
-      headerRightContainerStyle: { paddingRight: 16 },
-      headerTitleContainerStyle: { paddingRight: 32 },
+      headerShown: false,
     });
   }, [navigation]);
 
   return (
-    <ScrollView className="flex-1 bg-background" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
-      <View className="mb-4 overflow-hidden rounded-2xl border border-border bg-surface">
-        <View className="flex-row items-center gap-3 border-b border-border px-4 py-4">
-          <View className="rounded-full bg-accent-soft p-3">
-            <Palette size={20} color={accent} />
+    <View className="flex-1 bg-background">
+      <AnimatedBrowseTopBar
+        title="Settings"
+        visible={headerVisible}
+        leftSlot={<NavIconButton type="drawer" />}
+        rightSlot={<View className="w-10" />}
+      />
+
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+      >
+        <View className="mb-4 overflow-hidden rounded-2xl border border-border bg-surface">
+          <View className="flex-row items-center gap-3 border-b border-border px-4 py-4">
+            <View className="rounded-full bg-accent-soft p-3">
+              <Palette size={20} color={accent} />
           </View>
           <View className="flex-1">
             <Text className="text-xs font-semibold uppercase tracking-wide text-tertiary">Appearance</Text>
@@ -83,10 +92,10 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
         </View>
       </View>
 
-      <View className="mb-4 overflow-hidden rounded-2xl border border-border bg-surface">
-        <View className="flex-row items-center gap-3 border-b border-border px-4 py-4">
-          <View className="rounded-full bg-accent-soft p-3">
-            <Server size={20} color={accent} />
+        <View className="mb-4 overflow-hidden rounded-2xl border border-border bg-surface">
+          <View className="flex-row items-center gap-3 border-b border-border px-4 py-4">
+            <View className="rounded-full bg-accent-soft p-3">
+              <Server size={20} color={accent} />
           </View>
           <View className="flex-1">
             <Text className="text-xs font-semibold uppercase tracking-wide text-tertiary">Server</Text>
@@ -105,10 +114,10 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
         </View>
       </View>
 
-      <View className="mb-6 overflow-hidden rounded-2xl border border-border bg-surface">
-        <View className="flex-row items-center gap-3 border-b border-border px-4 py-4">
-          <View className="rounded-full bg-accent-soft p-3">
-            <RefreshCw size={20} color={accent} />
+        <View className="mb-6 overflow-hidden rounded-2xl border border-border bg-surface">
+          <View className="flex-row items-center gap-3 border-b border-border px-4 py-4">
+            <View className="rounded-full bg-accent-soft p-3">
+              <RefreshCw size={20} color={accent} />
           </View>
           <View className="flex-1">
             <Text className="text-xs font-semibold uppercase tracking-wide text-tertiary">KOReader Sync</Text>
@@ -122,13 +131,14 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
         </View>
       </View>
 
-      <Pressable
-        onPress={logout}
-        className="flex-row items-center justify-center gap-2 rounded-2xl border border-danger-border bg-danger-soft px-4 py-4"
-      >
-        <LogOut size={18} color={danger} />
-        <Text className="text-sm font-semibold uppercase tracking-wide text-danger">Sign Out</Text>
-      </Pressable>
-    </ScrollView>
+        <Pressable
+          onPress={logout}
+          className="flex-row items-center justify-center gap-2 rounded-2xl border border-danger-border bg-danger-soft px-4 py-4"
+        >
+          <LogOut size={18} color={danger} />
+          <Text className="text-sm font-semibold uppercase tracking-wide text-danger">Sign Out</Text>
+        </Pressable>
+      </ScrollView>
+    </View>
   );
 }
